@@ -564,28 +564,41 @@ function boardRow(e,i,st){
     ${xi?`<div class="xi">${xi}</div>`:""}
   </div>`;
 }
+function streakRow(e,i,st){
+  const you=st.playerName&&e.n===st.playerName&&(e.c||"")===(st.playerCountry||"");
+  return `<div class="brow r${i+1}${you?" you":""}">
+    <div class="l1"><span class="rank">${i+1}</span><span>${flagOf(e.c)}</span>
+      <span class="bn">${e.n}</span>
+      <span class="bp mono">${e.streak?"🔥 "+e.streak:"—"}</span></div>
+    <div class="l2"><span>${e.days} daily run${e.days===1?"":"s"} · best 🔥${e.best}</span><span>${e.tp} pts all-time</span></div>
+  </div>`;
+}
 function paintBoardPlay(){
   const st=store.get();
   const locked=st.lastRun===utcDay();
-  const bp=$("btn-board-play");
+  const bp=$("btn-board-play"),og=$("board-other");
   if(!bp)return;
-  bp.disabled=locked;
-  bp.textContent=locked?"✓ Run played — back tomorrow":"Play today's run →";
+  bp.style.display=locked?"none":"block";
+  bp.textContent="Play today's run →";
+  og.style.display=locked?"flex":"none";
+  if(locked)og.innerHTML=`<a href="https://38-0.app" target="_blank" rel="noopener">38-0<small>the Invincibles game</small></a><a href="https://82-0.com" target="_blank" rel="noopener">82-0<small>the NFL one</small></a>`;
 }
 async function loadBoard(tab,bust){
   paintBoardPlay();
   BOARD.tab=tab||BOARD.tab;
   $("tab-all").classList.toggle("sel",BOARD.tab==="all");
   $("tab-daily").classList.toggle("sel",BOARD.tab==="daily");
+  $("tab-streaks").classList.toggle("sel",BOARD.tab==="streaks");
   const list=$("board-list");
   try{
-    const j=await API("/api/leaderboard?board="+(BOARD.tab==="daily"?"daily":"alltime")+(bust?"&cb="+Date.now():""));
+    const board=BOARD.tab==="daily"?"daily":BOARD.tab==="streaks"?"streaks":"alltime";
+    const j=await API("/api/leaderboard?board="+board+(bust?"&cb="+Date.now():""));
     const st=store.get();
-    $("board-count").textContent=j.count?j.count+" runs":"";
-    $("board-status").innerHTML=`<span class="livedot"></span> LIVE · world top ${Math.min(50,j.top.length)}${j.updated?` · updated ${fmtAgo(j.now-j.updated)}`:""}`;
+    $("board-count").textContent=j.count?j.count+(BOARD.tab==="streaks"?" regulars":" runs"):"";
+    $("board-status").innerHTML=`<span class="livedot"></span> LIVE · ${BOARD.tab==="streaks"?"longest active daily streaks":"world top "+Math.min(50,j.top.length)}${j.updated?` · updated ${fmtAgo(j.now-j.updated)}`:""}`;
     list.innerHTML=j.top.length
-      ?j.top.map((e,i)=>boardRow(e,i,st)).join("")
-      :`<div class="bempty">${BOARD.tab==="daily"?"Nobody has posted a run today — the first spot is yours.":"No runs posted yet — be the first name on the board."}</div>`;
+      ?(BOARD.tab==="streaks"?j.top.map((e,i)=>streakRow(e,i,st)).join(""):j.top.map((e,i)=>boardRow(e,i,st)).join(""))
+      :`<div class="bempty">${BOARD.tab==="daily"?"Nobody has posted a run today — the first spot is yours.":BOARD.tab==="streaks"?"No daily regulars yet — play the Daily Challenge two days running and start the first streak.":"No runs posted yet — be the first name on the board."}</div>`;
     list.querySelectorAll(".brow").forEach(b=>b.onclick=()=>b.classList.toggle("open"));
   }catch(e){
     list.innerHTML=`<div class="bempty">Leaderboard unreachable — check your connection.</div>`;
@@ -732,6 +745,9 @@ function paintLock(){
   db.disabled=dailyPlayed||locked;
   db.textContent=dailyPlayed?"✓ Played today — back at midnight UTC"
     :locked?"Today's run already used":"Play today's challenge";
+  const og=$("home-other");
+  og.style.display=locked?"flex":"none";
+  if(locked)og.innerHTML=`<a href="https://38-0.app" target="_blank" rel="noopener">38-0<small>the Invincibles game</small></a><a href="https://82-0.com" target="_blank" rel="noopener">82-0<small>the NFL one</small></a>`;
 }
 function paintDaily(){
   const st=store.get();
@@ -779,6 +795,7 @@ $("btn-board-back").onclick=goHome;
 $("btn-board-play").onclick=()=>startRun(false);
 $("tab-all").onclick=()=>loadBoard("all",true);
 $("tab-daily").onclick=()=>loadBoard("daily",true);
+$("tab-streaks").onclick=()=>loadBoard("streaks",true);
 
 $("stat-squads").textContent=SQUADS.length;
 $("stat-players").textContent=SQUADS.reduce((a,s)=>a+s.p.length,0)+"";

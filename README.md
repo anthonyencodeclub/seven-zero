@@ -20,7 +20,8 @@ A free, fan-made World Cup draft game with a **live world leaderboard**. Spin th
 - 🫡 **Hidden leadership** — every player carries a hidden leadership stat; great captains (Moore, Beckenbauer, Varela…) lift the side harder, rally late comebacks and steady penalty shootouts.
 - 💀 **Difficulties** — Classic, Hard (ratings hidden), Legend (brutal draw + hidden ratings). Modes multiply your score.
 - 🗓 **One run per day** — Wordle-style scarcity: spend it on the seeded **Daily Challenge** (same wheel for everyone on Earth, own leaderboard, streaks) or a custom mode. The day burns when the run kicks off; the lock counts down to midnight UTC.
-- 🌍 **Live world leaderboard** — every finished run **saves automatically** under your manager profile (name + country collected up front, email optional and encrypted). All-time and daily tabs, top 100 kept, tap any row to see that player's XI.
+- 🌍 **Live world leaderboard** — every finished run **saves automatically** under your manager profile (name + country collected up front, email optional and encrypted). All-time, daily and **🔥 Regulars** tabs (active daily streaks, days played, cumulative points), top 100 kept, tap any row to see that player's XI.
+- 📬 **Daily reminder emails** — opted-in players get a morning nudge when the new challenge drops (Vercel Cron → `/api/remind`, sends via Resend when `RESEND_API_KEY` is set), with one-click HMAC-signed unsubscribe. After your run is spent, the game points you at the genre siblings, [38-0.app](https://38-0.app) and [82-0.com](https://82-0.com).
 - 🏅 **Points, badges, trophy cabinet** — server-verified scoring with multipliers, 10 unlockable badges, career stats saved locally.
 - 📋 **Share** — emoji result grid via the native share sheet or clipboard.
 
@@ -47,7 +48,9 @@ build.mjs         ← concatenates src/ → index.html (runs on Vercel deploy)
 api/              ← Vercel serverless functions (leaderboard backend)
   token.js        ← HMAC run tokens (anti-instant-replay)
   score.js        ← validate + recompute + store runs, encrypt opt-in emails
-  leaderboard.js  ← cached top-50 reads
+  leaderboard.js  ← cached top-50 reads (alltime / daily / streaks)
+  remind.js       ← daily reminder cron (Resend; dry-runs without key)
+  unsubscribe.js  ← signed one-click unsubscribe → suppression list
 scripts/          ← maintainer tools (run locally with .env.local)
   export-emails.mjs   decrypt + export the opt-in email list as CSV
   rebuild.mjs         rebuild aggregates from raw runs; --remove-name moderation

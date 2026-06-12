@@ -58,6 +58,16 @@ export function signToken(t) {
   return crypto.createHmac('sha256', process.env.TOKEN_KEY || '').update('run:' + t).digest('hex');
 }
 
+/* ---- email reminder plumbing ---- */
+export function decryptEmail(rec) {
+  const key = Buffer.from(process.env.EMAIL_KEY, 'hex');
+  const d = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(rec.iv, 'base64'));
+  d.setAuthTag(Buffer.from(rec.tag, 'base64'));
+  return Buffer.concat([d.update(Buffer.from(rec.ct, 'base64')), d.final()]).toString('utf8');
+}
+export const emailHash = e => crypto.createHash('sha256').update(e.trim().toLowerCase()).digest('hex').slice(0, 32);
+export const signUnsub = h => crypto.createHmac('sha256', process.env.TOKEN_KEY || '').update('unsub:' + h).digest('hex').slice(0, 32);
+
 /* ---- input hygiene ---- */
 const BAD = /(fuck|shit|cunt|nigg|fag|wank|twat|bitch|cock|dick|piss)/i;
 export function cleanName(raw) {
@@ -117,3 +127,22 @@ export function mergeTop(agg, entry) {
 }
 
 export const utcDay = () => new Date().toISOString().slice(0, 10);
+export const utcYesterday = () => new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+
+/* ---- daily-regulars streak board ---- */
+export function bumpStreak(agg, entry, pts) {
+  const key = e => e.n.toLowerCase() + '|' + (e.c || '');
+  let e = (agg.top = agg.top || []).find(x => key(x) === key(entry));
+  if (!e) { e = { n: entry.n, c: entry.c, streak: 0, best: 0, days: 0, tp: 0, last: '' }; agg.top.push(e); }
+  const today = utcDay();
+  if (e.last !== today) {
+    e.streak = e.last === utcYesterday() ? e.streak + 1 : 1;
+    e.best = Math.max(e.best, e.streak);
+    e.days++; e.tp += pts; e.last = today;
+    e.n = entry.n; e.c = entry.c;
+  }
+  agg.top.sort((a, b) => b.streak - a.streak || b.days - a.days || b.tp - a.tp);
+  agg.top = agg.top.slice(0, 200);
+  agg.count = agg.top.length;
+  agg.updated = Date.now();
+}

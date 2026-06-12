@@ -57,4 +57,29 @@ for (const e of entries.filter(e => e.dl)) {
   dailies.get(e.dt).push(e);
 }
 for (const [dt, list_] of dailies) await write('daily-' + dt, buildAgg(list_));
+
+// daily-regulars streaks, recomputed from every daily run
+const byPlayer = new Map();
+for (const e of entries.filter(e => e.dl)) {
+  const k = key(e);
+  if (!byPlayer.has(k)) byPlayer.set(k, { n: e.n, c: e.c, dates: new Map() });
+  const p = byPlayer.get(k);
+  p.dates.set(e.dt, (p.dates.get(e.dt) || 0) + e.p);
+  p.n = e.n; p.c = e.c;
+}
+const streakTop = [];
+for (const p of byPlayer.values()) {
+  const dates = [...p.dates.keys()].sort();
+  let best = 0, cur = 0, prev = null;
+  for (const d of dates) {
+    const prevDay = new Date(Date.parse(d + 'T00:00:00Z') - 864e5).toISOString().slice(0, 10);
+    cur = prev === prevDay ? cur + 1 : 1;
+    best = Math.max(best, cur);
+    prev = d;
+  }
+  streakTop.push({ n: p.n, c: p.c, streak: cur, best, days: dates.length,
+    tp: [...p.dates.values()].reduce((a, b) => a + b, 0), last: dates[dates.length - 1] || '' });
+}
+streakTop.sort((a, b) => b.streak - a.streak || b.days - a.days || b.tp - a.tp);
+await write('streaks', { count: streakTop.length, top: streakTop.slice(0, 200), updated: Date.now() });
 console.error('done');

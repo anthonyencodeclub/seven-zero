@@ -87,6 +87,9 @@ export default async function handler(req, res) {
     rankDaily = mergeTop(day, entry);
     countDaily = day.count;
     await writeAgg(key, day);
+    const streaks = await readAgg('streaks');
+    bumpStreak(streaks, entry, pts);
+    await writeAgg('streaks', streaks);
   }
 
   // optional, consented contact details — encrypted at rest, never listed by any endpoint
