@@ -86,7 +86,7 @@ const pickFrom=a=>a[rnd(a.length)];
 
 const STORE_KEY="seven_zero_stats_v3";
 const STORE_DEF={runs:0,titles:0,perfects:0,bestW:0,bestPts:0,goals:0,topScorers:{},
-  badges:{},streak:0,lastDaily:"",playerName:"",playerCountry:"",playerEmail:"",optin:false,emailSent:0};
+  badges:{},streak:0,lastDaily:"",lastRun:"",playerName:"",playerCountry:"",playerEmail:"",optin:false,emailSent:0};
 const store={
   get(){
     try{

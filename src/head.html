@@ -390,7 +390,7 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="daily">
       <div class="dl">⚡ Daily Challenge<span class="streak" id="daily-streak"></span></div>
       <div class="dd" id="daily-date"></div>
-      <div class="ds">One seeded run, the <b>same wheel for everyone</b> on Earth today. Classic rules, 4-3-3, ×1.1 score bonus. <b>One attempt</b> — saved automatically. New challenge at midnight UTC.</div>
+      <div class="ds">One seeded run, the <b>same wheel for everyone</b> on Earth today. Classic rules, 4-3-3, ×1.1 score bonus. <b>Counts as today's run</b> — saved automatically. New challenge at midnight UTC.</div>
       <button class="btn" id="btn-daily">Play today's challenge</button>
     </div>
 
@@ -412,7 +412,7 @@ footer a{color:rgba(243,236,217,.5)}
       </div>
     </div>
     <div class="multline">Score multiplier: <b id="multline">×1.0</b></div>
-    <button class="btn" id="btn-start">Start new run →</button>
+    <button class="btn" id="btn-start">Start today's run →</button>
     <div class="playas" id="playas"></div>
 
     <div class="panel boardprev">
@@ -433,7 +433,7 @@ footer a{color:rgba(243,236,217,.5)}
       <li><span class="dot"></span><span><b>Out of position costs.</b> One line out of place −4 rating, two lines −9, and anything involving the goalkeeper −15. A striker in goal is your call…</span></li>
       <li><span class="dot"></span><span><b>Chemistry is history.</b> Players bond if they actually played together at a World Cup, share a national shirt, or come from the same era or continent — and natural positions earn ⚡ too.</span></li>
       <li><span class="dot"></span><span><b>Name a captain</b>, then play the tournament live: tactics at half-time, extra time, penalty shootouts — and the occasional line of very famous commentary.</span></li>
-      <li><span class="dot"></span><span><b>The perfect run</b> is seven wins inside normal time: <b>7-0</b>. Every finished run is saved to the world rankings automatically.</span></li>
+      <li><span class="dot"></span><span><b>One run per day.</b> The perfect one is seven wins inside normal time: <b>7-0</b> — every finished run is saved to the world rankings automatically. Make it count.</span></li>
     </div>
     <footer>7-0 is an independent, fan-made game inspired by 38-0.app and 82-0.com. Not affiliated with FIFA or any federation. Player ratings are an unofficial, descriptive interpretation.<br>Leaderboard names are public. Emails are optional, encrypted and never displayed.</footer>
   </section>
@@ -460,7 +460,7 @@ footer a{color:rgba(243,236,217,.5)}
     <button class="btn" id="btn-spin">Spin the wheel</button>
     <div class="pitch" id="pitch"></div>
     <div class="chemline"><span>Chemistry: <b id="chem-n">0/33</b> ⚡</span><span>Team boost: <b id="chem-b">+0.0</b></span></div>
-    <button class="btn ghost" id="btn-restart-draft" style="margin-top:14px">Abandon run</button>
+    <button class="btn ghost" id="btn-restart-draft" style="margin-top:14px">Abandon run · no retry today</button>
   </section>
 
   <!-- SQUAD MODAL -->
@@ -532,7 +532,7 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="bstatus" id="board-status"></div>
     <div id="board-list"><div class="bempty">Loading…</div></div>
     <div class="stack">
-      <button class="btn" id="btn-board-play">Start a run →</button>
+      <button class="btn" id="btn-board-play">Play today's run →</button>
       <button class="btn ghost" id="btn-board-back">← Back</button>
     </div>
   </section>
@@ -555,7 +555,7 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="savemsg" id="r-saved"></div>
     <div class="stack">
       <button class="btn" id="btn-save">🌍 Save to world leaderboard</button>
-      <button class="btn ghost" id="btn-again">Run it back →</button>
+      <button class="btn ghost" id="btn-again">Back home →</button>
       <button class="btn ghost" id="btn-share">Share result</button>
     </div>
     <div class="copied" id="copied"></div>

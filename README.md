@@ -17,7 +17,7 @@ A free, fan-made World Cup draft game with a **live world leaderboard**. Spin th
 - 📜 **Lore** — every squad lands with a line of its history: the Maracanazo, the Disgrace of Gijón, Córdoba '78, the Battle of Santiago, Italia '90…
 - 🧩 **Draft modes** — Classic, **Era Tour** (a new decade each spin), **Dynasty** (one nation, all eras — 25 nations qualify, every major nation has at least 4 squads, Brazil has 9), **Wage Cap** (946 budget, spend wisely).
 - 💀 **Difficulties** — Classic, Hard (ratings hidden), Legend (brutal draw + hidden ratings). Modes multiply your score.
-- ⚡ **Daily Challenge** — one seeded run per day, the same wheel for everyone on Earth, **one attempt only**, with its own leaderboard and streaks.
+- 🗓 **One run per day** — Wordle-style scarcity: spend it on the seeded **Daily Challenge** (same wheel for everyone on Earth, own leaderboard, streaks) or a custom mode. The day burns when the run kicks off; the lock counts down to midnight UTC.
 - 🌍 **Live world leaderboard** — every finished run **saves automatically** under your manager profile (name + country collected up front, email optional and encrypted). All-time and daily tabs, top 100 kept, tap any row to see that player's XI.
 - 🏅 **Points, badges, trophy cabinet** — server-verified scoring with multipliers, 10 unlockable badges, career stats saved locally.
 - 📋 **Share** — emoji result grid via the native share sheet or clipboard.

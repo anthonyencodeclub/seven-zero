@@ -701,20 +701,34 @@ function wireDiffChips(){
       multline();};
   });
 }
+function nextRunMs(){return Date.parse(utcDay()+"T00:00:00Z")+864e5-Date.now();}
+function fmtCountdown(ms){const h=Math.floor(ms/36e5),m=Math.max(1,Math.ceil((ms%36e5)/6e4));return(h?h+"h ":"")+m+"m";}
+function paintLock(){
+  const st=store.get();
+  const locked=st.lastRun===utcDay();
+  const bs=$("btn-start");
+  bs.disabled=locked;
+  bs.textContent=locked?"✓ Today's run played — next in "+fmtCountdown(nextRunMs()):"Start today's run →";
+  const db=$("btn-daily");
+  const dailyPlayed=st.lastDaily===utcDay();
+  db.disabled=dailyPlayed||locked;
+  db.textContent=dailyPlayed?"✓ Played today — back at midnight UTC"
+    :locked?"Today's run already used":"Play today's challenge";
+}
 function paintDaily(){
   const st=store.get();
   const d=new Date();
   $("daily-date").textContent=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:"UTC"})+" (UTC)";
   const active=st.lastDaily===utcDay()||st.lastDaily===new Date(Date.now()-864e5).toISOString().slice(0,10);
   $("daily-streak").textContent=active&&st.streak?"🔥 "+st.streak+"-day streak":"";
-  const played=st.lastDaily===utcDay();
-  $("btn-daily").textContent=played?"✓ Played today — back at midnight UTC":"Play today's challenge";
-  $("btn-daily").disabled=played;
+  paintLock();
 }
 function startRun(daily){
   const st=store.get();
   if(!st.playerName){PENDING_START=!!daily;openProfile({onboard:true});return;}
-  if(daily&&st.lastDaily===utcDay()){paintDaily();return;}
+  if(st.lastRun===utcDay()){goHome();return;}
+  if(daily&&st.lastDaily===utcDay()){goHome();return;}
+  st.lastRun=utcDay();store.set(st);
   resetState(daily);
   buildWheel();renderPitch();
   $("picks-n").textContent=S.slots.length;
@@ -753,6 +767,7 @@ $("stat-players").textContent=SQUADS.reduce((a,s)=>a+s.p.length,0)+"";
 wireMute();
 buildFormChips();buildDraftChips();wireDiffChips();multline();
 renderCabinet();paintDaily();paintProfile();homeBoardPreview();boardPolling();
+setInterval(()=>{if($("home").classList.contains("on"))paintLock();},30000);
 let rsT=null;
 addEventListener("resize",()=>{clearTimeout(rsT);rsT=setTimeout(()=>{
   if(S&&S.slots&&$("draft").classList.contains("on")&&!S.spinning)buildWheel();
