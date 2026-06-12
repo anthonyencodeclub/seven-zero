@@ -1,0 +1,13 @@
+{
+  "name": "seven-zero",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "export-emails": "node scripts/export-emails.mjs"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.4.0"
+  }
+}

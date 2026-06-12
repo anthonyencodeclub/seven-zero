@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>7-0 | Build the Ultimate World Cup XI</title>
+<meta name="description" content="7-0 is a free World Cup draft game. Spin the wheel, draft legends from 64 iconic World Cup squads from 1950 to 2022, pick your formation and captain, then live out the whole tournament — and climb the live world leaderboard. Can you win all seven?">
+<meta name="theme-color" content="#06231b">
+<meta property="og:title" content="7-0 — Build the Ultimate World Cup XI">
+<meta property="og:description" content="Spin the wheel. Draft from 64 legendary World Cup squads (1950–2022). Win all seven and climb the world leaderboard.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://seven-zero-navy.vercel.app">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
+<style>
+:root{
+  --night:#06231b; --pitch:#0c3527; --pitch-2:#0f4030;
+  --chalk:#f3ecd9; --chalk-dim:#bdb49c;
+  --gold:#e3b34c; --gold-deep:#b8862c; --gold-hi:#ffe9a8;
+  --loss:#d96459; --draw:#c9c2ae;
+  --card:#0a2c21; --line:rgba(243,236,217,.14);
+  --silver:#b9c4c9; --bronze:#c08a5a; --icon1:#ffe9a8; --icon2:#e3b34c;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--night);color:var(--chalk);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(120% 60% at 50% -10%, rgba(227,179,76,.10), transparent 60%)}
+#app{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:0 16px 48px;min-height:100%}
+.screen{display:none;animation:fadeIn .35s ease}
+.screen.on{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+.eyebrow{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.display{font-weight:900;letter-spacing:-.03em;line-height:.9;font-stretch:condensed;text-transform:uppercase}
+.mono{font-variant-numeric:tabular-nums}
+
+.btn{display:block;width:100%;border:0;cursor:pointer;border-radius:10px;
+  padding:16px 20px;font-size:17px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  background:linear-gradient(180deg,var(--gold),var(--gold-deep));color:#241a06;
+  box-shadow:0 6px 18px rgba(227,179,76,.25), inset 0 1px 0 rgba(255,255,255,.35);
+  transition:transform .1s ease, filter .15s ease}
+.btn:active{transform:scale(.98)}
+.btn:disabled{filter:grayscale(.7) brightness(.6);cursor:default;box-shadow:none}
+.btn.ghost{background:transparent;color:var(--chalk);border:1px solid var(--line);box-shadow:none;font-weight:700}
+.btn.small{padding:10px 14px;font-size:13px;width:auto;display:inline-block}
+.btn:focus-visible,.slot:focus-visible,.pl:focus-visible,.chip:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+#mute{position:fixed;top:10px;right:10px;z-index:60;width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--line);background:rgba(10,44,33,.85);color:var(--chalk);font-size:16px;cursor:pointer;backdrop-filter:blur(3px)}
+
+/* ---------- home ---------- */
+#home{padding-top:46px;text-align:center}
+.mark{font-size:clamp(84px,26vw,128px);font-weight:900;letter-spacing:-.05em;line-height:.85;
+  color:var(--chalk);position:relative;display:inline-block;margin:14px 0 6px}
+.mark em{font-style:normal;color:var(--gold)}
+.mark::after{content:"";display:block;height:5px;margin-top:12px;border-radius:3px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.sub{font-size:16px;color:var(--chalk-dim);max-width:380px;margin:10px auto 18px;line-height:1.45}
+.sub b{color:var(--chalk)}
+.stats{display:flex;justify-content:center;gap:26px;margin:18px 0 20px}
+.stat .n{font-size:23px;font-weight:900;color:var(--gold)}
+.stat .l{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--chalk-dim);margin-top:2px}
+
+.panel{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:16px;margin:14px 0;text-align:left}
+.panel h2{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:flex;justify-content:space-between;align-items:baseline}
+.panel h2 .more{font-size:10px;letter-spacing:.08em;color:var(--chalk-dim);cursor:pointer;text-transform:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{flex:1;min-width:88px;border:1.5px solid var(--line);border-radius:10px;background:transparent;color:var(--chalk-dim);
+  padding:11px 6px;font-size:13px;font-weight:800;cursor:pointer;text-align:center;letter-spacing:.03em}
+.chip small{display:block;font-weight:600;font-size:10.5px;color:var(--chalk-dim);margin-top:3px;letter-spacing:0;text-transform:none}
+.chip.sel{border-color:var(--gold);color:var(--gold);background:rgba(227,179,76,.10)}
+.chip:disabled{opacity:.45;cursor:default}
+.modes .chip{min-width:0}
+.multline{font-size:12.5px;color:var(--chalk-dim);text-align:center;margin:10px 0 4px}
+.multline b{color:var(--gold)}
+
+.daily{border:1.5px solid var(--gold-deep);border-radius:14px;margin:18px 0 6px;padding:16px;text-align:left;
+  background:linear-gradient(160deg,rgba(227,179,76,.12),rgba(10,44,33,.6));position:relative;overflow:hidden}
+.daily::after{content:"";position:absolute;inset:-40% -20%;pointer-events:none;
+  background:radial-gradient(40% 40% at 80% 10%, rgba(255,233,168,.16), transparent 70%)}
+.daily .dl{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:800}
+.daily .dd{font-size:15px;font-weight:800;margin:6px 0 2px}
+.daily .ds{font-size:12.5px;color:var(--chalk-dim);line-height:1.45;margin-bottom:12px}
+.daily .ds b{color:var(--gold)}
+.daily .btn{position:relative;z-index:1}
+.streak{display:inline-block;font-size:12px;font-weight:800;color:var(--gold);margin-left:8px}
+
+.boardprev .row3{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:6px 0;border-bottom:1px solid rgba(243,236,217,.06);color:var(--chalk-dim)}
+.boardprev .row3:last-of-type{border:0}
+.boardprev .row3 b{color:var(--chalk)}
+.boardprev .row3 .pts{margin-left:auto;color:var(--gold);font-weight:800}
+.boardprev .empty{font-size:13px;color:var(--chalk-dim);padding:4px 0}
+
+.cabinet .row2{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;color:var(--chalk-dim);border-bottom:1px solid rgba(243,236,217,.06)}
+.cabinet .row2:last-child{border:0}
+.cabinet .row2 b{color:var(--chalk)}
+.cabinet .gold{color:var(--gold)}
+.badges{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+.badge{border:1px solid var(--line);border-radius:10px;padding:8px 4px;text-align:center;background:rgba(243,236,217,.03)}
+.badge .be{font-size:20px;line-height:1.2;filter:grayscale(1) brightness(.45)}
+.badge .bn{font-size:8.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--chalk-dim);margin-top:4px;font-weight:700}
+.badge.got .be{filter:none}
+.badge.got{border-color:var(--gold-deep);background:rgba(227,179,76,.08)}
+.badge.got .bn{color:var(--gold)}
+
+.howto{margin-top:26px;text-align:left;border-top:1px solid var(--line);padding-top:20px}
+.howto h2{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.howto li{list-style:none;display:flex;gap:12px;margin-bottom:11px;color:var(--chalk-dim);font-size:14px;line-height:1.45}
+.howto li b{color:var(--chalk)}
+.howto .dot{flex:0 0 8px;height:8px;border-radius:50%;background:var(--gold);margin-top:6px}
+
+/* ---------- draft ---------- */
+#draft{padding-top:18px}
+.topbar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.topbar .t{font-weight:900;font-size:20px;letter-spacing:-.02em}
+.topbar .t em{font-style:normal;color:var(--gold)}
+.picksleft{font-size:13px;color:var(--chalk-dim)}
+.picksleft b{color:var(--gold);font-size:16px}
+.draftmeta{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--chalk-dim);margin-bottom:8px}
+.draftmeta b{color:var(--gold)}
+.wheelwrap{position:relative;width:min(320px,82vw);margin:4px auto 8px;aspect-ratio:1}
+.wheel{position:absolute;inset:0;border-radius:50%;background:var(--pitch);will-change:transform}
+.wheelring{position:absolute;inset:-7px;border-radius:50%;pointer-events:none;
+  border:3px solid var(--gold-deep);
+  box-shadow:0 0 0 6px rgba(227,179,76,.08), 0 18px 44px rgba(0,0,0,.55), inset 0 0 70px rgba(0,0,0,.5)}
+.wheelring::before{content:"";position:absolute;inset:4px;border-radius:50%;border:1px solid rgba(255,233,168,.25)}
+.wheel .seg-flag{position:absolute;left:50%;top:50%;font-size:13px;transform-origin:0 0;user-select:none;
+  text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.wheel .seg-flag.dim{font-size:11.5px;opacity:.92}
+.hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:33%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #16493a, var(--night) 75%);
+  border:2px solid var(--gold-deep);display:flex;align-items:center;justify-content:center;font-size:30px;z-index:2;
+  box-shadow:0 4px 18px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,233,168,.25)}
+.hub::after{content:"";position:absolute;inset:8%;border-radius:50%;border:1px dashed rgba(227,179,76,.3)}
+.pointer{position:absolute;top:-15px;left:50%;z-index:3;width:0;height:0;margin-left:-13px;
+  border-left:13px solid transparent;border-right:13px solid transparent;
+  border-top:24px solid var(--gold);filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));
+  transform-origin:50% 18%;transition:transform .09s ease-out}
+.wheelflash{position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0;
+  background:radial-gradient(closest-side, rgba(255,233,168,.32), transparent 72%)}
+.wheelflash.on{animation:wflash .9s ease}
+@keyframes wflash{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+.landed{text-align:center;min-height:24px;font-size:15px;font-weight:700;margin-bottom:10px}
+.landed span{color:var(--gold)}
+
+.pitch{border:2px solid var(--line);border-radius:14px;padding:18px 8px 14px;margin-top:16px;
+  background:repeating-linear-gradient(180deg,var(--pitch) 0 56px,var(--pitch-2) 56px 112px);position:relative}
+.pitch::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:110px;height:110px;border:2px solid rgba(243,236,217,.12);border-radius:50%;pointer-events:none}
+.row{display:flex;justify-content:center;gap:7px;margin-bottom:13px}
+.row:last-child{margin-bottom:0}
+.slot{flex:1;max-width:104px;min-height:66px;border-radius:10px;border:1.5px dashed rgba(243,236,217,.3);
+  background:rgba(6,35,27,.55);padding:7px 5px;text-align:center;
+  display:flex;flex-direction:column;justify-content:center;gap:2px;position:relative}
+.slot .ptag{font-size:10px;letter-spacing:.16em;color:var(--chalk-dim);text-transform:uppercase;font-weight:700}
+.slot .nm{font-size:12px;font-weight:800;line-height:1.12;color:var(--chalk);overflow:hidden}
+.slot .meta{font-size:10px;color:var(--gold)}
+.slot.filled{border-style:solid}
+.slot.justin{animation:pop .45s ease}
+@keyframes pop{0%{transform:scale(.7);opacity:.2}70%{transform:scale(1.06)}100%{transform:none;opacity:1}}
+.slot.t-bronze{border-color:var(--bronze);background:rgba(192,138,90,.10)}
+.slot.t-silver{border-color:var(--silver);background:rgba(185,196,201,.10)}
+.slot.t-gold{border-color:var(--gold);background:rgba(227,179,76,.12)}
+.slot.t-icon{border-color:var(--icon1);background:linear-gradient(160deg,rgba(255,233,168,.18),rgba(227,179,76,.10));
+  box-shadow:0 0 14px rgba(255,233,168,.22)}
+.slot.t-plain{border-color:var(--gold-deep);background:rgba(227,179,76,.08)}
+.cap{position:absolute;top:-7px;right:-5px;background:var(--gold);color:#241a06;font-size:10px;font-weight:900;
+  width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.chemline{display:flex;justify-content:space-between;font-size:12px;color:var(--chalk-dim);margin-top:10px;padding:0 4px}
+.chemline b{color:var(--gold)}
+
+/* modals */
+.modal-bg{position:fixed;inset:0;background:rgba(2,14,10,.78);backdrop-filter:blur(3px);z-index:10;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{width:100%;max-width:560px;max-height:86vh;overflow:auto;border-radius:18px 18px 0 0;
+  background:var(--card);border:1px solid var(--line);border-bottom:0;padding:20px 16px 28px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.modal h3{font-size:20px;font-weight:900}
+.modal .yr{color:var(--gold)}
+.modal .hint{font-size:13px;color:var(--chalk-dim);margin:4px 0 14px}
+.pl{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  background:rgba(243,236,217,.04);border:1px solid var(--line);border-radius:10px;
+  padding:11px 12px;margin-bottom:8px;cursor:pointer;color:var(--chalk);font-size:15px}
+.pl:not(:disabled):active{background:rgba(227,179,76,.12)}
+.pl:disabled{opacity:.32;cursor:default}
+.pl .pos{flex:0 0 42px;text-align:center;font-size:11px;font-weight:800;letter-spacing:.06em;
+  border:1px solid var(--line);border-radius:6px;padding:4px 0;color:var(--chalk-dim)}
+.pl .pname{flex:1;font-weight:700;min-width:0}
+.pl .rt{font-weight:900;font-size:15px;flex:0 0 auto;padding:3px 9px;border-radius:7px}
+.rt.t-bronze{color:#2b1a0c;background:var(--bronze)}
+.rt.t-silver{color:#1c2326;background:var(--silver)}
+.rt.t-gold{color:#241a06;background:var(--gold)}
+.rt.t-icon{color:#241a06;background:linear-gradient(160deg,var(--icon1),var(--icon2));box-shadow:0 0 10px rgba(255,233,168,.5)}
+.rt.t-plain{color:var(--chalk);background:rgba(243,236,217,.1)}
+.respin{margin-top:6px}
+
+/* save-score modal */
+.field{margin-bottom:12px;text-align:left}
+.field label{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--chalk-dim);font-weight:700;margin-bottom:6px}
+.field input,.field select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);
+  background:rgba(6,35,27,.7);color:var(--chalk);font-size:16px;font-weight:600}
+.field input:focus,.field select:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
+.optin{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--chalk-dim);line-height:1.45;margin:4px 0 14px;text-align:left;cursor:pointer}
+.optin input{width:18px;height:18px;margin-top:1px;accent-color:var(--gold);flex:0 0 auto}
+.privacy{font-size:11px;color:rgba(243,236,217,.45);line-height:1.5;margin-top:10px;text-align:left}
+.savemsg{min-height:20px;font-size:13.5px;font-weight:700;color:var(--gold);margin-top:10px;text-align:center}
+.savemsg.err{color:var(--loss)}
+.hpfield{position:absolute;left:-5000px;top:-5000px;opacity:0;height:1px;width:1px;overflow:hidden}
+
+/* ---------- cup ---------- */
+#cup{padding-top:18px}
+.bracket{display:flex;gap:6px;margin:4px 0 14px}
+.bpill{flex:1;text-align:center;font-size:10px;letter-spacing:.06em;font-weight:800;text-transform:uppercase;
+  border:1px solid var(--line);border-radius:8px;padding:7px 2px;color:var(--chalk-dim)}
+.bpill.now{border-color:var(--gold);color:var(--gold)}
+.bpill.won{border-color:var(--gold-deep);color:var(--gold-deep);background:rgba(227,179,76,.07)}
+.bpill.lost{border-color:var(--loss);color:var(--loss)}
+.roundlabel{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:800;margin:22px 0 10px}
+.match{border:1px solid var(--line);border-radius:12px;background:var(--card);
+  padding:13px 14px;margin-bottom:10px;animation:fadeIn .4s ease}
+.match .ln{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.match .team{font-weight:800;font-size:15px;display:flex;align-items:center;gap:7px;min-width:0}
+.match .team .f{font-size:18px}
+.match .score{font-weight:900;font-size:21px;letter-spacing:.02em}
+.match .score.w{color:var(--gold)} .match .score.l{color:var(--loss)} .match .score.d{color:var(--draw)}
+.match .scorers{font-size:12px;color:var(--chalk-dim);margin-top:7px;line-height:1.5}
+.match .pens{font-size:12.5px;color:var(--gold);margin-top:6px;font-weight:700}
+.match .fstats{display:flex;gap:14px;font-size:11px;color:var(--chalk-dim);margin-top:8px;border-top:1px solid rgba(243,236,217,.07);padding-top:8px}
+.live .minute{font-size:12px;color:var(--gold);font-weight:900;letter-spacing:.08em}
+.live .log{margin-top:9px;font-size:13px;line-height:1.65;color:var(--chalk-dim);max-height:150px;overflow:hidden;display:flex;flex-direction:column-reverse}
+.live .log .goalus{color:var(--gold);font-weight:800}
+.live .log .goalthem{color:var(--loss);font-weight:800}
+.live .log .big{color:var(--chalk);font-weight:700}
+.tactics{display:flex;gap:8px;margin-top:10px}
+.tactics .tbtn{flex:1;border:1.5px solid var(--gold-deep);background:rgba(227,179,76,.08);color:var(--gold);
+  border-radius:9px;padding:9px 4px;font-size:11.5px;font-weight:800;letter-spacing:.04em;cursor:pointer;text-transform:uppercase}
+.tactics .tbtn small{display:block;font-size:9.5px;font-weight:600;color:var(--chalk-dim);text-transform:none;letter-spacing:0;margin-top:2px}
+.tactics .tbtn.sel{background:var(--gold);color:#241a06}
+.tacnote{font-size:11px;color:var(--chalk-dim);margin-top:6px}
+.penrow{font-size:17px;letter-spacing:3px;margin-top:6px}
+.penrow .who{font-size:11px;letter-spacing:.1em;color:var(--chalk-dim);display:inline-block;width:52px;text-transform:uppercase;font-weight:800}
+.table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:4px}
+.table th{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--chalk-dim);text-align:right;padding:6px 6px;border-bottom:1px solid var(--line)}
+.table th:first-child{text-align:left}
+.table td{padding:7px 6px;text-align:right;border-bottom:1px solid rgba(243,236,217,.06)}
+.table td:first-child{text-align:left;font-weight:700}
+.table tr.you td{color:var(--gold)}
+.cupbtns{display:flex;gap:10px;margin-top:16px}
+.cupbtns .btn{flex:1}
+#btn-skip{flex:0 0 92px;display:none}
+
+/* ---------- leaderboard ---------- */
+#board{padding-top:18px}
+.btabs{display:flex;gap:8px;margin:14px 0}
+.btab{flex:1;border:1.5px solid var(--line);background:transparent;color:var(--chalk-dim);border-radius:10px;
+  padding:11px;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.btab.sel{border-color:var(--gold);color:var(--gold);background:rgba(227,179,76,.1)}
+.bstatus{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--chalk-dim);margin-bottom:10px;min-height:18px}
+.livedot{width:8px;height:8px;border-radius:50%;background:#27c084;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.brow{border:1px solid var(--line);border-radius:11px;background:var(--card);padding:11px 12px;margin-bottom:8px;cursor:pointer}
+.brow .l1{display:flex;align-items:center;gap:9px}
+.brow .rank{flex:0 0 34px;font-weight:900;font-size:15px;color:var(--chalk-dim);text-align:center}
+.brow.r1 .rank{color:var(--gold)} .brow.r2 .rank{color:var(--silver)} .brow.r3 .rank{color:var(--bronze)}
+.brow .bn{font-weight:800;font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brow .bm{font-size:10px;color:var(--chalk-dim);letter-spacing:.04em}
+.brow .bp{margin-left:auto;font-weight:900;font-size:16px;color:var(--gold);flex:0 0 auto}
+.brow .l2{font-size:11px;color:var(--chalk-dim);margin-top:5px;display:flex;justify-content:space-between;gap:8px}
+.brow .xi{display:none;font-size:11.5px;color:var(--chalk-dim);line-height:1.7;margin-top:8px;border-top:1px solid rgba(243,236,217,.07);padding-top:8px}
+.brow.open .xi{display:block}
+.brow.you{border-color:var(--gold);box-shadow:0 0 14px rgba(227,179,76,.15)}
+.bempty{text-align:center;color:var(--chalk-dim);font-size:13.5px;padding:26px 10px;line-height:1.6}
+
+/* ---------- result ---------- */
+#result{padding-top:44px;text-align:center}
+.trophy{font-size:84px;line-height:1;margin-bottom:8px;display:inline-block}
+.trophy.win{animation:lift 1s ease}
+@keyframes lift{0%{transform:translateY(30px) scale(.6);opacity:0}60%{transform:translateY(-8px) scale(1.08)}100%{transform:none;opacity:1}}
+.verdict{font-size:33px;font-weight:900;margin-bottom:6px;text-transform:uppercase}
+.verdict.gold{color:var(--gold)} .verdict.red{color:var(--loss)}
+.bigpts{font-size:44px;font-weight:900;color:var(--gold);letter-spacing:-.02em;margin:2px 0 0}
+.bigpts small{font-size:15px;letter-spacing:.18em;color:var(--chalk-dim);font-weight:700}
+.breakdown{font-size:12.5px;color:var(--chalk-dim);margin:6px auto 2px;max-width:340px;line-height:1.7}
+.breakdown b{color:var(--chalk)}
+.record{font-size:15px;color:var(--chalk-dim);margin:8px 0 4px}
+.record b{color:var(--chalk)}
+.grid{font-size:22px;letter-spacing:4px;margin:8px 0 2px}
+.perfect{display:inline-block;margin:12px 0 4px;padding:8px 18px;border:1.5px solid var(--gold);border-radius:999px;
+  color:var(--gold);font-weight:900;letter-spacing:.18em;font-size:13px;text-transform:uppercase;
+  box-shadow:0 0 24px rgba(227,179,76,.25)}
+.rbadges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0 0}
+.rbadge{border:1px solid var(--gold-deep);background:rgba(227,179,76,.1);color:var(--gold);
+  font-size:11.5px;font-weight:800;border-radius:999px;padding:6px 12px;animation:pop .5s ease}
+.awards{display:flex;gap:10px;margin:18px 0 0}
+.award{flex:1;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:13px 10px;text-align:center}
+.award .al{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:800}
+.award .av{font-size:14.5px;font-weight:800;margin-top:6px;line-height:1.3}
+.award .as{font-size:11.5px;color:var(--chalk-dim);margin-top:2px}
+.finalxi{margin:14px 0 8px;text-align:left;border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--card)}
+.finalxi h4{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.finalxi .li{display:flex;justify-content:space-between;font-size:13.5px;padding:3px 0;color:var(--chalk-dim)}
+.finalxi .li b{color:var(--chalk);font-weight:700}
+.stack{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.copied{font-size:13px;color:var(--gold);min-height:18px;margin-top:8px}
+footer{margin-top:48px;text-align:center;font-size:11px;color:rgba(243,236,217,.35);line-height:1.6}
+footer a{color:rgba(243,236,217,.5)}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<button id="mute" aria-label="Toggle sound">🔊</button>
+<div id="app">
+
+  <!-- HOME -->
+  <section class="screen on" id="home">
+    <div class="eyebrow">Unofficial Fan Draft Game</div>
+    <div class="mark display">7<em>-</em>0</div>
+    <p class="sub">Build the ultimate <b>World Cup XI</b> from seven decades of legends. Pick your shape, name your captain, live out the whole tournament — then take on the <b>world leaderboard</b>.</p>
+    <div class="stats">
+      <div class="stat"><div class="n mono" id="stat-squads"></div><div class="l">Squads</div></div>
+      <div class="stat"><div class="n mono" id="stat-players"></div><div class="l">Legends</div></div>
+      <div class="stat"><div class="n mono">1950–2022</div><div class="l">World Cups</div></div>
+    </div>
+
+    <div class="daily">
+      <div class="dl">⚡ Daily Challenge<span class="streak" id="daily-streak"></span></div>
+      <div class="dd" id="daily-date"></div>
+      <div class="ds">One seeded run, the <b>same wheel for everyone</b> on Earth today. Classic rules, 4-3-3, ×1.1 score bonus. New challenge at midnight UTC.</div>
+      <button class="btn" id="btn-daily">Play today's challenge</button>
+    </div>
+
+    <div class="panel">
+      <h2>Formation</h2>
+      <div class="chips" id="formchips"></div>
+    </div>
+    <div class="panel">
+      <h2>Draft mode</h2>
+      <div class="chips modes" id="draftchips"></div>
+      <div class="chips modes" id="dynastychips" style="margin-top:8px;display:none"></div>
+    </div>
+    <div class="panel">
+      <h2>Difficulty</h2>
+      <div class="chips modes" id="diffchips">
+        <button class="chip sel" data-m="classic">Classic<small>standard opponents</small></button>
+        <button class="chip" data-m="hard">Hard<small>ratings hidden</small></button>
+        <button class="chip" data-m="legend">Legend<small>brutal draw + hidden</small></button>
+      </div>
+    </div>
+    <div class="multline">Score multiplier: <b id="multline">×1.0</b></div>
+    <button class="btn" id="btn-start">Start new run →</button>
+
+    <div class="panel boardprev">
+      <h2>🌍 World leaderboard <span class="more" id="btn-board-home">Full table →</span></h2>
+      <div id="home-board-rows"><div class="empty">Loading the world's best runs…</div></div>
+    </div>
+
+    <div class="panel cabinet" id="cabinet" style="display:none">
+      <h2>Trophy cabinet</h2>
+      <div id="cabinet-rows"></div>
+      <div class="badges" id="badges"></div>
+    </div>
+
+    <div class="howto">
+      <h2>How to play</h2>
+      <li><span class="dot"></span><span><b>Spin the wheel.</b> Each spin lands on a real nation at a specific World Cup — Brazil 1970, Hungary 1954, Argentina 2022…</span></li>
+      <li><span class="dot"></span><span><b>Draft one player</b> per spin. You hold <b>2 re-spins</b> to reject a squad you don't fancy.</span></li>
+      <li><span class="dot"></span><span><b>Chemistry counts.</b> Teammates from the same World Cup squad link up and boost your team.</span></li>
+      <li><span class="dot"></span><span><b>Name a captain</b>, then play the tournament live: tactics at half-time, extra time, penalty shootouts.</span></li>
+      <li><span class="dot"></span><span><b>The perfect run</b> is seven wins inside normal time: <b>7-0</b>. Save your score and climb the world rankings.</span></li>
+    </div>
+    <footer>7-0 is an independent, fan-made game inspired by 38-0.app and 82-0.com. Not affiliated with FIFA or any federation. Player ratings are an unofficial, descriptive interpretation.<br>Leaderboard names are public. Emails are optional, encrypted and never displayed.</footer>
+  </section>
+
+  <!-- DRAFT -->
+  <section class="screen" id="draft">
+    <div class="topbar">
+      <div class="t display">7<em>-</em>0</div>
+      <div class="picksleft"><b id="picks-n">11</b> picks left</div>
+    </div>
+    <div class="draftmeta">
+      <span id="dm-form"></span>
+      <span id="dm-extra"></span>
+      <span>Re-spins: <b id="dm-respins">2</b></span>
+    </div>
+    <div class="wheelwrap">
+      <div class="wheel" id="wheel"></div>
+      <div class="wheelring"></div>
+      <div class="wheelflash" id="wheelflash"></div>
+      <div class="pointer" id="pointer"></div>
+      <div class="hub">🏆</div>
+    </div>
+    <div class="landed" id="landed">Spin to draw your first squad</div>
+    <button class="btn" id="btn-spin">Spin the wheel</button>
+    <div class="pitch" id="pitch"></div>
+    <div class="chemline"><span>Chemistry links: <b id="chem-n">0</b></span><span>Team boost: <b id="chem-b">+0.0</b></span></div>
+    <button class="btn ghost" id="btn-restart-draft" style="margin-top:14px">Abandon run</button>
+  </section>
+
+  <!-- SQUAD MODAL -->
+  <div class="modal-bg" id="modal-bg">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="m-title"></h3>
+      <p class="hint" id="m-hint"></p>
+      <div id="m-list"></div>
+      <button class="btn ghost respin" id="btn-respin">Use a re-spin</button>
+    </div>
+  </div>
+
+  <!-- CAPTAIN MODAL -->
+  <div class="modal-bg" id="cap-bg">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3>Name your captain</h3>
+      <p class="hint">Your captain lifts the whole side and steps up in the big moments.</p>
+      <div id="cap-list"></div>
+    </div>
+  </div>
+
+  <!-- SAVE SCORE MODAL -->
+  <div class="modal-bg" id="save-bg">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3>Save to the world leaderboard</h3>
+      <p class="hint">Post this run — <b id="sv-pts" style="color:var(--gold)"></b> pts — under your name.</p>
+      <div class="field"><label for="sv-name">Nickname (public)</label>
+        <input id="sv-name" maxlength="20" autocomplete="nickname" placeholder="e.g. GoldenBoot88"></div>
+      <div class="field"><label for="sv-country">Country (optional)</label>
+        <select id="sv-country"></select></div>
+      <div class="field"><label for="sv-email">Email (optional)</label>
+        <input id="sv-email" type="email" maxlength="120" autocomplete="email" placeholder="you@example.com"></div>
+      <label class="optin"><input type="checkbox" id="sv-optin">
+        <span>Keep my email so I can be contacted about new modes, tournaments and my scores. Stored encrypted, never displayed, never shared. Leave unticked to save your score without it.</span></label>
+      <input class="hpfield" id="sv-web" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn" id="btn-submit-score">Post score</button>
+      <button class="btn ghost" id="btn-cancel-save" style="margin-top:8px">Not now</button>
+      <div class="savemsg" id="sv-msg"></div>
+      <p class="privacy">Your nickname, country, score and XI appear on the public leaderboard. Email is optional and encrypted at rest; to have it removed, reply to any message or contact the maintainer.</p>
+    </div>
+  </div>
+
+  <!-- CUP -->
+  <section class="screen" id="cup">
+    <div class="topbar">
+      <div class="t display">7<em>-</em>0</div>
+      <div class="picksleft mono" id="cup-record">W0 D0 L0</div>
+    </div>
+    <div class="bracket" id="bracket"></div>
+    <div id="cup-feed"></div>
+    <div class="cupbtns">
+      <button class="btn" id="btn-next">Kick off</button>
+      <button class="btn ghost" id="btn-skip">Skip ⏩</button>
+    </div>
+  </section>
+
+  <!-- LEADERBOARD -->
+  <section class="screen" id="board">
+    <div class="topbar">
+      <div class="t display">7<em>-</em>0 <span style="font-size:13px;color:var(--chalk-dim);font-weight:700;letter-spacing:.08em">WORLD</span></div>
+      <div class="picksleft" id="board-count"></div>
+    </div>
+    <div class="btabs">
+      <button class="btab sel" id="tab-all">🌍 All-time</button>
+      <button class="btab" id="tab-daily">⚡ Today</button>
+    </div>
+    <div class="bstatus" id="board-status"></div>
+    <div id="board-list"><div class="bempty">Loading…</div></div>
+    <div class="stack">
+      <button class="btn" id="btn-board-play">Start a run →</button>
+      <button class="btn ghost" id="btn-board-back">← Back</button>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen" id="result">
+    <div class="trophy" id="r-icon">🏆</div>
+    <div class="verdict display" id="r-verdict"></div>
+    <div class="bigpts mono" id="r-pts"></div>
+    <div class="breakdown" id="r-break"></div>
+    <div class="record" id="r-record"></div>
+    <div class="grid mono" id="r-grid"></div>
+    <div id="r-perfect"></div>
+    <div class="rbadges" id="r-badges"></div>
+    <div class="awards">
+      <div class="award"><div class="al">🥇 Golden Boot</div><div class="av" id="r-boot">—</div><div class="as" id="r-boot2"></div></div>
+      <div class="award"><div class="al">⭐ Player of the cup</div><div class="av" id="r-pott">—</div><div class="as" id="r-pott2"></div></div>
+    </div>
+    <div class="finalxi" id="r-xi"></div>
+    <div class="stack">
+      <button class="btn" id="btn-save">🌍 Save to world leaderboard</button>
+      <button class="btn ghost" id="btn-again">Run it back →</button>
+      <button class="btn ghost" id="btn-share">Share result</button>
+    </div>
+    <div class="copied" id="copied"></div>
+    <footer id="r-foot"></footer>
+  </section>
+
+</div>

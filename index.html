@@ -4,13 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>7-0 | Build the Ultimate World Cup XI</title>
-<meta name="description" content="7-0 is a free World Cup draft game. Spin the wheel, draft legends from 43 iconic World Cup squads from 1954 to 2022, pick your formation and captain, then live out the whole tournament. Can you win all seven?">
+<meta name="description" content="7-0 is a free World Cup draft game. Spin the wheel, draft legends from 64 iconic World Cup squads from 1950 to 2022, pick your formation and captain, then live out the whole tournament — and climb the live world leaderboard. Can you win all seven?">
 <meta name="theme-color" content="#06231b">
+<meta property="og:title" content="7-0 — Build the Ultimate World Cup XI">
+<meta property="og:description" content="Spin the wheel. Draft from 64 legendary World Cup squads (1950–2022). Win all seven and climb the world leaderboard.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://seven-zero-navy.vercel.app">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
 <style>
 :root{
   --night:#06231b; --pitch:#0c3527; --pitch-2:#0f4030;
   --chalk:#f3ecd9; --chalk-dim:#bdb49c;
-  --gold:#e3b34c; --gold-deep:#b8862c;
+  --gold:#e3b34c; --gold-deep:#b8862c; --gold-hi:#ffe9a8;
   --loss:#d96459; --draw:#c9c2ae;
   --card:#0a2c21; --line:rgba(243,236,217,.14);
   --silver:#b9c4c9; --bronze:#c08a5a; --icon1:#ffe9a8; --icon2:#e3b34c;
@@ -43,31 +49,63 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .btn.small{padding:10px 14px;font-size:13px;width:auto;display:inline-block}
 .btn:focus-visible,.slot:focus-visible,.pl:focus-visible,.chip:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
+#mute{position:fixed;top:10px;right:10px;z-index:60;width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--line);background:rgba(10,44,33,.85);color:var(--chalk);font-size:16px;cursor:pointer;backdrop-filter:blur(3px)}
+
 /* ---------- home ---------- */
-#home{padding-top:48px;text-align:center}
-.mark{font-size:clamp(92px,28vw,140px);font-weight:900;letter-spacing:-.05em;line-height:.85;
-  color:var(--chalk);position:relative;display:inline-block;margin:16px 0 6px}
+#home{padding-top:46px;text-align:center}
+.mark{font-size:clamp(84px,26vw,128px);font-weight:900;letter-spacing:-.05em;line-height:.85;
+  color:var(--chalk);position:relative;display:inline-block;margin:14px 0 6px}
 .mark em{font-style:normal;color:var(--gold)}
-.mark::after{content:"";display:block;height:5px;margin-top:14px;border-radius:3px;
+.mark::after{content:"";display:block;height:5px;margin-top:12px;border-radius:3px;
   background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-.sub{font-size:16.5px;color:var(--chalk-dim);max-width:360px;margin:10px auto 22px;line-height:1.45}
+.sub{font-size:16px;color:var(--chalk-dim);max-width:380px;margin:10px auto 18px;line-height:1.45}
 .sub b{color:var(--chalk)}
-.stats{display:flex;justify-content:center;gap:26px;margin:24px 0 26px}
+.stats{display:flex;justify-content:center;gap:26px;margin:18px 0 20px}
 .stat .n{font-size:23px;font-weight:900;color:var(--gold)}
 .stat .l{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--chalk-dim);margin-top:2px}
 
 .panel{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:16px;margin:14px 0;text-align:left}
-.panel h2{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.panel h2{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:flex;justify-content:space-between;align-items:baseline}
+.panel h2 .more{font-size:10px;letter-spacing:.08em;color:var(--chalk-dim);cursor:pointer;text-transform:none}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{flex:1;min-width:96px;border:1.5px solid var(--line);border-radius:10px;background:transparent;color:var(--chalk-dim);
+.chip{flex:1;min-width:88px;border:1.5px solid var(--line);border-radius:10px;background:transparent;color:var(--chalk-dim);
   padding:11px 6px;font-size:13px;font-weight:800;cursor:pointer;text-align:center;letter-spacing:.03em}
 .chip small{display:block;font-weight:600;font-size:10.5px;color:var(--chalk-dim);margin-top:3px;letter-spacing:0;text-transform:none}
 .chip.sel{border-color:var(--gold);color:var(--gold);background:rgba(227,179,76,.10)}
+.chip:disabled{opacity:.45;cursor:default}
 .modes .chip{min-width:0}
+.multline{font-size:12.5px;color:var(--chalk-dim);text-align:center;margin:10px 0 4px}
+.multline b{color:var(--gold)}
+
+.daily{border:1.5px solid var(--gold-deep);border-radius:14px;margin:18px 0 6px;padding:16px;text-align:left;
+  background:linear-gradient(160deg,rgba(227,179,76,.12),rgba(10,44,33,.6));position:relative;overflow:hidden}
+.daily::after{content:"";position:absolute;inset:-40% -20%;pointer-events:none;
+  background:radial-gradient(40% 40% at 80% 10%, rgba(255,233,168,.16), transparent 70%)}
+.daily .dl{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:800}
+.daily .dd{font-size:15px;font-weight:800;margin:6px 0 2px}
+.daily .ds{font-size:12.5px;color:var(--chalk-dim);line-height:1.45;margin-bottom:12px}
+.daily .ds b{color:var(--gold)}
+.daily .btn{position:relative;z-index:1}
+.streak{display:inline-block;font-size:12px;font-weight:800;color:var(--gold);margin-left:8px}
+
+.boardprev .row3{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:6px 0;border-bottom:1px solid rgba(243,236,217,.06);color:var(--chalk-dim)}
+.boardprev .row3:last-of-type{border:0}
+.boardprev .row3 b{color:var(--chalk)}
+.boardprev .row3 .pts{margin-left:auto;color:var(--gold);font-weight:800}
+.boardprev .empty{font-size:13px;color:var(--chalk-dim);padding:4px 0}
+
 .cabinet .row2{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;color:var(--chalk-dim);border-bottom:1px solid rgba(243,236,217,.06)}
 .cabinet .row2:last-child{border:0}
 .cabinet .row2 b{color:var(--chalk)}
 .cabinet .gold{color:var(--gold)}
+.badges{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+.badge{border:1px solid var(--line);border-radius:10px;padding:8px 4px;text-align:center;background:rgba(243,236,217,.03)}
+.badge .be{font-size:20px;line-height:1.2;filter:grayscale(1) brightness(.45)}
+.badge .bn{font-size:8.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--chalk-dim);margin-top:4px;font-weight:700}
+.badge.got .be{filter:none}
+.badge.got{border-color:var(--gold-deep);background:rgba(227,179,76,.08)}
+.badge.got .bn{color:var(--gold)}
 
 .howto{margin-top:26px;text-align:left;border-top:1px solid var(--line);padding-top:20px}
 .howto h2{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
@@ -82,21 +120,31 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .topbar .t em{font-style:normal;color:var(--gold)}
 .picksleft{font-size:13px;color:var(--chalk-dim)}
 .picksleft b{color:var(--gold);font-size:16px}
-.draftmeta{display:flex;justify-content:space-between;font-size:12px;color:var(--chalk-dim);margin-bottom:8px}
+.draftmeta{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--chalk-dim);margin-bottom:8px}
 .draftmeta b{color:var(--gold)}
-
-.wheelwrap{position:relative;width:min(310px,80vw);margin:4px auto 8px;aspect-ratio:1}
-.wheel{position:absolute;inset:0;border-radius:50%;border:3px solid var(--gold-deep);
-  box-shadow:0 0 0 6px rgba(227,179,76,.08), 0 18px 40px rgba(0,0,0,.5), inset 0 0 60px rgba(0,0,0,.45);
-  transition:transform 4.2s cubic-bezier(.12,.82,.08,1);background:var(--pitch)}
-.wheel .seg-flag{position:absolute;left:50%;top:50%;font-size:12px;transform-origin:0 0;user-select:none}
+.wheelwrap{position:relative;width:min(320px,82vw);margin:4px auto 8px;aspect-ratio:1}
+.wheel{position:absolute;inset:0;border-radius:50%;background:var(--pitch);will-change:transform}
+.wheelring{position:absolute;inset:-7px;border-radius:50%;pointer-events:none;
+  border:3px solid var(--gold-deep);
+  box-shadow:0 0 0 6px rgba(227,179,76,.08), 0 18px 44px rgba(0,0,0,.55), inset 0 0 70px rgba(0,0,0,.5)}
+.wheelring::before{content:"";position:absolute;inset:4px;border-radius:50%;border:1px solid rgba(255,233,168,.25)}
+.wheel .seg-flag{position:absolute;left:50%;top:50%;font-size:13px;transform-origin:0 0;user-select:none;
+  text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.wheel .seg-flag.dim{font-size:11.5px;opacity:.92}
 .hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:34%;aspect-ratio:1;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%, #123f2f, var(--night));
-  border:2px solid var(--gold-deep);display:flex;align-items:center;justify-content:center;font-size:30px;z-index:2}
-.pointer{position:absolute;top:-14px;left:50%;transform:translateX(-50%);z-index:3;
-  width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;
-  border-top:22px solid var(--gold);filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+  width:33%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #16493a, var(--night) 75%);
+  border:2px solid var(--gold-deep);display:flex;align-items:center;justify-content:center;font-size:30px;z-index:2;
+  box-shadow:0 4px 18px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,233,168,.25)}
+.hub::after{content:"";position:absolute;inset:8%;border-radius:50%;border:1px dashed rgba(227,179,76,.3)}
+.pointer{position:absolute;top:-15px;left:50%;z-index:3;width:0;height:0;margin-left:-13px;
+  border-left:13px solid transparent;border-right:13px solid transparent;
+  border-top:24px solid var(--gold);filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));
+  transform-origin:50% 18%;transition:transform .09s ease-out}
+.wheelflash{position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0;
+  background:radial-gradient(closest-side, rgba(255,233,168,.32), transparent 72%)}
+.wheelflash.on{animation:wflash .9s ease}
+@keyframes wflash{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
 .landed{text-align:center;min-height:24px;font-size:15px;font-weight:700;margin-bottom:10px}
 .landed span{color:var(--gold)}
 
@@ -113,6 +161,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .slot .nm{font-size:12px;font-weight:800;line-height:1.12;color:var(--chalk);overflow:hidden}
 .slot .meta{font-size:10px;color:var(--gold)}
 .slot.filled{border-style:solid}
+.slot.justin{animation:pop .45s ease}
+@keyframes pop{0%{transform:scale(.7);opacity:.2}70%{transform:scale(1.06)}100%{transform:none;opacity:1}}
 .slot.t-bronze{border-color:var(--bronze);background:rgba(192,138,90,.10)}
 .slot.t-silver{border-color:var(--silver);background:rgba(185,196,201,.10)}
 .slot.t-gold{border-color:var(--gold);background:rgba(227,179,76,.12)}
@@ -124,10 +174,10 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .chemline{display:flex;justify-content:space-between;font-size:12px;color:var(--chalk-dim);margin-top:10px;padding:0 4px}
 .chemline b{color:var(--gold)}
 
-/* squad modal */
+/* modals */
 .modal-bg{position:fixed;inset:0;background:rgba(2,14,10,.78);backdrop-filter:blur(3px);z-index:10;display:none;align-items:flex-end;justify-content:center}
 .modal-bg.on{display:flex}
-.modal{width:100%;max-width:560px;max-height:84vh;overflow:auto;border-radius:18px 18px 0 0;
+.modal{width:100%;max-width:560px;max-height:86vh;overflow:auto;border-radius:18px 18px 0 0;
   background:var(--card);border:1px solid var(--line);border-bottom:0;padding:20px 16px 28px;animation:slideUp .3s ease}
 @keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
 .modal h3{font-size:20px;font-weight:900}
@@ -148,6 +198,19 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .rt.t-icon{color:#241a06;background:linear-gradient(160deg,var(--icon1),var(--icon2));box-shadow:0 0 10px rgba(255,233,168,.5)}
 .rt.t-plain{color:var(--chalk);background:rgba(243,236,217,.1)}
 .respin{margin-top:6px}
+
+/* save-score modal */
+.field{margin-bottom:12px;text-align:left}
+.field label{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--chalk-dim);font-weight:700;margin-bottom:6px}
+.field input,.field select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);
+  background:rgba(6,35,27,.7);color:var(--chalk);font-size:16px;font-weight:600}
+.field input:focus,.field select:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
+.optin{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--chalk-dim);line-height:1.45;margin:4px 0 14px;text-align:left;cursor:pointer}
+.optin input{width:18px;height:18px;margin-top:1px;accent-color:var(--gold);flex:0 0 auto}
+.privacy{font-size:11px;color:rgba(243,236,217,.45);line-height:1.5;margin-top:10px;text-align:left}
+.savemsg{min-height:20px;font-size:13.5px;font-weight:700;color:var(--gold);margin-top:10px;text-align:center}
+.savemsg.err{color:var(--loss)}
+.hpfield{position:absolute;left:-5000px;top:-5000px;opacity:0;height:1px;width:1px;overflow:hidden}
 
 /* ---------- cup ---------- */
 #cup{padding-top:18px}
@@ -173,6 +236,12 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .live .log .goalus{color:var(--gold);font-weight:800}
 .live .log .goalthem{color:var(--loss);font-weight:800}
 .live .log .big{color:var(--chalk);font-weight:700}
+.tactics{display:flex;gap:8px;margin-top:10px}
+.tactics .tbtn{flex:1;border:1.5px solid var(--gold-deep);background:rgba(227,179,76,.08);color:var(--gold);
+  border-radius:9px;padding:9px 4px;font-size:11.5px;font-weight:800;letter-spacing:.04em;cursor:pointer;text-transform:uppercase}
+.tactics .tbtn small{display:block;font-size:9.5px;font-weight:600;color:var(--chalk-dim);text-transform:none;letter-spacing:0;margin-top:2px}
+.tactics .tbtn.sel{background:var(--gold);color:#241a06}
+.tacnote{font-size:11px;color:var(--chalk-dim);margin-top:6px}
 .penrow{font-size:17px;letter-spacing:3px;margin-top:6px}
 .penrow .who{font-size:11px;letter-spacing:.1em;color:var(--chalk-dim);display:inline-block;width:52px;text-transform:uppercase;font-weight:800}
 .table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:4px}
@@ -185,19 +254,48 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .cupbtns .btn{flex:1}
 #btn-skip{flex:0 0 92px;display:none}
 
+/* ---------- leaderboard ---------- */
+#board{padding-top:18px}
+.btabs{display:flex;gap:8px;margin:14px 0}
+.btab{flex:1;border:1.5px solid var(--line);background:transparent;color:var(--chalk-dim);border-radius:10px;
+  padding:11px;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.btab.sel{border-color:var(--gold);color:var(--gold);background:rgba(227,179,76,.1)}
+.bstatus{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--chalk-dim);margin-bottom:10px;min-height:18px}
+.livedot{width:8px;height:8px;border-radius:50%;background:#27c084;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.brow{border:1px solid var(--line);border-radius:11px;background:var(--card);padding:11px 12px;margin-bottom:8px;cursor:pointer}
+.brow .l1{display:flex;align-items:center;gap:9px}
+.brow .rank{flex:0 0 34px;font-weight:900;font-size:15px;color:var(--chalk-dim);text-align:center}
+.brow.r1 .rank{color:var(--gold)} .brow.r2 .rank{color:var(--silver)} .brow.r3 .rank{color:var(--bronze)}
+.brow .bn{font-weight:800;font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brow .bm{font-size:10px;color:var(--chalk-dim);letter-spacing:.04em}
+.brow .bp{margin-left:auto;font-weight:900;font-size:16px;color:var(--gold);flex:0 0 auto}
+.brow .l2{font-size:11px;color:var(--chalk-dim);margin-top:5px;display:flex;justify-content:space-between;gap:8px}
+.brow .xi{display:none;font-size:11.5px;color:var(--chalk-dim);line-height:1.7;margin-top:8px;border-top:1px solid rgba(243,236,217,.07);padding-top:8px}
+.brow.open .xi{display:block}
+.brow.you{border-color:var(--gold);box-shadow:0 0 14px rgba(227,179,76,.15)}
+.bempty{text-align:center;color:var(--chalk-dim);font-size:13.5px;padding:26px 10px;line-height:1.6}
+
 /* ---------- result ---------- */
-#result{padding-top:48px;text-align:center}
+#result{padding-top:44px;text-align:center}
 .trophy{font-size:84px;line-height:1;margin-bottom:8px;display:inline-block}
 .trophy.win{animation:lift 1s ease}
 @keyframes lift{0%{transform:translateY(30px) scale(.6);opacity:0}60%{transform:translateY(-8px) scale(1.08)}100%{transform:none;opacity:1}}
 .verdict{font-size:33px;font-weight:900;margin-bottom:6px;text-transform:uppercase}
 .verdict.gold{color:var(--gold)} .verdict.red{color:var(--loss)}
-.record{font-size:15px;color:var(--chalk-dim);margin-bottom:4px}
+.bigpts{font-size:44px;font-weight:900;color:var(--gold);letter-spacing:-.02em;margin:2px 0 0}
+.bigpts small{font-size:15px;letter-spacing:.18em;color:var(--chalk-dim);font-weight:700}
+.breakdown{font-size:12.5px;color:var(--chalk-dim);margin:6px auto 2px;max-width:340px;line-height:1.7}
+.breakdown b{color:var(--chalk)}
+.record{font-size:15px;color:var(--chalk-dim);margin:8px 0 4px}
 .record b{color:var(--chalk)}
-.grid{font-size:22px;letter-spacing:4px;margin:10px 0 2px}
+.grid{font-size:22px;letter-spacing:4px;margin:8px 0 2px}
 .perfect{display:inline-block;margin:12px 0 4px;padding:8px 18px;border:1.5px solid var(--gold);border-radius:999px;
   color:var(--gold);font-weight:900;letter-spacing:.18em;font-size:13px;text-transform:uppercase;
   box-shadow:0 0 24px rgba(227,179,76,.25)}
+.rbadges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0 0}
+.rbadge{border:1px solid var(--gold-deep);background:rgba(227,179,76,.1);color:var(--gold);
+  font-size:11.5px;font-weight:800;border-radius:999px;padding:6px 12px;animation:pop .5s ease}
 .awards{display:flex;gap:10px;margin:18px 0 0}
 .award{flex:1;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:13px 10px;text-align:center}
 .award .al{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:800}
@@ -210,22 +308,31 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .stack{display:flex;flex-direction:column;gap:10px;margin-top:20px}
 .copied{font-size:13px;color:var(--gold);min-height:18px;margin-top:8px}
 footer{margin-top:48px;text-align:center;font-size:11px;color:rgba(243,236,217,.35);line-height:1.6}
+footer a{color:rgba(243,236,217,.5)}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
 </style>
 </head>
 <body>
 <canvas id="confetti"></canvas>
+<button id="mute" aria-label="Toggle sound">🔊</button>
 <div id="app">
 
   <!-- HOME -->
   <section class="screen on" id="home">
     <div class="eyebrow">Unofficial Fan Draft Game</div>
     <div class="mark display">7<em>-</em>0</div>
-    <p class="sub">Build the ultimate <b>World Cup XI</b> from seven decades of legends. Pick your shape, name your captain, then live out the whole tournament — minute by minute.</p>
+    <p class="sub">Build the ultimate <b>World Cup XI</b> from seven decades of legends. Pick your shape, name your captain, live out the whole tournament — then take on the <b>world leaderboard</b>.</p>
     <div class="stats">
       <div class="stat"><div class="n mono" id="stat-squads"></div><div class="l">Squads</div></div>
       <div class="stat"><div class="n mono" id="stat-players"></div><div class="l">Legends</div></div>
-      <div class="stat"><div class="n mono">1954–2022</div><div class="l">World Cups</div></div>
+      <div class="stat"><div class="n mono">1950–2022</div><div class="l">World Cups</div></div>
+    </div>
+
+    <div class="daily">
+      <div class="dl">⚡ Daily Challenge<span class="streak" id="daily-streak"></span></div>
+      <div class="dd" id="daily-date"></div>
+      <div class="ds">One seeded run, the <b>same wheel for everyone</b> on Earth today. Classic rules, 4-3-3, ×1.1 score bonus. New challenge at midnight UTC.</div>
+      <button class="btn" id="btn-daily">Play today's challenge</button>
     </div>
 
     <div class="panel">
@@ -233,19 +340,30 @@ footer{margin-top:48px;text-align:center;font-size:11px;color:rgba(243,236,217,.
       <div class="chips" id="formchips"></div>
     </div>
     <div class="panel">
-      <h2>Mode</h2>
-      <div class="chips modes" id="modechips">
+      <h2>Draft mode</h2>
+      <div class="chips modes" id="draftchips"></div>
+      <div class="chips modes" id="dynastychips" style="margin-top:8px;display:none"></div>
+    </div>
+    <div class="panel">
+      <h2>Difficulty</h2>
+      <div class="chips modes" id="diffchips">
         <button class="chip sel" data-m="classic">Classic<small>standard opponents</small></button>
         <button class="chip" data-m="hard">Hard<small>ratings hidden</small></button>
-        <button class="chip" data-m="legend">Legend<small>brutal draw + hidden ratings</small></button>
+        <button class="chip" data-m="legend">Legend<small>brutal draw + hidden</small></button>
       </div>
     </div>
+    <div class="multline">Score multiplier: <b id="multline">×1.0</b></div>
+    <button class="btn" id="btn-start">Start new run →</button>
 
-    <button class="btn" id="btn-start" style="margin-top:6px">Start new run →</button>
+    <div class="panel boardprev">
+      <h2>🌍 World leaderboard <span class="more" id="btn-board-home">Full table →</span></h2>
+      <div id="home-board-rows"><div class="empty">Loading the world's best runs…</div></div>
+    </div>
 
     <div class="panel cabinet" id="cabinet" style="display:none">
       <h2>Trophy cabinet</h2>
       <div id="cabinet-rows"></div>
+      <div class="badges" id="badges"></div>
     </div>
 
     <div class="howto">
@@ -253,10 +371,10 @@ footer{margin-top:48px;text-align:center;font-size:11px;color:rgba(243,236,217,.
       <li><span class="dot"></span><span><b>Spin the wheel.</b> Each spin lands on a real nation at a specific World Cup — Brazil 1970, Hungary 1954, Argentina 2022…</span></li>
       <li><span class="dot"></span><span><b>Draft one player</b> per spin. You hold <b>2 re-spins</b> to reject a squad you don't fancy.</span></li>
       <li><span class="dot"></span><span><b>Chemistry counts.</b> Teammates from the same World Cup squad link up and boost your team.</span></li>
-      <li><span class="dot"></span><span><b>Name a captain</b>, then play the tournament live: three group games, a knockout draw, extra time, penalty shootouts.</span></li>
-      <li><span class="dot"></span><span><b>The perfect run</b> is seven wins inside normal time: <b>7-0</b>.</span></li>
+      <li><span class="dot"></span><span><b>Name a captain</b>, then play the tournament live: tactics at half-time, extra time, penalty shootouts.</span></li>
+      <li><span class="dot"></span><span><b>The perfect run</b> is seven wins inside normal time: <b>7-0</b>. Save your score and climb the world rankings.</span></li>
     </div>
-    <footer>7-0 is an independent, fan-made game inspired by 38-0.app and 82-0.com. Not affiliated with FIFA or any federation. Player ratings are an unofficial, descriptive interpretation.</footer>
+    <footer>7-0 is an independent, fan-made game inspired by 38-0.app and 82-0.com. Not affiliated with FIFA or any federation. Player ratings are an unofficial, descriptive interpretation.<br>Leaderboard names are public. Emails are optional, encrypted and never displayed.</footer>
   </section>
 
   <!-- DRAFT -->
@@ -267,11 +385,14 @@ footer{margin-top:48px;text-align:center;font-size:11px;color:rgba(243,236,217,.
     </div>
     <div class="draftmeta">
       <span id="dm-form"></span>
+      <span id="dm-extra"></span>
       <span>Re-spins: <b id="dm-respins">2</b></span>
     </div>
     <div class="wheelwrap">
-      <div class="pointer"></div>
       <div class="wheel" id="wheel"></div>
+      <div class="wheelring"></div>
+      <div class="wheelflash" id="wheelflash"></div>
+      <div class="pointer" id="pointer"></div>
       <div class="hub">🏆</div>
     </div>
     <div class="landed" id="landed">Spin to draw your first squad</div>
@@ -300,6 +421,27 @@ footer{margin-top:48px;text-align:center;font-size:11px;color:rgba(243,236,217,.
     </div>
   </div>
 
+  <!-- SAVE SCORE MODAL -->
+  <div class="modal-bg" id="save-bg">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3>Save to the world leaderboard</h3>
+      <p class="hint">Post this run — <b id="sv-pts" style="color:var(--gold)"></b> pts — under your name.</p>
+      <div class="field"><label for="sv-name">Nickname (public)</label>
+        <input id="sv-name" maxlength="20" autocomplete="nickname" placeholder="e.g. GoldenBoot88"></div>
+      <div class="field"><label for="sv-country">Country (optional)</label>
+        <select id="sv-country"></select></div>
+      <div class="field"><label for="sv-email">Email (optional)</label>
+        <input id="sv-email" type="email" maxlength="120" autocomplete="email" placeholder="you@example.com"></div>
+      <label class="optin"><input type="checkbox" id="sv-optin">
+        <span>Keep my email so I can be contacted about new modes, tournaments and my scores. Stored encrypted, never displayed, never shared. Leave unticked to save your score without it.</span></label>
+      <input class="hpfield" id="sv-web" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn" id="btn-submit-score">Post score</button>
+      <button class="btn ghost" id="btn-cancel-save" style="margin-top:8px">Not now</button>
+      <div class="savemsg" id="sv-msg"></div>
+      <p class="privacy">Your nickname, country, score and XI appear on the public leaderboard. Email is optional and encrypted at rest; to have it removed, reply to any message or contact the maintainer.</p>
+    </div>
+  </div>
+
   <!-- CUP -->
   <section class="screen" id="cup">
     <div class="topbar">
@@ -314,90 +456,171 @@ footer{margin-top:48px;text-align:center;font-size:11px;color:rgba(243,236,217,.
     </div>
   </section>
 
+  <!-- LEADERBOARD -->
+  <section class="screen" id="board">
+    <div class="topbar">
+      <div class="t display">7<em>-</em>0 <span style="font-size:13px;color:var(--chalk-dim);font-weight:700;letter-spacing:.08em">WORLD</span></div>
+      <div class="picksleft" id="board-count"></div>
+    </div>
+    <div class="btabs">
+      <button class="btab sel" id="tab-all">🌍 All-time</button>
+      <button class="btab" id="tab-daily">⚡ Today</button>
+    </div>
+    <div class="bstatus" id="board-status"></div>
+    <div id="board-list"><div class="bempty">Loading…</div></div>
+    <div class="stack">
+      <button class="btn" id="btn-board-play">Start a run →</button>
+      <button class="btn ghost" id="btn-board-back">← Back</button>
+    </div>
+  </section>
+
   <!-- RESULT -->
   <section class="screen" id="result">
     <div class="trophy" id="r-icon">🏆</div>
     <div class="verdict display" id="r-verdict"></div>
+    <div class="bigpts mono" id="r-pts"></div>
+    <div class="breakdown" id="r-break"></div>
     <div class="record" id="r-record"></div>
     <div class="grid mono" id="r-grid"></div>
     <div id="r-perfect"></div>
+    <div class="rbadges" id="r-badges"></div>
     <div class="awards">
       <div class="award"><div class="al">🥇 Golden Boot</div><div class="av" id="r-boot">—</div><div class="as" id="r-boot2"></div></div>
       <div class="award"><div class="al">⭐ Player of the cup</div><div class="av" id="r-pott">—</div><div class="as" id="r-pott2"></div></div>
     </div>
     <div class="finalxi" id="r-xi"></div>
     <div class="stack">
-      <button class="btn" id="btn-again">Run it back →</button>
-      <button class="btn ghost" id="btn-share">Copy result to share</button>
+      <button class="btn" id="btn-save">🌍 Save to world leaderboard</button>
+      <button class="btn ghost" id="btn-again">Run it back →</button>
+      <button class="btn ghost" id="btn-share">Share result</button>
     </div>
     <div class="copied" id="copied"></div>
     <footer id="r-foot"></footer>
   </section>
 
 </div>
-
 <script>
 /* =========================================================
-   DATA — 43 iconic World Cup squads, 1954–2022
+   DATA — 64 iconic World Cup squads, 1950–2022
    pos: GK / DEF / MID / FWD   rating: unofficial, 70–99
+   (generated by scripts/extract.mjs — edit src/squads-new.mjs and re-run)
 ========================================================= */
 const SQUADS=[
+{t:"Uruguay",y:1950,f:"🇺🇾",p:[["Roque Máspoli","GK",86],["Matías González","DEF",80],["Eusebio Tejera","DEF",80],["Schubert Gambetta","DEF",81],["Víctor Rodríguez Andrade","MID",85],["Obdulio Varela","MID",91],["Julio Pérez","MID",83],["Alcides Ghiggia","FWD",90],["Juan Alberto Schiaffino","FWD",93],["Óscar Míguez","FWD",87],["Rubén Morán","FWD",79]]},
 {t:"Hungary",y:1954,f:"🇭🇺",p:[["Gyula Grosics","GK",85],["Jenő Buzánszky","DEF",79],["Gyula Lóránt","DEF",80],["Mihály Lantos","DEF",79],["József Bozsik","MID",90],["József Zakariás","MID",80],["József Tóth","MID",78],["Nándor Hidegkuti","FWD",92],["Sándor Kocsis","FWD",93],["Ferenc Puskás","FWD",96],["Zoltán Czibor","FWD",89]]},
+{t:"West Germany",y:1954,f:"🇩🇪",p:[["Toni Turek","GK",87],["Jupp Posipal","DEF",82],["Werner Kohlmeyer","DEF",81],["Werner Liebrich","DEF",85],["Horst Eckel","MID",84],["Karl Mai","MID",81],["Fritz Walter","MID",92],["Max Morlock","FWD",88],["Helmut Rahn","FWD",91],["Ottmar Walter","FWD",84],["Hans Schäfer","FWD",86]]},
 {t:"Brazil",y:1958,f:"🇧🇷",p:[["Gilmar","GK",86],["Djalma Santos","DEF",90],["Nilton Santos","DEF",91],["Bellini","DEF",83],["Orlando","DEF",82],["Zito","MID",84],["Didi","MID",92],["Zagallo","MID",87],["Garrincha","FWD",95],["Pelé","FWD",93],["Vavá","FWD",89]]},
+{t:"Brazil",y:1962,f:"🇧🇷",p:[["Gilmar","GK",86],["Djalma Santos","DEF",90],["Mauro Ramos","DEF",84],["Zózimo","DEF",82],["Nilton Santos","DEF",89],["Zito","MID",85],["Didi","MID",91],["Zagallo","MID",86],["Garrincha","FWD",97],["Vavá","FWD",88],["Amarildo","FWD",84],["Pelé","FWD",93]]},
 {t:"England",y:1966,f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",p:[["Gordon Banks","GK",93],["George Cohen","DEF",82],["Ray Wilson","DEF",83],["Jack Charlton","DEF",85],["Bobby Moore","DEF",94],["Nobby Stiles","MID",81],["Bobby Charlton","MID",95],["Alan Ball","MID",87],["Martin Peters","MID",86],["Geoff Hurst","FWD",89],["Roger Hunt","FWD",83]]},
+{t:"Portugal",y:1966,f:"🇵🇹",p:[["José Pereira","GK",80],["Morais","DEF",79],["Alexandre Baptista","DEF",80],["Vicente","DEF",81],["Hilário","DEF",80],["Jaime Graça","MID",83],["Mário Coluna","MID",89],["José Augusto","FWD",85],["Eusébio","FWD",96],["José Torres","FWD",86],["António Simões","FWD",85]]},
+{t:"Soviet Union",y:1966,f:"🇷🇺",p:[["Lev Yashin","GK",95],["Albert Shesternyov","DEF",87],["Murtaz Khurtsilava","DEF",82],["Vasili Danilov","DEF",79],["Yozhef Sabo","MID",82],["Valery Voronin","MID",86],["Galimzyan Khusainov","FWD",83],["Igor Chislenko","FWD",86],["Anatoly Banishevsky","FWD",83],["Eduard Malofeyev","FWD",82],["Valery Porkujan","FWD",81]]},
 {t:"Brazil",y:1970,f:"🇧🇷",p:[["Félix","GK",78],["Carlos Alberto","DEF",92],["Brito","DEF",83],["Piazza","DEF",84],["Everaldo","DEF",81],["Clodoaldo","MID",87],["Gérson","MID",90],["Rivellino","MID",92],["Jairzinho","FWD",93],["Tostão","FWD",91],["Pelé","FWD",98]]},
+{t:"Italy",y:1970,f:"🇮🇹",p:[["Enrico Albertosi","GK",85],["Tarcisio Burgnich","DEF",88],["Giacinto Facchetti","DEF",92],["Roberto Rosato","DEF",83],["Pierluigi Cera","DEF",82],["Mario Bertini","MID",81],["Sandro Mazzola","MID",91],["Giancarlo De Sisti","MID",84],["Gianni Rivera","MID",92],["Angelo Domenghini","FWD",83],["Luigi Riva","FWD",93]]},
 {t:"Netherlands",y:1974,f:"🇳🇱",p:[["Jan Jongbloed","GK",76],["Wim Suurbier","DEF",84],["Wim Rijsbergen","DEF",82],["Arie Haan","DEF",86],["Ruud Krol","DEF",90],["Wim Jansen","MID",83],["Johan Neeskens","MID",92],["Willem van Hanegem","MID",88],["Johnny Rep","FWD",87],["Johan Cruyff","FWD",97],["Rob Rensenbrink","FWD",89]]},
-{t:"West Germany",y:1974,f:"🇩🇪",p:[["Sepp Maier","GK",91],["Berti Vogts","DEF",87],["Hans-Georg Schwarzenbeck","DEF",82],["Franz Beckenbauer","DEF",97],["Paul Breitner","DEF",90],["Rainer Bonhof","MID",86],["Wolfgang Overath","MID",88],["Uli Hoeneß","MID",86],["Jürgen Grabowski","FWD",84],["Gerd Müller","FWD",95],["Bernd Hölzenbein","FWD",82]]},
 {t:"Poland",y:1974,f:"🇵🇱",p:[["Jan Tomaszewski","GK",85],["Antoni Szymanowski","DEF",80],["Jerzy Gorgoń","DEF",81],["Władysław Żmuda","DEF",83],["Adam Musiał","DEF",78],["Kazimierz Deyna","MID",90],["Henryk Kasperczak","MID",81],["Zygmunt Maszczyk","MID",79],["Grzegorz Lato","FWD",89],["Andrzej Szarmach","FWD",86],["Robert Gadocha","FWD",84]]},
+{t:"West Germany",y:1974,f:"🇩🇪",p:[["Sepp Maier","GK",91],["Berti Vogts","DEF",87],["Hans-Georg Schwarzenbeck","DEF",82],["Franz Beckenbauer","DEF",97],["Paul Breitner","DEF",90],["Rainer Bonhof","MID",86],["Wolfgang Overath","MID",88],["Uli Hoeneß","MID",86],["Jürgen Grabowski","FWD",84],["Gerd Müller","FWD",95],["Bernd Hölzenbein","FWD",82]]},
 {t:"Argentina",y:1978,f:"🇦🇷",p:[["Ubaldo Fillol","GK",88],["Jorge Olguín","DEF",80],["Luis Galván","DEF",81],["Daniel Passarella","DEF",90],["Alberto Tarantini","DEF",81],["Osvaldo Ardiles","MID",88],["Américo Gallego","MID",82],["Mario Kempes","FWD",93],["Leopoldo Luque","FWD",85],["Daniel Bertoni","FWD",84],["René Houseman","FWD",82]]},
-{t:"Italy",y:1982,f:"🇮🇹",p:[["Dino Zoff","GK",92],["Claudio Gentile","DEF",88],["Gaetano Scirea","DEF",92],["Fulvio Collovati","DEF",83],["Antonio Cabrini","DEF",87],["Gabriele Oriali","MID",81],["Marco Tardelli","MID",89],["Giancarlo Antognoni","MID",87],["Bruno Conti","MID",88],["Paolo Rossi","FWD",92],["Francesco Graziani","FWD",82]]},
+{t:"Netherlands",y:1978,f:"🇳🇱",p:[["Jan Jongbloed","GK",76],["Wim Suurbier","DEF",82],["Ruud Krol","DEF",91],["Ernie Brandts","DEF",80],["Jan Poortvliet","DEF",78],["Wim Jansen","MID",83],["Johan Neeskens","MID",91],["Arie Haan","MID",87],["Willy van de Kerkhof","MID",82],["René van de Kerkhof","FWD",83],["Rob Rensenbrink","FWD",90],["Johnny Rep","FWD",86]]},
 {t:"Brazil",y:1982,f:"🇧🇷",p:[["Waldir Peres","GK",75],["Leandro","DEF",86],["Oscar","DEF",84],["Luizinho","DEF",81],["Júnior","DEF",88],["Toninho Cerezo","MID",87],["Falcão","MID",92],["Sócrates","MID",93],["Zico","MID",95],["Éder","FWD",88],["Serginho","FWD",79]]},
-{t:"France",y:1986,f:"🇫🇷",p:[["Joël Bats","GK",81],["Manuel Amoros","DEF",86],["Patrick Battiston","DEF",84],["Maxime Bossis","DEF",83],["William Ayache","DEF",78],["Luis Fernández","MID",85],["Jean Tigana","MID",90],["Alain Giresse","MID",89],["Michel Platini","MID",95],["Dominique Rocheteau","FWD",84],["Yannick Stopyra","FWD",82],["Jean-Pierre Papin","FWD",82]]},
+{t:"France",y:1982,f:"🇫🇷",p:[["Jean-Luc Ettori","GK",78],["Manuel Amoros","DEF",85],["Marius Trésor","DEF",89],["Gérard Janvion","DEF",80],["Maxime Bossis","DEF",84],["Jean Tigana","MID",89],["Alain Giresse","MID",90],["Bernard Genghini","MID",83],["Michel Platini","MID",96],["Dominique Rocheteau","FWD",85],["Didier Six","FWD",82]]},
+{t:"Italy",y:1982,f:"🇮🇹",p:[["Dino Zoff","GK",92],["Claudio Gentile","DEF",88],["Gaetano Scirea","DEF",92],["Fulvio Collovati","DEF",83],["Antonio Cabrini","DEF",87],["Gabriele Oriali","MID",81],["Marco Tardelli","MID",89],["Giancarlo Antognoni","MID",87],["Bruno Conti","MID",88],["Paolo Rossi","FWD",92],["Francesco Graziani","FWD",82]]},
+{t:"Poland",y:1982,f:"🇵🇱",p:[["Józef Młynarczyk","GK",84],["Władysław Żmuda","DEF",84],["Stefan Majewski","DEF",80],["Paweł Janas","DEF",81],["Marek Dziuba","DEF",78],["Waldemar Matysik","MID",80],["Janusz Kupcewicz","MID",81],["Andrzej Buncol","MID",82],["Zbigniew Boniek","MID",92],["Grzegorz Lato","FWD",87],["Włodzimierz Smolarek","FWD",83]]},
 {t:"Argentina",y:1986,f:"🇦🇷",p:[["Nery Pumpido","GK",80],["José Luis Cuciuffo","DEF",79],["José Luis Brown","DEF",84],["Oscar Ruggeri","DEF",88],["Julio Olarticoechea","DEF",81],["Ricardo Giusti","MID",82],["Sergio Batista","MID",83],["Jorge Burruchaga","MID",87],["Diego Maradona","MID",98],["Héctor Enrique","MID",81],["Jorge Valdano","FWD",88]]},
+{t:"Belgium",y:1986,f:"🇧🇪",p:[["Jean-Marie Pfaff","GK",89],["Eric Gerets","DEF",86],["Michel Renquin","DEF",80],["Stéphane Demol","DEF",80],["Georges Grün","DEF",81],["Patrick Vervoort","DEF",79],["Enzo Scifo","MID",89],["Franky Vercauteren","MID",84],["Jan Ceulemans","FWD",89],["Nico Claesen","FWD",83],["Daniel Veyt","FWD",79]]},
+{t:"Denmark",y:1986,f:"🇩🇰",p:[["Troels Rasmussen","GK",80],["John Sivebæk","DEF",81],["Morten Olsen","DEF",88],["Ivan Nielsen","DEF",81],["Søren Busk","DEF",80],["Søren Lerby","MID",87],["Jens Jørn Bertelsen","MID",80],["Frank Arnesen","MID",86],["Jesper Olsen","MID",84],["Michael Laudrup","FWD",92],["Preben Elkjær","FWD",91]]},
+{t:"France",y:1986,f:"🇫🇷",p:[["Joël Bats","GK",81],["Manuel Amoros","DEF",86],["Patrick Battiston","DEF",84],["Maxime Bossis","DEF",83],["William Ayache","DEF",78],["Luis Fernández","MID",85],["Jean Tigana","MID",90],["Alain Giresse","MID",89],["Michel Platini","MID",95],["Dominique Rocheteau","FWD",84],["Yannick Stopyra","FWD",82],["Jean-Pierre Papin","FWD",82]]},
+{t:"Argentina",y:1990,f:"🇦🇷",p:[["Sergio Goycochea","GK",87],["Oscar Ruggeri","DEF",88],["Juan Simón","DEF",80],["José Serrizuela","DEF",79],["Julio Olarticoechea","DEF",80],["Néstor Lorenzo","DEF",78],["José Basualdo","MID",80],["Ricardo Giusti","MID",81],["Jorge Burruchaga","MID",85],["Diego Maradona","MID",93],["Claudio Caniggia","FWD",88],["Gustavo Dezotti","FWD",77]]},
 {t:"Cameroon",y:1990,f:"🇨🇲",p:[["Thomas N'Kono","GK",84],["Stephen Tataw","DEF",77],["Benjamin Massing","DEF",76],["Emmanuel Kundé","DEF",77],["Bertin Ebwellé","DEF",75],["Émile Mbouh","MID",78],["Thomas Libiih","MID",75],["Jean-Claude Pagal","MID",76],["Cyrille Makanaky","FWD",79],["François Omam-Biyik","FWD",82],["Roger Milla","FWD",87]]},
 {t:"Colombia",y:1990,f:"🇨🇴",p:[["René Higuita","GK",84],["Andrés Escobar","DEF",83],["Luis Carlos Perea","DEF",79],["Luis Fernando Herrera","DEF",78],["Gildardo Gómez","DEF",76],["Leonel Álvarez","MID",79],["Gabriel Gómez","MID",78],["Carlos Valderrama","MID",90],["Freddy Rincón","MID",85],["Arnoldo Iguarán","FWD",81],["Bernardo Redín","FWD",78]]},
+{t:"England",y:1990,f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",p:[["Peter Shilton","GK",88],["Paul Parker","DEF",81],["Des Walker","DEF",84],["Terry Butcher","DEF",84],["Stuart Pearce","DEF",85],["David Platt","MID",85],["Paul Gascoigne","MID",89],["Chris Waddle","MID",86],["John Barnes","MID",86],["Peter Beardsley","FWD",85],["Gary Lineker","FWD",91]]},
 {t:"Italy",y:1990,f:"🇮🇹",p:[["Walter Zenga","GK",86],["Giuseppe Bergomi","DEF",87],["Franco Baresi","DEF",93],["Riccardo Ferri","DEF",83],["Paolo Maldini","DEF",90],["Roberto Donadoni","MID",86],["Giuseppe Giannini","MID",84],["Fernando De Napoli","MID",81],["Roberto Baggio","FWD",91],["Gianluca Vialli","FWD",86],["Salvatore Schillaci","FWD",88]]},
 {t:"West Germany",y:1990,f:"🇩🇪",p:[["Bodo Illgner","GK",84],["Thomas Berthold","DEF",83],["Jürgen Kohler","DEF",87],["Klaus Augenthaler","DEF",85],["Guido Buchwald","DEF",85],["Andreas Brehme","DEF",90],["Lothar Matthäus","MID",94],["Thomas Häßler","MID",86],["Pierre Littbarski","MID",84],["Rudi Völler","FWD",88],["Jürgen Klinsmann","FWD",90]]},
-{t:"England",y:1990,f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",p:[["Peter Shilton","GK",88],["Paul Parker","DEF",81],["Des Walker","DEF",84],["Terry Butcher","DEF",84],["Stuart Pearce","DEF",85],["David Platt","MID",85],["Paul Gascoigne","MID",89],["Chris Waddle","MID",86],["John Barnes","MID",86],["Peter Beardsley","FWD",85],["Gary Lineker","FWD",91]]},
 {t:"Brazil",y:1994,f:"🇧🇷",p:[["Taffarel","GK",86],["Jorginho","DEF",85],["Aldair","DEF",87],["Márcio Santos","DEF",83],["Branco","DEF",84],["Mauro Silva","MID",84],["Dunga","MID",87],["Zinho","MID",83],["Raí","MID",84],["Bebeto","FWD",90],["Romário","FWD",95]]},
 {t:"Bulgaria",y:1994,f:"🇧🇬",p:[["Borislav Mihaylov","GK",82],["Trifon Ivanov","DEF",79],["Petar Hubchev","DEF",78],["Tsanko Tsvetanov","DEF",76],["Ilian Kiriakov","DEF",76],["Zlatko Yankov","MID",78],["Yordan Letchkov","MID",83],["Krasimir Balakov","MID",85],["Hristo Stoichkov","FWD",92],["Emil Kostadinov","FWD",82],["Nasko Sirakov","FWD",80]]},
+{t:"Italy",y:1994,f:"🇮🇹",p:[["Gianluca Pagliuca","GK",87],["Franco Baresi","DEF",92],["Paolo Maldini","DEF",92],["Alessandro Costacurta","DEF",87],["Roberto Mussi","DEF",79],["Antonio Benarrivo","DEF",80],["Demetrio Albertini","MID",86],["Dino Baggio","MID",84],["Roberto Donadoni","MID",85],["Nicola Berti","MID",82],["Roberto Baggio","FWD",95],["Giuseppe Signori","FWD",86],["Daniele Massaro","FWD",83]]},
+{t:"Nigeria",y:1994,f:"🇳🇬",p:[["Peter Rufai","GK",83],["Augustine Eguavoen","DEF",79],["Stephen Keshi","DEF",83],["Uche Okechukwu","DEF",82],["Ben Iroha","DEF",78],["Sunday Oliseh","MID",84],["Jay-Jay Okocha","MID",88],["Finidi George","MID",85],["Emmanuel Amunike","FWD",84],["Daniel Amokachi","FWD",85],["Rashidi Yekini","FWD",88],["Samson Siasia","FWD",80]]},
 {t:"Romania",y:1994,f:"🇷🇴",p:[["Bogdan Stelea","GK",80],["Dan Petrescu","DEF",84],["Miodrag Belodedici","DEF",85],["Daniel Prodan","DEF",81],["Tibor Selymes","DEF",77],["Gheorghe Popescu","MID",86],["Ioan Lupescu","MID",80],["Dorinel Munteanu","MID",83],["Gheorghe Hagi","MID",93],["Florin Răducioiu","FWD",84],["Ilie Dumitrescu","FWD",83]]},
+{t:"Sweden",y:1994,f:"🇸🇪",p:[["Thomas Ravelli","GK",86],["Roland Nilsson","DEF",84],["Patrik Andersson","DEF",84],["Joachim Björklund","DEF",81],["Roger Ljung","DEF",78],["Stefan Schwarz","MID",84],["Jonas Thern","MID",85],["Klas Ingesson","MID",81],["Tomas Brolin","FWD",89],["Martin Dahlin","FWD",86],["Kennet Andersson","FWD",87],["Henrik Larsson","FWD",82]]},
+{t:"Brazil",y:1998,f:"🇧🇷",p:[["Taffarel","GK",85],["Cafu","DEF",90],["Júnior Baiano","DEF",80],["Aldair","DEF",86],["Roberto Carlos","DEF",91],["Dunga","MID",86],["César Sampaio","MID",82],["Leonardo","MID",86],["Rivaldo","MID",92],["Ronaldo","FWD",96],["Bebeto","FWD",87],["Denílson","FWD",83]]},
+{t:"Croatia",y:1998,f:"🇭🇷",p:[["Dražen Ladić","GK",82],["Igor Štimac","DEF",84],["Slaven Bilić","DEF",85],["Dario Šimić","DEF",82],["Robert Jarni","DEF",84],["Zvonimir Soldo","MID",81],["Aljoša Asanović","MID",84],["Robert Prosinečki","MID",88],["Zvonimir Boban","MID",90],["Mario Stanić","FWD",81],["Davor Šuker","FWD",92],["Goran Vlaović","FWD",81]]},
 {t:"France",y:1998,f:"🇫🇷",p:[["Fabien Barthez","GK",86],["Lilian Thuram","DEF",92],["Laurent Blanc","DEF",89],["Marcel Desailly","DEF",91],["Bixente Lizarazu","DEF",88],["Didier Deschamps","MID",88],["Emmanuel Petit","MID",86],["Patrick Vieira","MID",84],["Zinedine Zidane","MID",96],["Youri Djorkaeff","FWD",87],["Thierry Henry","FWD",86],["David Trezeguet","FWD",83],["Stéphane Guivarc'h","FWD",76]]},
 {t:"Netherlands",y:1998,f:"🇳🇱",p:[["Edwin van der Sar","GK",88],["Michael Reiziger","DEF",82],["Jaap Stam","DEF",89],["Frank de Boer","DEF",87],["Arthur Numan","DEF",81],["Edgar Davids","MID",89],["Clarence Seedorf","MID",88],["Phillip Cocu","MID",85],["Ronald de Boer","MID",84],["Marc Overmars","FWD",88],["Dennis Bergkamp","FWD",94],["Patrick Kluivert","FWD",89]]},
-{t:"Brazil",y:1998,f:"🇧🇷",p:[["Taffarel","GK",85],["Cafu","DEF",90],["Júnior Baiano","DEF",80],["Aldair","DEF",86],["Roberto Carlos","DEF",91],["Dunga","MID",86],["César Sampaio","MID",82],["Leonardo","MID",86],["Rivaldo","MID",92],["Ronaldo","FWD",96],["Bebeto","FWD",87],["Denílson","FWD",83]]},
+{t:"Brazil",y:2002,f:"🇧🇷",p:[["Marcos","GK",84],["Cafu","DEF",91],["Lúcio","DEF",88],["Edmílson","DEF",84],["Roberto Carlos","DEF",92],["Gilberto Silva","MID",85],["Kléberson","MID",82],["Juninho Paulista","MID",83],["Ronaldinho","MID",93],["Rivaldo","MID",94],["Ronaldo","FWD",97],["Denílson","FWD",82]]},
 {t:"Senegal",y:2002,f:"🇸🇳",p:[["Tony Sylva","GK",79],["Ferdinand Coly","DEF",78],["Lamine Diatta","DEF",81],["Aliou Cissé","DEF",80],["Omar Daf","DEF",76],["Papa Bouba Diop","MID",84],["Amdy Faye","MID",78],["Khalilou Fadiga","MID",83],["Salif Diao","MID",78],["El Hadji Diouf","FWD",87],["Henri Camara","FWD",84]]},
 {t:"South Korea",y:2002,f:"🇰🇷",p:[["Lee Woon-jae","GK",81],["Hong Myung-bo","DEF",86],["Choi Jin-cheul","DEF",79],["Kim Tae-young","DEF",78],["Lee Young-pyo","DEF",82],["Yoo Sang-chul","MID",82],["Kim Nam-il","MID",80],["Park Ji-sung","MID",86],["Lee Chun-soo","FWD",81],["Seol Ki-hyeon","FWD",80],["Ahn Jung-hwan","FWD",83]]},
-{t:"Brazil",y:2002,f:"🇧🇷",p:[["Marcos","GK",84],["Cafu","DEF",91],["Lúcio","DEF",88],["Edmílson","DEF",84],["Roberto Carlos","DEF",92],["Gilberto Silva","MID",85],["Kléberson","MID",82],["Juninho Paulista","MID",83],["Ronaldinho","MID",93],["Rivaldo","MID",94],["Ronaldo","FWD",97],["Denílson","FWD",82]]},
+{t:"Türkiye",y:2002,f:"🇹🇷",p:[["Rüştü Reçber","GK",88],["Alpay Özalan","DEF",84],["Bülent Korkmaz","DEF",83],["Fatih Akyel","DEF",79],["Hakan Ünsal","DEF",78],["Ergün Penbe","DEF",78],["Tugay Kerimoğlu","MID",84],["Emre Belözoğlu","MID",83],["Yıldıray Baştürk","MID",85],["Hasan Şaş","MID",83],["Ümit Davala","MID",80],["Hakan Şükür","FWD",86],["İlhan Mansız","FWD",82]]},
+{t:"Brazil",y:2006,f:"🇧🇷",p:[["Dida","GK",87],["Cafu","DEF",88],["Lúcio","DEF",89],["Juan","DEF",84],["Roberto Carlos","DEF",89],["Emerson","MID",85],["Zé Roberto","MID",85],["Kaká","MID",93],["Ronaldinho","MID",95],["Adriano","FWD",88],["Ronaldo","FWD",90],["Robinho","FWD",85]]},
 {t:"England",y:2006,f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",p:[["Paul Robinson","GK",80],["Gary Neville","DEF",85],["Rio Ferdinand","DEF",90],["John Terry","DEF",89],["Ashley Cole","DEF",88],["David Beckham","MID",89],["Steven Gerrard","MID",91],["Frank Lampard","MID",90],["Joe Cole","MID",85],["Wayne Rooney","FWD",90],["Michael Owen","FWD",87],["Peter Crouch","FWD",81]]},
-{t:"Portugal",y:2006,f:"🇵🇹",p:[["Ricardo","GK",82],["Miguel","DEF",83],["Ricardo Carvalho","DEF",89],["Fernando Meira","DEF",81],["Nuno Valente","DEF",80],["Costinha","MID",80],["Maniche","MID",85],["Deco","MID",90],["Luís Figo","FWD",91],["Cristiano Ronaldo","FWD",89],["Pauleta","FWD",84],["Simão","FWD",84]]},
-{t:"Italy",y:2006,f:"🇮🇹",p:[["Gianluigi Buffon","GK",95],["Gianluca Zambrotta","DEF",88],["Fabio Cannavaro","DEF",94],["Marco Materazzi","DEF",85],["Fabio Grosso","DEF",84],["Alessandro Nesta","DEF",90],["Gennaro Gattuso","MID",87],["Andrea Pirlo","MID",93],["Mauro Camoranesi","MID",84],["Simone Perrotta","MID",82],["Francesco Totti","FWD",91],["Alessandro Del Piero","FWD",89],["Luca Toni","FWD",86],["Filippo Inzaghi","FWD",84]]},
-{t:"Germany",y:2006,f:"🇩🇪",p:[["Jens Lehmann","GK",86],["Arne Friedrich","DEF",81],["Per Mertesacker","DEF",84],["Christoph Metzelder","DEF",81],["Philipp Lahm","DEF",88],["Torsten Frings","MID",84],["Michael Ballack","MID",91],["Bastian Schweinsteiger","MID",84],["Bernd Schneider","MID",82],["Lukas Podolski","FWD",84],["Miroslav Klose","FWD",89]]},
 {t:"France",y:2006,f:"🇫🇷",p:[["Fabien Barthez","GK",84],["Willy Sagnol","DEF",84],["Lilian Thuram","DEF",89],["William Gallas","DEF",86],["Eric Abidal","DEF",84],["Claude Makélélé","MID",89],["Patrick Vieira","MID",89],["Zinedine Zidane","MID",94],["Florent Malouda","MID",83],["Franck Ribéry","FWD",86],["Thierry Henry","FWD",93],["David Trezeguet","FWD",85]]},
-{t:"Spain",y:2010,f:"🇪🇸",p:[["Iker Casillas","GK",92],["Sergio Ramos","DEF",89],["Gerard Piqué","DEF",89],["Carles Puyol","DEF",90],["Joan Capdevila","DEF",82],["Sergio Busquets","MID",89],["Xabi Alonso","MID",89],["Xavi","MID",95],["Andrés Iniesta","MID",95],["David Silva","MID",87],["Cesc Fàbregas","MID",87],["David Villa","FWD",91],["Fernando Torres","FWD",85],["Pedro","FWD",84]]},
+{t:"Germany",y:2006,f:"🇩🇪",p:[["Jens Lehmann","GK",86],["Arne Friedrich","DEF",81],["Per Mertesacker","DEF",84],["Christoph Metzelder","DEF",81],["Philipp Lahm","DEF",88],["Torsten Frings","MID",84],["Michael Ballack","MID",91],["Bastian Schweinsteiger","MID",84],["Bernd Schneider","MID",82],["Lukas Podolski","FWD",84],["Miroslav Klose","FWD",89]]},
+{t:"Italy",y:2006,f:"🇮🇹",p:[["Gianluigi Buffon","GK",95],["Gianluca Zambrotta","DEF",88],["Fabio Cannavaro","DEF",94],["Marco Materazzi","DEF",85],["Fabio Grosso","DEF",84],["Alessandro Nesta","DEF",90],["Gennaro Gattuso","MID",87],["Andrea Pirlo","MID",93],["Mauro Camoranesi","MID",84],["Simone Perrotta","MID",82],["Francesco Totti","FWD",91],["Alessandro Del Piero","FWD",89],["Luca Toni","FWD",86],["Filippo Inzaghi","FWD",84]]},
+{t:"Portugal",y:2006,f:"🇵🇹",p:[["Ricardo","GK",82],["Miguel","DEF",83],["Ricardo Carvalho","DEF",89],["Fernando Meira","DEF",81],["Nuno Valente","DEF",80],["Costinha","MID",80],["Maniche","MID",85],["Deco","MID",90],["Luís Figo","FWD",91],["Cristiano Ronaldo","FWD",89],["Pauleta","FWD",84],["Simão","FWD",84]]},
+{t:"Germany",y:2010,f:"🇩🇪",p:[["Manuel Neuer","GK",89],["Philipp Lahm","DEF",90],["Per Mertesacker","DEF",84],["Arne Friedrich","DEF",81],["Jérôme Boateng","DEF",83],["Bastian Schweinsteiger","MID",89],["Sami Khedira","MID",84],["Mesut Özil","MID",88],["Thomas Müller","FWD",88],["Lukas Podolski","FWD",85],["Miroslav Klose","FWD",88],["Cacau","FWD",79]]},
 {t:"Netherlands",y:2010,f:"🇳🇱",p:[["Maarten Stekelenburg","GK",81],["Gregory van der Wiel","DEF",80],["John Heitinga","DEF",81],["Joris Mathijsen","DEF",81],["Giovanni van Bronckhorst","DEF",84],["Mark van Bommel","MID",85],["Nigel de Jong","MID",83],["Wesley Sneijder","MID",91],["Dirk Kuyt","FWD",85],["Robin van Persie","FWD",89],["Arjen Robben","FWD",92]]},
+{t:"Spain",y:2010,f:"🇪🇸",p:[["Iker Casillas","GK",92],["Sergio Ramos","DEF",89],["Gerard Piqué","DEF",89],["Carles Puyol","DEF",90],["Joan Capdevila","DEF",82],["Sergio Busquets","MID",89],["Xabi Alonso","MID",89],["Xavi","MID",95],["Andrés Iniesta","MID",95],["David Silva","MID",87],["Cesc Fàbregas","MID",87],["David Villa","FWD",91],["Fernando Torres","FWD",85],["Pedro","FWD",84]]},
 {t:"Uruguay",y:2010,f:"🇺🇾",p:[["Fernando Muslera","GK",83],["Maxi Pereira","DEF",81],["Diego Lugano","DEF",84],["Diego Godín","DEF",86],["Jorge Fucile","DEF",79],["Diego Pérez","MID",81],["Egidio Arévalo Ríos","MID",80],["Álvaro Pereira","MID",80],["Diego Forlán","FWD",91],["Luis Suárez","FWD",89],["Edinson Cavani","FWD",86]]},
 {t:"Argentina",y:2014,f:"🇦🇷",p:[["Sergio Romero","GK",82],["Pablo Zabaleta","DEF",85],["Ezequiel Garay","DEF",84],["Martín Demichelis","DEF",81],["Marcos Rojo","DEF",82],["Javier Mascherano","MID",89],["Lucas Biglia","MID",82],["Ángel Di María","MID",89],["Lionel Messi","FWD",96],["Gonzalo Higuaín","FWD",87],["Sergio Agüero","FWD",88],["Ezequiel Lavezzi","FWD",83]]},
+{t:"Colombia",y:2014,f:"🇨🇴",p:[["David Ospina","GK",84],["Juan Camilo Zúñiga","DEF",82],["Mario Yepes","DEF",82],["Cristián Zapata","DEF",81],["Pablo Armero","DEF",80],["Carlos Sánchez","MID",82],["Abel Aguilar","MID",80],["Juan Guillermo Cuadrado","MID",86],["James Rodríguez","MID",91],["Juan Fernando Quintero","MID",80],["Teófilo Gutiérrez","FWD",82],["Jackson Martínez","FWD",84]]},
 {t:"Germany",y:2014,f:"🇩🇪",p:[["Manuel Neuer","GK",94],["Philipp Lahm","DEF",92],["Jérôme Boateng","DEF",89],["Mats Hummels","DEF",90],["Benedikt Höwedes","DEF",82],["Bastian Schweinsteiger","MID",90],["Sami Khedira","MID",85],["Toni Kroos","MID",92],["Mesut Özil","MID",89],["Thomas Müller","FWD",91],["Miroslav Klose","FWD",87],["Mario Götze","FWD",85]]},
-{t:"Croatia",y:2018,f:"🇭🇷",p:[["Danijel Subašić","GK",83],["Šime Vrsaljko","DEF",81],["Dejan Lovren","DEF",82],["Domagoj Vida","DEF",81],["Ivan Strinić","DEF",78],["Marcelo Brozović","MID",84],["Ivan Rakitić","MID",89],["Luka Modrić","MID",94],["Mateo Kovačić","MID",84],["Ivan Perišić","FWD",86],["Mario Mandžukić","FWD",86],["Ante Rebić","FWD",82]]},
 {t:"Belgium",y:2018,f:"🇧🇪",p:[["Thibaut Courtois","GK",91],["Toby Alderweireld","DEF",86],["Vincent Kompany","DEF",87],["Jan Vertonghen","DEF",86],["Thomas Meunier","DEF",83],["Axel Witsel","MID",85],["Marouane Fellaini","MID",81],["Kevin De Bruyne","MID",93],["Nacer Chadli","MID",80],["Dries Mertens","FWD",85],["Romelu Lukaku","FWD",89],["Eden Hazard","FWD",92]]},
-{t:"France",y:2018,f:"🇫🇷",p:[["Hugo Lloris","GK",87],["Benjamin Pavard","DEF",82],["Raphaël Varane","DEF",89],["Samuel Umtiti","DEF",86],["Lucas Hernandez","DEF",85],["N'Golo Kanté","MID",92],["Paul Pogba","MID",89],["Blaise Matuidi","MID",84],["Kylian Mbappé","FWD",92],["Olivier Giroud","FWD",84],["Antoine Griezmann","FWD",91],["Ousmane Dembélé","FWD",83]]},
+{t:"Croatia",y:2018,f:"🇭🇷",p:[["Danijel Subašić","GK",83],["Šime Vrsaljko","DEF",81],["Dejan Lovren","DEF",82],["Domagoj Vida","DEF",81],["Ivan Strinić","DEF",78],["Marcelo Brozović","MID",84],["Ivan Rakitić","MID",89],["Luka Modrić","MID",94],["Mateo Kovačić","MID",84],["Ivan Perišić","FWD",86],["Mario Mandžukić","FWD",86],["Ante Rebić","FWD",82]]},
 {t:"England",y:2018,f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",p:[["Jordan Pickford","GK",83],["Kyle Walker","DEF",85],["John Stones","DEF",84],["Harry Maguire","DEF",83],["Kieran Trippier","DEF",84],["Ashley Young","DEF",80],["Jordan Henderson","MID",84],["Jesse Lingard","MID",81],["Dele Alli","MID",83],["Raheem Sterling","FWD",85],["Harry Kane","FWD",90],["Marcus Rashford","FWD",82]]},
+{t:"France",y:2018,f:"🇫🇷",p:[["Hugo Lloris","GK",87],["Benjamin Pavard","DEF",82],["Raphaël Varane","DEF",89],["Samuel Umtiti","DEF",86],["Lucas Hernandez","DEF",85],["N'Golo Kanté","MID",92],["Paul Pogba","MID",89],["Blaise Matuidi","MID",84],["Kylian Mbappé","FWD",92],["Olivier Giroud","FWD",84],["Antoine Griezmann","FWD",91],["Ousmane Dembélé","FWD",83]]},
+{t:"Argentina",y:2022,f:"🇦🇷",p:[["Emiliano Martínez","GK",88],["Nahuel Molina","DEF",82],["Cristian Romero","DEF",85],["Nicolás Otamendi","DEF",84],["Nicolás Tagliafico","DEF",82],["Rodrigo De Paul","MID",86],["Enzo Fernández","MID",86],["Alexis Mac Allister","MID",85],["Leandro Paredes","MID",82],["Lionel Messi","FWD",97],["Julián Álvarez","FWD",86],["Ángel Di María","FWD",89]]},
+{t:"France",y:2022,f:"🇫🇷",p:[["Hugo Lloris","GK",86],["Jules Koundé","DEF",85],["Raphaël Varane","DEF",86],["Dayot Upamecano","DEF",83],["Theo Hernandez","DEF",85],["Aurélien Tchouaméni","MID",86],["Adrien Rabiot","MID",84],["Antoine Griezmann","MID",91],["Ousmane Dembélé","FWD",85],["Kylian Mbappé","FWD",96],["Olivier Giroud","FWD",85],["Randal Kolo Muani","FWD",81]]},
 {t:"Morocco",y:2022,f:"🇲🇦",p:[["Yassine Bounou","GK",87],["Achraf Hakimi","DEF",87],["Romain Saïss","DEF",81],["Nayef Aguerd","DEF",82],["Noussair Mazraoui","DEF",82],["Sofyan Amrabat","MID",86],["Azzedine Ounahi","MID",82],["Selim Amallah","MID",78],["Hakim Ziyech","FWD",85],["Youssef En-Nesyri","FWD",81],["Sofiane Boufal","FWD",81]]},
-{t:"Portugal",y:2022,f:"🇵🇹",p:[["Diogo Costa","GK",84],["João Cancelo","DEF",87],["Rúben Dias","DEF",88],["Pepe","DEF",85],["Raphaël Guerreiro","DEF",83],["William Carvalho","MID",83],["Bruno Fernandes","MID",89],["Bernardo Silva","MID",89],["Otávio","MID",80],["Cristiano Ronaldo","FWD",88],["João Félix","FWD",84],["Rafael Leão","FWD",84],["Gonçalo Ramos","FWD",82]]},
-{t:"Argentina",y:2022,f:"🇦🇷",p:[["Emiliano Martínez","GK",88],["Nahuel Molina","DEF",82],["Cristian Romero","DEF",85],["Nicolás Otamendi","DEF",84],["Nicolás Tagliafico","DEF",82],["Rodrigo De Paul","MID",86],["Enzo Fernández","MID",86],["Alexis Mac Allister","MID",85],["Leandro Paredes","MID",82],["Lionel Messi","FWD",97],["Julián Álvarez","FWD",86],["Ángel Di María","FWD",89]]}
+{t:"Portugal",y:2022,f:"🇵🇹",p:[["Diogo Costa","GK",84],["João Cancelo","DEF",87],["Rúben Dias","DEF",88],["Pepe","DEF",85],["Raphaël Guerreiro","DEF",83],["William Carvalho","MID",83],["Bruno Fernandes","MID",89],["Bernardo Silva","MID",89],["Otávio","MID",80],["Cristiano Ronaldo","FWD",88],["João Félix","FWD",84],["Rafael Leão","FWD",84],["Gonçalo Ramos","FWD",82]]}
 ];
 
 const OPP=[
-["Mexico","🇲🇽",85],["United States","🇺🇸",82],["Japan","🇯🇵",83],["South Korea","🇰🇷",83],
-["Sweden","🇸🇪",84],["Denmark","🇩🇰",84],["Poland","🇵🇱",82],["Colombia","🇨🇴",86],
-["Chile","🇨🇱",85],["Senegal","🇸🇳",84],["Ghana","🇬🇭",83],["Morocco","🇲🇦",86],
-["Switzerland","🇨🇭",84],["Serbia","🇷🇸",82],["Ecuador","🇪🇨",81],["Australia","🇦🇺",79],
-["Costa Rica","🇨🇷",80],["Nigeria","🇳🇬",83],["Cameroon","🇨🇲",82],["Paraguay","🇵🇾",81],
-["Romania","🇷🇴",83],["Türkiye","🇹🇷",84],["Wales","🏴󠁧󠁢󠁷󠁬󠁳󠁿",81],["Austria","🇦🇹",82],
-["Scotland","🏴󠁧󠁢󠁳󠁣󠁴󠁿",79],["Ireland","🇮🇪",80],["Hungary","🇭🇺",81],["Bulgaria","🇧🇬",80],
-["Uruguay","🇺🇾",88],["Croatia","🇭🇷",88],["Belgium","🇧🇪",89],["Portugal","🇵🇹",90],
-["England","🏴󠁧󠁢󠁥󠁮󠁧󠁿",90],["Netherlands","🇳🇱",90],["Italy","🇮🇹",91],["Spain","🇪🇸",92],
-["Germany","🇩🇪",92],["Argentina","🇦🇷",93],["France","🇫🇷",93],["Brazil","🇧🇷",93]
+["Mexico","🇲🇽",85],
+["United States","🇺🇸",82],
+["Japan","🇯🇵",83],
+["South Korea","🇰🇷",83],
+["Sweden","🇸🇪",84],
+["Denmark","🇩🇰",84],
+["Poland","🇵🇱",82],
+["Colombia","🇨🇴",86],
+["Chile","🇨🇱",85],
+["Senegal","🇸🇳",84],
+["Ghana","🇬🇭",83],
+["Morocco","🇲🇦",86],
+["Switzerland","🇨🇭",84],
+["Serbia","🇷🇸",82],
+["Ecuador","🇪🇨",81],
+["Australia","🇦🇺",79],
+["Costa Rica","🇨🇷",80],
+["Nigeria","🇳🇬",83],
+["Cameroon","🇨🇲",82],
+["Paraguay","🇵🇾",81],
+["Romania","🇷🇴",83],
+["Türkiye","🇹🇷",84],
+["Wales","🏴󠁧󠁢󠁷󠁬󠁳󠁿",81],
+["Austria","🇦🇹",82],
+["Scotland","🏴󠁧󠁢󠁳󠁣󠁴󠁿",79],
+["Ireland","🇮🇪",80],
+["Hungary","🇭🇺",81],
+["Bulgaria","🇧🇬",80],
+["Uruguay","🇺🇾",88],
+["Croatia","🇭🇷",88],
+["Belgium","🇧🇪",89],
+["Portugal","🇵🇹",90],
+["England","🏴󠁧󠁢󠁥󠁮󠁧󠁿",90],
+["Netherlands","🇳🇱",90],
+["Italy","🇮🇹",91],
+["Spain","🇪🇸",92],
+["Germany","🇩🇪",92],
+["Argentina","🇦🇷",93],
+["France","🇫🇷",93],
+["Brazil","🇧🇷",93],
+["Iran","🇮🇷",79],
+["Saudi Arabia","🇸🇦",76],
+["Egypt","🇪🇬",80],
+["Peru","🇵🇪",81],
+["Canada","🇨🇦",79],
+["Algeria","🇩🇿",82],
+["Norway","🇳🇴",81],
+["Greece","🇬🇷",80]
 ];
 
 /* =========================================================
@@ -415,25 +638,88 @@ const FORMATIONS={
    mod:{att:-0.2,def:0.9},blurb:"double pivot"},
  "3-5-2":{rows:[["ST1","ST2"],["LCM","CM","RCM"],["LWB","LCB","CB","RCB","RWB"],["GK"]],
    cats:{ST1:"FWD",ST2:"FWD",LCM:"MID",CM:"MID",RCM:"MID",LWB:"DEF",LCB:"DEF",CB:"DEF",RCB:"DEF",RWB:"DEF",GK:"GK"},
-   mod:{att:1.0,def:-0.7},blurb:"wing-backs fly"}
+   mod:{att:1.0,def:-0.7},blurb:"wing-backs fly"},
+ "4-1-2-1-2":{rows:[["ST1","ST2"],["CAM"],["LCM","RCM"],["CDM"],["LB","LCB","RCB","RB"],["GK"]],
+   cats:{ST1:"FWD",ST2:"FWD",CAM:"MID",LCM:"MID",RCM:"MID",CDM:"MID",LB:"DEF",LCB:"DEF",RCB:"DEF",RB:"DEF",GK:"GK"},
+   mod:{att:0.5,def:0.2},blurb:"diamond"},
+ "4-5-1":{rows:[["ST"],["LM","LCM","CM","RCM","RM"],["LB","LCB","RCB","RB"],["GK"]],
+   cats:{ST:"FWD",LM:"MID",LCM:"MID",CM:"MID",RCM:"MID",RM:"MID",LB:"DEF",LCB:"DEF",RCB:"DEF",RB:"DEF",GK:"GK"},
+   mod:{att:-0.4,def:1.0},blurb:"midfield swarm"}
 };
+
+/* =========================================================
+   MODES + SCORING (scoring mirrored in api/_shared.js — keep in sync)
+========================================================= */
+const DIFF_MULT={classic:1,hard:1.3,legend:1.7};
+const DRAFT_MULT={classic:1,era:1.15,dynasty:1.2,cap:1.3};
+const DRAFT_MODES={
+  classic:{n:"Classic",d:"all 64 squads"},
+  era:{n:"Era Tour",d:"a new decade each spin"},
+  dynasty:{n:"Dynasty",d:"one nation, all eras"},
+  cap:{n:"Wage Cap",d:"budget 946 — spend wisely"}
+};
+const ERAS=[[1950,1959],[1960,1969],[1970,1979],[1980,1989],[1990,1999],[2000,2009],[2010,2019],[2020,2029]];
+const CAP_BUDGET=946, CAP_FLOOR=75;
+const DYN_ALIAS=t=>t==="West Germany"?"Germany":t;
+const DYNASTIES=(()=>{const m={};SQUADS.forEach((s,i)=>{const k=DYN_ALIAS(s.t);(m[k]=m[k]||[]).push(i);});
+  return Object.entries(m).filter(([,v])=>v.length>=4).sort((a,b)=>b[1].length-a[1].length);})();
+
+function scoreRun(matches,flags){
+  let pts=0,reg=0;
+  matches.forEach((x,i)=>{
+    const knock=i>=3;
+    if(x.gf>x.ga){pts+=x.et?85:100;if(!x.et)reg++;}
+    else if(x.gf===x.ga){pts+=knock?(x.pw?70:25):40;}
+    pts+=x.gf*4-x.ga*2;
+  });
+  const last=matches[matches.length-1];
+  const lastWon=last&&(last.gf>last.ga||(last.gf===last.ga&&last.pw===true));
+  const champion=matches.length===7&&lastWon;
+  if(champion)pts+=200;
+  const perfect=champion&&reg===7&&matches.every(x=>x.gf>x.ga&&!x.et);
+  if(perfect)pts+=300;
+  pts=Math.max(0,pts);
+  const mult=(DIFF_MULT[flags.diff]||1)*(DRAFT_MULT[flags.draft]||1)*(flags.daily?1.1:1);
+  return{pts:Math.round(pts*mult),champion,perfect,base:pts,mult};
+}
 
 /* =========================================================
    STATE + STORAGE
 ========================================================= */
 let S={};
-let pref={form:"4-3-3",mode:"classic"};
-function resetState(){
-  const F=FORMATIONS[pref.form];
+let pref={form:"4-3-3",draft:"classic",diff:"classic",dyn:null};
+const utcDay=()=>new Date().toISOString().slice(0,10);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+
+function resetState(daily){
+  const draft=daily?"classic":pref.draft, form=daily?"4-3-3":pref.form, diff=daily?"classic":pref.diff;
+  const F=FORMATIONS[form];
   const slots=[];F.rows.forEach(r=>r.forEach(id=>slots.push({id,cat:F.cats[id],player:null})));
-  S={form:pref.form,mode:pref.mode,slots,lastSquad:-1,spinning:false,wheelRot:0,picked:new Set(),
-     respins:2,captain:null,goals:{},
-     cup:{stage:0,record:{w:0,d:0,l:0,gf:0,ga:0},group:null,knock:[],out:false,outAt:null,champion:false,regWins:0,gridResults:[]}};
+  S={form,draft,diff,daily:!!daily,dyn:draft==="dynasty"?pref.dyn:null,
+     slots,lastSquad:-1,spinning:false,wheelRot:0,picked:new Set(),
+     respins:2,captain:null,goals:{},era:0,budget:CAP_BUDGET,token:null,submitted:false,
+     rng:daily?mulberry32(hashStr("7-0:"+utcDay())):Math.random,
+     pool:[],wheelIdx:[],
+     cup:{stage:0,record:{w:0,d:0,l:0,gf:0,ga:0},group:null,knock:[],out:false,outAt:null,
+          champion:false,perfect:false,regWins:0,gridResults:[],matches:[]}};
+  fetchToken();
 }
-const STORE_KEY="seven_zero_stats_v2";
-const STORE_DEF={runs:0,titles:0,perfects:0,bestW:0,goals:0,topScorers:{}};
+const R=()=>S.rng();
+const rnd=n=>Math.floor(R()*n);
+const pickFrom=a=>a[rnd(a.length)];
+
+const STORE_KEY="seven_zero_stats_v3";
+const STORE_DEF={runs:0,titles:0,perfects:0,bestW:0,bestPts:0,goals:0,topScorers:{},
+  badges:{},streak:0,lastDaily:"",playerName:"",playerCountry:""};
 const store={
-  get(){try{return Object.assign({},STORE_DEF,JSON.parse(localStorage.getItem(STORE_KEY))||{});}catch(e){return Object.assign({},STORE_DEF);}},
+  get(){
+    try{
+      let v=JSON.parse(localStorage.getItem(STORE_KEY));
+      if(!v){const old=JSON.parse(localStorage.getItem("seven_zero_stats_v2"));if(old)v=old;}
+      return Object.assign({},STORE_DEF,v||{});
+    }catch(e){return Object.assign({},STORE_DEF);}
+  },
   set(v){try{localStorage.setItem(STORE_KEY,JSON.stringify(v));}catch(e){}}
 };
 
@@ -441,49 +727,148 @@ const store={
    HELPERS
 ========================================================= */
 const $=id=>document.getElementById(id);
-const rnd=n=>Math.floor(Math.random()*n);
-const pickFrom=a=>a[rnd(a.length)];
 function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on");window.scrollTo(0,0);}
-function poisson(l){let L=Math.exp(-l),k=0,p=1;do{k++;p*=Math.random();}while(p>L);return k-1;}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function tier(r){return r>=95?"icon":r>=90?"gold":r>=85?"silver":"bronze";}
-function hidden(){return S.mode==="hard"||S.mode==="legend";}
+function hidden(){return S.diff==="hard"||S.diff==="legend";}
+const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const API=p=>fetch(p,{headers:{accept:"application/json"}}).then(r=>r.ok?r.json():Promise.reject(r.status));
+function fetchToken(){
+  try{API("/api/token").then(t=>{S.token=t;}).catch(()=>{});}catch(e){}
+}
 
 /* =========================================================
-   WHEEL
+   AUDIO — tiny synthesized kit, mute persisted
 ========================================================= */
-const SEG=360/SQUADS.length;
-function buildWheel(){
-  const w=$("wheel");
-  let stops=[];
-  for(let i=0;i<SQUADS.length;i++){
-    stops.push(`${i%2?"var(--pitch-2)":"var(--pitch)"} ${i*SEG}deg ${(i+1)*SEG}deg`);
+const AU={ctx:null,muted:localStorage.getItem("seven_zero_muted")==="1",last:0};
+function audioCtx(){
+  if(AU.muted)return null;
+  if(!AU.ctx){try{AU.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}}
+  if(AU.ctx.state==="suspended")AU.ctx.resume();
+  return AU.ctx;
+}
+function tone(f0,f1,dur,type,vol,when){
+  const c=audioCtx();if(!c)return;
+  const t=c.currentTime+(when||0);
+  const o=c.createOscillator(),g=c.createGain();
+  o.type=type||"square";o.frequency.setValueAtTime(f0,t);
+  if(f1)o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  g.gain.setValueAtTime(vol||.06,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g).connect(c.destination);o.start(t);o.stop(t+dur+.02);
+}
+const SFX={
+  tick(){const n=performance.now();if(n-AU.last<36)return;AU.last=n;tone(1900,null,.025,"square",.035);},
+  pick(){tone(620,930,.09,"triangle",.08);},
+  land(){tone(392,523,.16,"triangle",.09);tone(784,null,.1,"square",.04,.12);},
+  goalUs(){tone(523,784,.14,"triangle",.1);tone(1046,null,.12,"square",.05,.1);},
+  goalThem(){tone(233,155,.22,"sawtooth",.08);},
+  whistle(n){for(let i=0;i<(n||1);i++)tone(2093,2093,.12,"square",.05,i*.18);},
+  fanfare(){[523,659,784,1046].forEach((f,i)=>tone(f,null,.32,"triangle",.09,i*.13));},
+  penGoal(){tone(660,880,.1,"triangle",.09);},
+  penMiss(){tone(180,120,.2,"sawtooth",.09);}
+};
+function wireMute(){
+  const b=$("mute");
+  const paint=()=>{b.textContent=AU.muted?"🔇":"🔊";};
+  paint();
+  b.onclick=()=>{AU.muted=!AU.muted;localStorage.setItem("seven_zero_muted",AU.muted?"1":"0");paint();if(!AU.muted)SFX.pick();};
+}
+
+/* =========================================================
+   WHEEL v2 — RAF spin, pointer kicks, two flag rings, landing flash
+========================================================= */
+function wheelPool(){
+  if(S.draft==="dynasty"&&S.dyn){
+    const idxs=(DYNASTIES.find(([k])=>k===S.dyn)||[null,[]])[1];
+    return idxs.slice();
   }
-  w.style.background=`conic-gradient(from ${-SEG/2}deg, ${stops.join(",")})`;
+  if(S.draft==="era"){
+    const[e0,e1]=ERAS[S.era%ERAS.length];
+    return SQUADS.map((s,i)=>s.y>=e0&&s.y<=e1?i:-1).filter(i=>i>=0);
+  }
+  return SQUADS.map((_,i)=>i);
+}
+function buildWheel(){
+  S.pool=wheelPool();
+  const w=$("wheel");
+  const n=S.pool.length, seg=360/n;
+  let stops=[];
+  for(let i=0;i<n;i++){
+    const c=i%2?"var(--pitch-2)":"var(--pitch)";
+    stops.push(`${c} ${i*seg}deg ${(i+1)*seg}deg`);
+  }
+  w.style.background=`conic-gradient(from ${-seg/2}deg, ${stops.join(",")})`;
   w.innerHTML="";
-  SQUADS.forEach((s,i)=>{
+  const wrapW=w.parentElement.getBoundingClientRect().width||320;
+  S.pool.forEach((si,i)=>{
     const e=document.createElement("div");
-    e.className="seg-flag";e.textContent=s.f;
-    e.style.transform=`rotate(${i*SEG}deg) translate(-50%,-50%) translateY(calc(-1 * min(155px,40vw) * 0.84))`;
+    e.className="seg-flag"+(n>40&&i%2?" dim":"");
+    e.textContent=SQUADS[si].f;
+    const radius=n>40?(i%2?0.665:0.86):0.78;
+    e.style.transform=`rotate(${i*seg}deg) translate(-50%,-50%) translateY(${-wrapW/2*radius}px)`;
     w.appendChild(e);
   });
+  w.style.transform=`rotate(${S.wheelRot}deg)`;
+}
+let spinRAF=null;
+function spinTo(poolPos,done){
+  const n=S.pool.length, seg=360/n;
+  const target=(360-poolPos*seg)%360;
+  const from=S.wheelRot;
+  const delta=(4+rnd(3))*360+((target-(from%360)+720)%360);
+  const to=from+delta;
+  const dur=reducedMotion?0:4300+rnd(700);
+  const w=$("wheel"),ptr=$("pointer");
+  if(dur===0){S.wheelRot=to;w.style.transform=`rotate(${to}deg)`;done();return;}
+  const t0=performance.now();
+  let lastSeg=Math.floor(((from%360)+360)%360/seg);
+  function frame(now){
+    const t=Math.min(1,(now-t0)/dur);
+    const ease=1-Math.pow(1-t,4.1);
+    const rot=from+delta*ease;
+    S.wheelRot=rot;
+    w.style.transform=`rotate(${rot}deg)`;
+    const segNow=Math.floor(((rot%360)+360)%360/seg);
+    if(segNow!==lastSeg){
+      lastSeg=segNow;
+      SFX.tick();
+      const kick=clamp(16*(1-t*0.75),5,16);
+      ptr.style.transform=`rotate(${-kick}deg)`;
+      setTimeout(()=>{ptr.style.transform="rotate(0deg)";},70);
+    }
+    if(t<1)spinRAF=requestAnimationFrame(frame);
+    else{spinRAF=null;S.wheelRot=to;w.style.transform=`rotate(${to}deg)`;done();}
+  }
+  spinRAF=requestAnimationFrame(frame);
 }
 function spin(){
   if(S.spinning)return;
+  const open=openCats();
+  // era tour: hop decades until one can serve an open position
+  if(S.draft==="era"){
+    let guard=0;
+    while(guard++<ERAS.length){
+      const pool=wheelPool();
+      const fits=pool.some(si=>SQUADS[si].p.some((pl,pi)=>open.has(pl[1])&&!S.picked.has(si+":"+pi)&&capOK(pl[2])));
+      if(fits)break;
+      S.era++;
+    }
+    buildWheel();
+    paintDraftMeta();
+  }
   S.spinning=true;$("btn-spin").disabled=true;$("landed").textContent="…";
-  let i;
-  do{i=rnd(SQUADS.length);}while(i===S.lastSquad&&SQUADS.length>1);
-  S.lastSquad=i;
-  const target=(360-i*SEG)%360;
-  const turns=4+rnd(3);
-  S.wheelRot+=turns*360+((target-(S.wheelRot%360)+720)%360);
-  $("wheel").style.transform=`rotate(${S.wheelRot}deg)`;
-  setTimeout(()=>{
+  let pos;
+  do{pos=rnd(S.pool.length);}while(S.pool[pos]===S.lastSquad&&S.pool.length>1);
+  const si=S.pool[pos];
+  S.lastSquad=si;
+  spinTo(pos,()=>{
     S.spinning=false;
-    const sq=SQUADS[i];
+    const sq=SQUADS[si];
+    SFX.land();
+    $("wheelflash").classList.remove("on");void $("wheelflash").offsetWidth;$("wheelflash").classList.add("on");
     $("landed").innerHTML=`${sq.f} <span>${sq.t} ${sq.y}</span>`;
-    openSquad(i);
-  },4300);
+    openSquad(si);
+  });
 }
 
 /* =========================================================
@@ -491,7 +876,22 @@ function spin(){
 ========================================================= */
 function openCats(){const c=new Set();S.slots.forEach(s=>{if(!s.player)c.add(s.cat);});return c;}
 function picksLeft(){return S.slots.filter(s=>!s.player).length;}
-
+function capOK(rating){
+  if(S.draft!=="cap")return true;
+  return rating<=S.budget-(picksLeft()-1)*CAP_FLOOR;
+}
+function paintDraftMeta(){
+  const bits=[S.form];
+  if(S.draft!=="classic")bits.push(DRAFT_MODES[S.draft].n+(S.dyn?" · "+S.dyn:""));
+  if(S.diff!=="classic")bits.push(S.diff.toUpperCase());
+  if(S.daily)bits.push("DAILY");
+  $("dm-form").textContent=bits.join(" · ");
+  let extra="";
+  if(S.draft==="era")extra=`Era: <b>${ERAS[S.era%ERAS.length][0]}s</b>`;
+  if(S.draft==="cap")extra=`Budget left: <b>${S.budget}</b>`;
+  $("dm-extra").innerHTML=extra;
+  $("dm-respins").textContent=S.respins;
+}
 function openSquad(i){
   const sq=SQUADS[i],open=openCats();
   $("m-title").innerHTML=`${sq.f} ${sq.t} <span class="yr">${sq.y}</span>`;
@@ -499,7 +899,7 @@ function openSquad(i){
   let anyFit=false;
   sq.p.forEach((pl,idx)=>{
     const key=i+":"+idx;
-    const fits=open.has(pl[1])&&!S.picked.has(key);
+    const fits=open.has(pl[1])&&!S.picked.has(key)&&capOK(pl[2]);
     if(fits)anyFit=true;
     const b=document.createElement("button");
     b.className="pl";b.disabled=!fits;
@@ -509,8 +909,8 @@ function openSquad(i){
     list.appendChild(b);
   });
   $("m-hint").textContent=anyFit
-    ?"Pick one player for an open position."
-    :"Nobody in this squad fits your remaining positions — spin again for free.";
+    ?(S.draft==="cap"?`Pick one player. Budget left: ${S.budget} (cheapest slot reserve ${CAP_FLOOR}).`:"Pick one player for an open position.")
+    :(S.draft==="cap"?"Nobody here fits your budget and remaining positions — spin again for free.":"Nobody in this squad fits your remaining positions — spin again for free.");
   const r=$("btn-respin");
   if(!anyFit){r.style.display="block";r.disabled=false;r.textContent="Spin again (free)";r.dataset.free=1;}
   else if(S.respins>0){r.style.display="block";r.disabled=false;r.textContent=`Use a re-spin (${S.respins} left)`;delete r.dataset.free;}
@@ -520,10 +920,15 @@ function openSquad(i){
 function draft(si,pi,key){
   const pl=SQUADS[si].p[pi];
   const slot=S.slots.find(s=>!s.player&&s.cat===pl[1]);
+  if(!slot)return;
   slot.player={name:pl[0],rating:pl[2],team:SQUADS[si].t,year:SQUADS[si].y,flag:SQUADS[si].f,cat:pl[1],sq:si};
   S.picked.add(key);
+  if(S.draft==="cap")S.budget-=pl[2];
+  if(S.draft==="era")S.era++;
+  SFX.pick();
   $("modal-bg").classList.remove("on");
-  renderPitch();
+  renderPitch(slot.id);
+  paintDraftMeta();
   $("picks-n").textContent=picksLeft();
   if(picksLeft()===0){
     $("btn-spin").textContent="Name your captain →";
@@ -531,6 +936,7 @@ function draft(si,pi,key){
     $("btn-spin").disabled=false;
     $("landed").innerHTML=`<span>Your XI is complete.</span>`;
   }else{
+    if(S.draft==="era"||S.draft==="dynasty")buildWheel();
     $("btn-spin").disabled=false;
   }
 }
@@ -541,7 +947,7 @@ function chemistry(){
   Object.values(counts).forEach(n=>{links+=n*(n-1)/2;});
   return{links,boost:Math.min(2.5,links*0.4)};
 }
-function renderPitch(){
+function renderPitch(justId){
   const F=FORMATIONS[S.form];
   const p=$("pitch");p.innerHTML="";
   F.rows.forEach(r=>{
@@ -550,7 +956,7 @@ function renderPitch(){
       const s=S.slots.find(x=>x.id===id);
       const d=document.createElement("div");
       const t=s.player?(hidden()?"plain":tier(s.player.rating)):"";
-      d.className="slot"+(s.player?" filled t-"+t:"");
+      d.className="slot"+(s.player?" filled t-"+t:"")+(justId===id?" justin":"");
       d.innerHTML=s.player
         ?`${S.captain===s.id?'<div class="cap">C</div>':""}<div class="ptag">${s.id}</div><div class="nm">${s.player.name}</div><div class="meta">${s.player.flag} ${s.player.year}${hidden()?"":" · "+s.player.rating}</div>`
         :`<div class="ptag">${s.id}</div><div class="nm" style="color:var(--chalk-dim)">—</div>`;
@@ -569,7 +975,7 @@ function openCaptain(){
     b.className="pl";
     const t=hidden()?"plain":tier(s.player.rating);
     b.innerHTML=`<span class="pos">${s.id}</span><span class="pname">${s.player.name}</span><span class="rt t-${t}">${hidden()?"??":s.player.rating}</span>`;
-    b.onclick=()=>{S.captain=s.id;$("cap-bg").classList.remove("on");renderPitch();startCup();};
+    b.onclick=()=>{S.captain=s.id;$("cap-bg").classList.remove("on");SFX.fanfare();renderPitch();startCup();};
     list.appendChild(b);
   });
   $("cap-bg").classList.add("on");
@@ -594,76 +1000,161 @@ function scorerName(){
     if(S.captain===s.id)w*=1.35;
     if(w>0)pool.push([s.player.name,w]);
   });
-  let tot=pool.reduce((a,b)=>a+b[1],0),r=Math.random()*tot;
+  let tot=pool.reduce((a,b)=>a+b[1],0),r=R()*tot;
   for(const[n,w]of pool){r-=w;if(r<=0)return n;}
   return pool[0][0];
 }
 
 /* =========================================================
-   MATCH ENGINE
+   MATCH ENGINE v2 — live minute-by-minute with tactics
 ========================================================= */
-function legendBoost(){return S.mode==="legend"?3:0;}
-function simMatch(opp,knockout){
+function legendBoost(){return S.diff==="legend"?3:0;}
+function poisson(l){let L=Math.exp(-l),k=0,p=1;do{k++;p*=R();}while(p>L);return k-1;}
+
+const C_OURCH=["{p} curls one inches wide.","{p} rattles the crossbar!","Brilliant save denies {p}.","{p} dances through but drags it wide.","{p} heads over from six yards.","{p} stings the keeper's palms from distance.","{p} clips the outside of the post!"];
+const C_THCH=["{o} hit the post — let off!","Your keeper claws one out of the top corner.","{o} break in numbers but the shot is smothered.","Last-ditch block keeps {o} out.","{o} flash one across the face of goal."];
+const C_OURGOAL=["What a finish!","The stadium erupts!","Cool as you like.","An absolute thunderbolt!","They simply could not live with that.","Vintage.","Sheer class."];
+const C_THGOAL=["Disaster at the back.","Sucker punch.","They'd been threatening.","A hammer blow.","Silence falls."];
+
+const TACTICS={keep:{f:1,a:1,n:"Keep shape"},push:{f:1.45,a:1.5,n:"Push forward"},park:{f:.55,a:.5,n:"Park the bus"}};
+let ticker=null;
+
+function runLive(opp,knockout,done){
+  $("btn-next").disabled=true;$("btn-skip").style.display="block";
   const st=strengths(),diff=st.overall-(opp.r+legendBoost());
   const xf=clamp(1.45+diff*0.085+(st.att-80)*0.012,0.25,4.8);
   const xa=clamp(1.22-diff*0.075-(st.def-80)*0.012,0.10,3.2);
-  let gf=poisson(xf),ga=poisson(xa),et=false,pens=null;
-  let ourMin=[],theirMin=[];
-  for(let g=0;g<gf;g++)ourMin.push(3+rnd(86));
-  for(let g=0;g<ga;g++)theirMin.push(3+rnd(86));
-  if(knockout&&gf===ga){
-    et=true;
-    const ef=poisson(xf*0.33),ea=poisson(xa*0.33);
-    for(let g=0;g<ef;g++)ourMin.push(91+rnd(29));
-    for(let g=0;g<ea;g++)theirMin.push(91+rnd(29));
-    gf+=ef;ga+=ea;
-    if(gf===ga)pens=penShootout(diff);
+  let mf=1,ma=1,min=0,end=90,et=false,halt=false,fast=false,finished=false;
+  const ourGoals=[],theirMin=[];
+
+  const card=document.createElement("div");card.className="match live";
+  card.innerHTML=`<div class="ln">
+      <div class="team"><span class="f">🏆</span> Your XI</div>
+      <div class="score mono" id="live-score">0 – 0</div>
+      <div class="team" style="justify-content:flex-end"><span style="text-align:right">${opp.n}</span> <span class="f">${opp.f}</span></div>
+    </div>
+    <div class="minute" id="live-min">0'</div>
+    <div class="log" id="live-log"></div>
+    <div id="live-tac"></div>`;
+  $("cup-feed").appendChild(card);
+  card.scrollIntoView({behavior:"smooth",block:"end"});
+  const addLog=h=>{const d=document.createElement("div");d.innerHTML=h;$("live-log").prepend(d);};
+  const paint=()=>{$("live-score").textContent=ourGoals.length+" – "+theirMin.length;$("live-min").textContent=min+"'";};
+  addLog(`<span class="big">Kick-off.</span> ${opp.f} ${opp.n} await.`);
+
+  function pauseTactics(label){
+    if(fast)return; // skipping: keep current shape, play on
+    halt=true;
+    const box=$("live-tac");
+    let left=7;
+    box.innerHTML=`<div class="tactics">
+        <button class="tbtn" data-t="park">Park the bus<small>protect the result</small></button>
+        <button class="tbtn sel" data-t="keep">Keep shape<small>as you were</small></button>
+        <button class="tbtn" data-t="push">Push forward<small>chase the game</small></button>
+      </div><div class="tacnote">${label} — auto-continue in <b id="tac-n">7</b>s</div>`;
+    const iv=setInterval(()=>{left--;const n=$("tac-n");if(n)n.textContent=left;if(left<=0)choose("keep");},1000);
+    const choose=t=>{clearInterval(iv);mf=TACTICS[t].f;ma=TACTICS[t].a;box.innerHTML="";
+      if(t!=="keep")addLog(`<span class="big">Tactical switch: ${TACTICS[t].n}.</span>`);
+      halt=false;};
+    box.querySelectorAll(".tbtn").forEach(b=>b.onclick=()=>{SFX.pick();choose(b.dataset.t);});
   }
-  const scorers=ourMin.sort((a,b)=>a-b).map(m=>[scorerName(),m]);
-  theirMin.sort((a,b)=>a-b);
-  return{gf,ga,et,pens,scorers,theirMin,
-    poss:Math.round(clamp(50+diff*0.9+(Math.random()*10-5),30,72)),
-    shots:gf*2+4+rnd(7),shotsA:ga*2+3+rnd(6)};
+
+  function minute(silent){
+    min++;
+    const boost=min>90?1.05:1;
+    if(R()<xf/90*mf*boost){
+      const n=scorerName();ourGoals.push([n,min]);
+      addLog(`<span class="goalus">⚽ GOAL! ${n} ${min}'</span> — ${pickFrom(C_OURGOAL)}`);
+      if(!silent)SFX.goalUs();
+    }else if(R()<xa/90*ma*boost){
+      theirMin.push(min);
+      addLog(`<span class="goalthem">⚽ ${opp.n} score ${min}'</span> — ${pickFrom(C_THGOAL)}`);
+      if(!silent)SFX.goalThem();
+    }else if(R()<.05){
+      addLog(R()<.55?C_OURCH[rnd(C_OURCH.length)].replace("{p}",scorerName()):C_THCH[rnd(C_THCH.length)].replace("{o}",opp.n));
+    }
+    paint();
+    if(min===45){addLog(`<span class="big">Half-time.</span>`);if(!silent)SFX.whistle(1);pauseTactics("Second half");return;}
+    if(min===90){
+      if(knockout&&ourGoals.length===theirMin.length){
+        et=true;end=120;
+        addLog(`<span class="big">Full-time — level. Extra time.</span>`);
+        if(!silent)SFX.whistle(2);
+        pauseTactics("Extra time");return;
+      }
+      finish();return;
+    }
+    if(min>=end)finish();
+  }
+
+  function finish(){
+    if(finished)return;finished=true;
+    clearInterval(ticker);ticker=null;
+    const gf=ourGoals.length,ga=theirMin.length;
+    let pens=null;
+    if(knockout&&gf===ga)pens=penShootout(diff);
+    addLog(`<span class="big">${pens?"Still level — penalties!":"The final whistle."}</span>`);
+    SFX.whistle(3);
+    const res={gf,ga,et,pens,
+      scorers:ourGoals.slice().sort((a,b)=>a[1]-b[1]),
+      theirMin:theirMin.slice().sort((a,b)=>a-b),
+      poss:Math.round(clamp(50+diff*0.9+(R()*10-5),30,72)),
+      shots:gf*2+4+rnd(7),shotsA:ga*2+3+rnd(6)};
+    setTimeout(()=>{card.remove();
+      if(res.pens)runPens(opp,res,()=>done(res));else done(res);
+    },fast?60:650);
+  }
+
+  $("btn-skip").onclick=()=>{
+    fast=true;halt=false;
+    clearInterval(ticker);ticker=null;
+    while(!finished)minute(true);
+  };
+  ticker=setInterval(()=>{if(!halt)minute(false);},65);
 }
+
 function penShootout(diff){
   const pUs=clamp(0.76+diff*0.005,0.55,0.92);
   const pTh=clamp(0.76-diff*0.005,0.55,0.92);
   const us=[],th=[];let su=0,st_=0;
   for(let k=0;k<5;k++){
-    const a=Math.random()<pUs;us.push(a);if(a)su++;
-    const b=Math.random()<pTh;th.push(b);if(b)st_++;
+    const a=R()<pUs;us.push(a);if(a)su++;
+    const b=R()<pTh;th.push(b);if(b)st_++;
     const remU=5-us.length,remT=5-th.length;
     if(su>st_+remT||st_>su+remU)break;
   }
-  while(su===st_){ // sudden death
-    const a=Math.random()<pUs,b=Math.random()<pTh;
+  while(su===st_){
+    const a=R()<pUs,b=R()<pTh;
     us.push(a);th.push(b);if(a)su++;if(b)st_++;
+    if(us.length>20)break;
   }
   return{us,th,win:su>st_,score:su+"–"+st_};
 }
-
-/* =========================================================
-   COMMENTARY
-========================================================= */
-const C_OURCH=["{p} curls one inches wide.","{p} rattles the crossbar!","Brilliant save denies {p}.","{p} dances through but drags it wide.","{p} heads over from six yards.","{p} stings the keeper's palms from distance."];
-const C_THCH=["{o} hit the post — let off!","Your keeper claws one out of the top corner.","{o} break in numbers but the shot is smothered.","Last-ditch block keeps {o} out.","{o} flash one across the face of goal."];
-const C_OURGOAL=["What a finish!","The stadium erupts!","Cool as you like.","An absolute thunderbolt!","They simply could not live with that.","Vintage."];
-const C_THGOAL=["Disaster at the back.","Sucker punch.","They'd been threatening.","A hammer blow.","Silence falls."];
-
-function buildEvents(opp,res){
-  const ev=[];
-  const end=res.et?120:90;
-  ev.push({m:0,html:`<span class="big">Kick-off.</span> ${opp.f} ${opp.n} await.`});
-  res.scorers.forEach(([n,m])=>ev.push({m,html:`<span class="goalus">⚽ GOAL! ${n} ${m}'</span> — ${pickFrom(C_OURGOAL)}`}));
-  res.theirMin.forEach(m=>ev.push({m,html:`<span class="goalthem">⚽ ${opp.n} score ${m}'</span> — ${pickFrom(C_THGOAL)}`}));
-  const nOur=2+rnd(3),nTh=1+rnd(3);
-  for(let i=0;i<nOur;i++)ev.push({m:4+rnd(end-8),html:C_OURCH[rnd(C_OURCH.length)].replace("{p}",scorerName())});
-  for(let i=0;i<nTh;i++)ev.push({m:4+rnd(end-8),html:C_THCH[rnd(C_THCH.length)].replace("{o}",opp.n)});
-  ev.push({m:45,html:`<span class="big">Half-time.</span>`});
-  if(res.et)ev.push({m:90,html:`<span class="big">Full-time — level. Extra time.</span>`});
-  ev.push({m:end,html:`<span class="big">${res.pens?"Still level — penalties!":"The final whistle."}</span>`});
-  ev.sort((a,b)=>a.m-b.m);
-  return{ev,end};
+function runPens(opp,res,done){
+  const card=document.createElement("div");card.className="match";
+  card.innerHTML=`<div class="ln"><div class="team">Penalty shootout</div></div>
+    <div class="penrow"><span class="who">You</span><span id="pen-us"></span></div>
+    <div class="penrow"><span class="who">${opp.n}</span><span id="pen-th"></span></div>`;
+  $("cup-feed").appendChild(card);
+  card.scrollIntoView({behavior:"smooth",block:"end"});
+  const p=res.pens;let i=0,pdone=false;
+  function pfin(){
+    if(pdone)return;pdone=true;
+    const d=document.createElement("div");d.className="pens";
+    d.textContent=(p.win?"You win the shootout ":"You lose the shootout ")+p.score;
+    card.appendChild(d);
+    setTimeout(done,700);
+  }
+  const iv=setInterval(()=>{
+    if(i<p.us.length){$("pen-us").textContent+=p.us[i]?"⚽":"❌";SFX[p.us[i]?"penGoal":"penMiss"]();}
+    if(i<p.th.length)$("pen-th").textContent+=p.th[i]?"⚽":"❌";
+    i++;
+    if(i>=Math.max(p.us.length,p.th.length)){clearInterval(iv);pfin();}
+  },430);
+  $("btn-skip").onclick=()=>{clearInterval(iv);
+    $("pen-us").textContent=p.us.map(x=>x?"⚽":"❌").join("");
+    $("pen-th").textContent=p.th.map(x=>x?"⚽":"❌").join("");
+    pfin();};
 }
 
 /* =========================================================
@@ -680,7 +1171,7 @@ function drawOpps(min,max,n,exclude){
 }
 function startCup(){
   const used=new Set();
-  const L=S.mode==="legend";
+  const L=S.diff==="legend";
   S.cup.group={opps:drawOpps(L?82:78,L?92:88,3,used),results:[]};
   S.cup.group.opps.forEach(o=>used.add(o.n));
   S.cup.knock=[
@@ -696,7 +1187,7 @@ function startCup(){
   const intro=document.createElement("div");intro.className="match";
   intro.innerHTML=`<div class="ln"><div class="team">Squad report</div>
       <div class="score mono w">${Math.round(st.overall)}</div></div>
-    <div class="scorers">Attack ${Math.round(st.att)} · Defence ${Math.round(st.def)} · ${S.form} · Captain: <b style="color:var(--gold)">${capName()}</b>${S.mode==="legend"?" · <b style='color:var(--loss)'>LEGEND DRAW</b>":""}</div>
+    <div class="scorers">Attack ${Math.round(st.att)} · Defence ${Math.round(st.def)} · ${S.form} · Captain: <b style="color:var(--gold)">${capName()}</b>${S.diff==="legend"?" · <b style='color:var(--loss)'>LEGEND DRAW</b>":""}${S.daily?" · <b style='color:var(--gold)'>DAILY</b>":""}</div>
     <div class="scorers" style="margin-top:4px">Your group: ${S.cup.group.opps.map(o=>o.f+" "+o.n).join(" · ")}</div>`;
   feed.appendChild(intro);
   updateRecord();
@@ -721,18 +1212,20 @@ function updateRecord(){
   const r=S.cup.record;
   $("cup-record").textContent=`W${r.w} D${r.d} L${r.l} · ${r.gf}–${r.ga}`;
 }
-function book(res){
+function book(res,isGroup){
   const r=S.cup.record;
   r.gf+=res.gf;r.ga+=res.ga;
   let g;
-  if(res.gf>res.ga){r.w++;S.cup.regWins++;g="🟩";}
+  if(res.gf>res.ga){r.w++;if(!res.et)S.cup.regWins++;g="🟩";}
   else if(res.gf<res.ga){r.l++;g="🟥";}
-  else{r.d++;g=res.pens?(res.pens.win?"🟨":"🟥"):"🟨";}
+  else{
+    if(res.pens){res.pens.win?r.w++:r.l++;g=res.pens.win?"🟨":"🟥";}
+    else{r.d++;g="🟨";}
+  }
   S.cup.gridResults.push(g);
+  S.cup.matches.push({gf:res.gf,ga:res.ga,et:isGroup?false:!!res.et,pw:(!isGroup&&res.pens)?!!res.pens.win:null});
   res.scorers.forEach(([n])=>{S.goals[n]=(S.goals[n]||0)+1;});
 }
-
-let ticker=null;
 function playNext(){
   const st=S.cup.stage;
   const isGroup=st<3;
@@ -741,80 +1234,13 @@ function playNext(){
     if(st===3&&!$("cup-feed").dataset.knock){feedRound("Knockout rounds");$("cup-feed").dataset.knock=1;}
     feedRound(ROUNDS[st]+" — the draw: "+opp.f+" "+opp.n);
   }
-  const res=simMatch(opp,!isGroup);
-  runTicker(opp,res,()=>finalizeMatch(opp,res,isGroup));
-}
-function runTicker(opp,res,done){
-  $("btn-next").disabled=true;$("btn-skip").style.display="block";
-  const{ev,end}=buildEvents(opp,res);
-  const card=document.createElement("div");card.className="match live";
-  card.innerHTML=`<div class="ln">
-      <div class="team"><span class="f">🏆</span> Your XI</div>
-      <div class="score mono" id="live-score">0 – 0</div>
-      <div class="team" style="justify-content:flex-end"><span style="text-align:right">${opp.n}</span> <span class="f">${opp.f}</span></div>
-    </div>
-    <div class="minute" id="live-min">0'</div>
-    <div class="log" id="live-log"></div>`;
-  $("cup-feed").appendChild(card);
-  card.scrollIntoView({behavior:"smooth",block:"end"});
-  let min=0,gf=0,ga=0,idx=0,finished=false;
-  const speed=72;
-  function tickGoalCount(m){
-    gf=res.scorers.filter(s=>s[1]<=m).length;
-    ga=res.theirMin.filter(x=>x<=m).length;
-  }
-  function fin(){
-    if(finished)return;finished=true;
-    clearInterval(ticker);ticker=null;
-    card.remove();
-    if(res.pens)runPens(opp,res,done);else done();
-  }
-  $("btn-skip").onclick=fin;
-  ticker=setInterval(()=>{
-    min++;
-    while(idx<ev.length&&ev[idx].m<=min){
-      const line=document.createElement("div");line.innerHTML=ev[idx].html;
-      $("live-log").prepend(line);idx++;
-    }
-    tickGoalCount(min);
-    $("live-score").textContent=gf+" – "+ga;
-    $("live-min").textContent=min+"'";
-    if(min>=end)fin();
-  },speed);
-}
-function runPens(opp,res,done){
-  const card=document.createElement("div");card.className="match";
-  card.innerHTML=`<div class="ln"><div class="team">Penalty shootout</div></div>
-    <div class="penrow"><span class="who">You</span><span id="pen-us"></span></div>
-    <div class="penrow"><span class="who">${opp.n}</span><span id="pen-th"></span></div>`;
-  $("cup-feed").appendChild(card);
-  card.scrollIntoView({behavior:"smooth",block:"end"});
-  const p=res.pens;let i=0,pdone=false;
-  function pfin(){
-    if(pdone)return;pdone=true;
-    const d=document.createElement("div");d.className="pens";
-    d.textContent=(p.win?"You win the shootout ":"You lose the shootout ")+p.score;
-    card.appendChild(d);
-    setTimeout(done,700);
-  }
-  const iv=setInterval(()=>{
-    if(i<p.us.length)$("pen-us").textContent+=p.us[i]?"⚽":"❌";
-    if(i<p.th.length)$("pen-th").textContent+=p.th[i]?"⚽":"❌";
-    i++;
-    if(i>=Math.max(p.us.length,p.th.length)){
-      clearInterval(iv);
-      pfin();
-    }
-  },420);
-  $("btn-skip").onclick=()=>{clearInterval(iv);
-    $("pen-us").textContent=p.us.map(x=>x?"⚽":"❌").join("");
-    $("pen-th").textContent=p.th.map(x=>x?"⚽":"❌").join("");
-    pfin();};
+  runLive(opp,!isGroup,res=>finalizeMatch(opp,res,isGroup));
 }
 function finalizeMatch(opp,res,isGroup){
   $("btn-skip").style.display="none";
-  book(res);
-  const cls=res.gf>res.ga?"w":res.gf<res.ga?"l":"d";
+  book(res,isGroup);
+  const won=res.gf>res.ga||(res.pens&&res.pens.win);
+  const cls=res.gf>res.ga?"w":res.gf<res.ga?"l":(res.pens?(res.pens.win?"w":"l"):"d");
   const d=document.createElement("div");d.className="match";
   d.innerHTML=`<div class="ln">
       <div class="team"><span class="f">🏆</span> Your XI</div>
@@ -834,11 +1260,11 @@ function finalizeMatch(opp,res,isGroup){
     if(S.cup.stage===3){groupTable();}
     else{$("btn-next").textContent="Kick off — "+ROUNDS[S.cup.stage];$("btn-next").disabled=false;}
   }else{
-    const lost=(res.gf<res.ga)||(res.pens&&!res.pens.win);
-    if(lost){S.cup.out=true;S.cup.outAt=ROUNDS[S.cup.stage];S.cup.lostPill=S.cup.stage-2;renderBracket();finish();return;}
+    const lost=!won&&(res.gf<res.ga||res.pens);
+    if(lost){S.cup.out=true;S.cup.outAt=ROUNDS[S.cup.stage];S.cup.lostPill=S.cup.stage-2;renderBracket();finish_();return;}
     S.cup.stage++;
     renderBracket();
-    if(S.cup.stage===7){S.cup.champion=true;renderBracket();finish();return;}
+    if(S.cup.stage===7){S.cup.champion=true;renderBracket();finish_();return;}
     $("btn-next").textContent="Kick off — "+ROUNDS[S.cup.stage];$("btn-next").disabled=false;
   }
 }
@@ -867,16 +1293,43 @@ function groupTable(){
   if(place>2){
     S.cup.out=true;S.cup.outAt="the group stage";S.cup.lostPill=0;renderBracket();
     d.innerHTML=`<div class="ln"><div class="team">Finished ${place===3?"3rd":"4th"} — out at the group stage.</div></div>`;
-    $("cup-feed").appendChild(d);finish();return;
+    $("cup-feed").appendChild(d);finish_();return;
   }
   d.innerHTML=`<div class="ln"><div class="team">Through in ${place===1?"1st":"2nd"} place ✅</div></div>`;
   $("cup-feed").appendChild(d);
   $("btn-next").textContent="Kick off — Round of 16";$("btn-next").disabled=false;
 }
-function finish(){
+function finish_(){
   $("btn-next").textContent="See full result →";
   $("btn-next").onclick=showResult;$("btn-next").disabled=false;
   updateRecord();
+}
+
+/* =========================================================
+   BADGES
+========================================================= */
+const BADGES={
+  champ:["🏆","Champion"],perfect:["✦","Perfect 7-0"],legend:["💀","Legend title"],
+  dynasty:["👑","Dynasty title"],era:["⏳","Era Tour title"],cap:["💰","Wage Cap title"],
+  boot6:["🥇","6-goal striker"],daily:["⚡","Daily player"],runs10:["🎟","10 runs"],top10:["🌍","World top 10"]
+};
+function earnBadges(st){
+  const got=[];
+  const give=k=>{if(!st.badges[k]){st.badges[k]=1;got.push(k);}};
+  if(S.cup.champion)give("champ");
+  if(S.cup.perfect)give("perfect");
+  if(S.cup.champion&&S.diff==="legend")give("legend");
+  if(S.cup.champion&&S.draft==="dynasty")give("dynasty");
+  if(S.cup.champion&&S.draft==="era")give("era");
+  if(S.cup.champion&&S.draft==="cap")give("cap");
+  if(Object.values(S.goals).some(g=>g>=6))give("boot6");
+  if(S.daily)give("daily");
+  if(st.runs>=10)give("runs10");
+  return got;
+}
+function renderBadges(st){
+  $("badges").innerHTML=Object.entries(BADGES).map(([k,[e,n]])=>
+    `<div class="badge${st.badges[k]?" got":""}"><div class="be">${e}</div><div class="bn">${n}</div></div>`).join("");
 }
 
 /* =========================================================
@@ -891,20 +1344,45 @@ function awards(){
     const sc=g*3+s.player.rating*0.05+(S.captain===s.id?0.5:0);
     if(sc>best){best=sc;pott=s.player;}
   });
-  return{boot,pott,entries};
+  return{boot,pott};
+}
+function countUp(el,to,suffix){
+  const t0=performance.now(),dur=reducedMotion?0:850;
+  function f(now){
+    const t=dur?Math.min(1,(now-t0)/dur):1;
+    el.innerHTML=Math.round(to*(1-Math.pow(1-t,3)))+suffix;
+    if(t<1)requestAnimationFrame(f);
+  }
+  requestAnimationFrame(f);
 }
 function showResult(){
   const r=S.cup.record;
-  const perfect=S.cup.champion&&S.cup.regWins===7&&r.d===0&&r.l===0;
+  const sc=scoreRun(S.cup.matches,{draft:S.draft,diff:S.diff,daily:S.daily});
+  S.cup.perfect=sc.perfect;S.pts=sc;
   $("r-icon").textContent=S.cup.champion?"🏆":"📉";
   $("r-icon").className="trophy"+(S.cup.champion?" win":"");
   $("r-verdict").textContent=S.cup.champion?"World champions":"Knocked out";
   $("r-verdict").className="verdict display "+(S.cup.champion?"gold":"red");
+  countUp($("r-pts"),sc.pts,' <small>PTS</small>');
+  let matchPts=0,goalPts=0;
+  S.cup.matches.forEach((x,i)=>{
+    const knock=i>=3;
+    if(x.gf>x.ga)matchPts+=x.et?85:100;
+    else if(x.gf===x.ga)matchPts+=knock?(x.pw?70:25):40;
+    goalPts+=x.gf*4-x.ga*2;
+  });
+  const multBits=[];
+  if(S.draft!=="classic")multBits.push(DRAFT_MODES[S.draft].n);
+  if(S.diff!=="classic")multBits.push(S.diff);
+  if(S.daily)multBits.push("daily");
+  $("r-break").innerHTML=`Matches <b>${matchPts}</b> · Goals <b>${goalPts>=0?"+":""}${goalPts}</b>`+
+    (S.cup.champion?` · Champion <b>+200</b>`:"")+(sc.perfect?` · Perfect <b>+300</b>`:"")+
+    `<br>Multiplier <b>×${sc.mult.toFixed(2)}</b>${multBits.length?" ("+multBits.join(" · ")+")":""}`;
   $("r-record").innerHTML=S.cup.champion
     ?`Record: <b>W${r.w} D${r.d} L${r.l}</b> · Goals <b>${r.gf}–${r.ga}</b>`
     :`Out at <b>${S.cup.outAt}</b> · W${r.w} D${r.d} L${r.l} · Goals ${r.gf}–${r.ga}`;
   $("r-grid").textContent=S.cup.gridResults.join("");
-  $("r-perfect").innerHTML=perfect?`<div class="perfect">✦ Perfect 7-0 ✦</div>`
+  $("r-perfect").innerHTML=sc.perfect?`<div class="perfect">✦ Perfect 7-0 ✦</div>`
     :(S.cup.champion?`<div class="record" style="margin-top:10px">Champions — but not the perfect seven. Run it back?</div>`:"");
   const a=awards();
   $("r-boot").textContent=a.boot?a.boot[0]:"No goals";
@@ -913,47 +1391,201 @@ function showResult(){
   $("r-pott2").textContent=a.pott?a.pott.flag+" "+a.pott.year:"";
   $("r-xi").innerHTML=`<h4>Your XI · ${S.form} · Chem +${chemistry().boost.toFixed(1)}</h4>`+S.slots.map(s=>
     `<div class="li"><span><b>${s.player.name}${S.captain===s.id?" ©":""}</b> · ${s.id}${(S.goals[s.player.name]||0)?" · ⚽"+S.goals[s.player.name]:""}</span><span>${s.player.flag} ${s.player.year} · ${s.player.rating}</span></div>`).join("");
-  // persist
+  // persist career
   const st=store.get();
   st.runs++;st.goals+=r.gf;
   if(S.cup.champion)st.titles++;
-  if(perfect)st.perfects++;
+  if(sc.perfect)st.perfects++;
   st.bestW=Math.max(st.bestW,r.w);
+  st.bestPts=Math.max(st.bestPts,sc.pts);
   Object.entries(S.goals).forEach(([n,g])=>{st.topScorers[n]=(st.topScorers[n]||0)+g;});
+  if(S.daily){
+    const today=utcDay();
+    if(st.lastDaily!==today){
+      const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
+      st.streak=st.lastDaily===y?st.streak+1:1;
+      st.lastDaily=today;
+    }
+  }
+  const newB=earnBadges(st);
   store.set(st);
-  $("r-foot").textContent="Career: "+st.titles+" title"+(st.titles===1?"":"s")+" · "+st.perfects+" perfect run"+(st.perfects===1?"":"s")+" · "+st.runs+" run"+(st.runs===1?"":"s");
+  $("r-badges").innerHTML=newB.map(k=>`<span class="rbadge">${BADGES[k][0]} ${BADGES[k][1]} unlocked</span>`).join("");
+  $("r-foot").textContent="Career: "+st.titles+" title"+(st.titles===1?"":"s")+" · "+st.perfects+" perfect run"+(st.perfects===1?"":"s")+" · best "+st.bestPts+" pts · "+st.runs+" run"+(st.runs===1?"":"s");
   $("copied").textContent="";
+  const sv=$("btn-save");
+  sv.style.display="block";sv.disabled=false;
+  sv.textContent="🌍 Save to world leaderboard";
+  sv.onclick=openSave;
+  S.submitted=false;
   show("result");
-  if(S.cup.champion)confetti();
+  if(S.cup.champion){confetti();SFX.fanfare();}
 }
+
+/* =========================================================
+   SAVE SCORE + LEADERBOARD
+========================================================= */
+const COUNTRIES=["GB","US","AR","BR","FR","DE","IT","ES","PT","NL","BE","HR","UY","MX","CO","CL","PE","EC","PY","CA","AU","NZ","JP","KR","CN","IN","TR","GR","RS","PL","CZ","SK","HU","RO","BG","UA","SE","NO","DK","FI","IS","IE","CH","AT","MA","DZ","TN","EG","SN","NG","GH","CM","CI","ZA","KE","SA","AE","QA","IL","TH","VN","ID","MY","SG","PH"];
+const flagOf=c=>c?String.fromCodePoint(...[...c.toUpperCase()].map(ch=>127397+ch.charCodeAt(0))):"🌍";
+let regionName=c=>c;
+try{const dn=new Intl.DisplayNames(["en"],{type:"region"});regionName=c=>dn.of(c)||c;}catch(e){}
+
+function buildCountrySelect(){
+  const sel=$("sv-country");
+  const st=store.get();
+  const guess=st.playerCountry||(navigator.language.split("-")[1]||"").toUpperCase();
+  const opts=COUNTRIES.map(c=>[c,regionName(c)]).sort((a,b)=>a[1].localeCompare(b[1]));
+  sel.innerHTML=`<option value="">🌍 Prefer not to say</option>`+
+    opts.map(([c,n])=>`<option value="${c}"${c===guess?" selected":""}>${flagOf(c)} ${n}</option>`).join("");
+}
+function openSave(){
+  if(S.submitted){show("board");loadBoard(S.daily?"daily":"all",true);return;}
+  const st=store.get();
+  $("sv-name").value=st.playerName||"";
+  buildCountrySelect();
+  $("sv-pts").textContent=S.pts.pts+" pts";
+  $("sv-msg").textContent="";$("sv-msg").className="savemsg";
+  $("save-bg").classList.add("on");
+}
+async function submitScore(){
+  const msg=$("sv-msg");
+  const name=$("sv-name").value.trim();
+  if(name.length<2){msg.textContent="Pick a nickname (2–20 characters).";msg.className="savemsg err";return;}
+  const btn=$("btn-submit-score");btn.disabled=true;
+  msg.textContent="Posting…";msg.className="savemsg";
+  if(!S.token){try{S.token=await API("/api/token");}catch(e){}}
+  const body={
+    token:S.token,name,country:$("sv-country").value,
+    email:$("sv-email").value.trim(),optin:$("sv-optin").checked,web:$("sv-web").value,
+    matches:S.cup.matches,grid:S.cup.gridResults.join(""),
+    draft:S.draft,diff:S.diff,daily:S.daily,dyn:S.dyn||"",form:S.form,pts:S.pts.pts,
+    xi:S.slots.map(s=>[s.player.name,s.player.year,s.player.flag])
+  };
+  try{
+    const r=await fetch("/api/score",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok){
+      btn.disabled=false;
+      msg.className="savemsg err";
+      if(j.err==="name")msg.textContent="That nickname can't be used — try another.";
+      else if(j.err==="token"||j.err==="token-age")msg.textContent="Couldn't verify this run — give it a minute and try again.";
+      else msg.textContent="Couldn't post ("+(j.err||r.status)+"). Try again.";
+      return;
+    }
+    const st=store.get();
+    st.playerName=name;st.playerCountry=$("sv-country").value;
+    if(j.rank&&j.rank<=10&&!st.badges.top10){st.badges.top10=1;}
+    store.set(st);
+    S.submitted=true;
+    msg.className="savemsg";
+    msg.textContent=j.rank?`You're world #${j.rank} of ${j.count} runs!`+(j.rankDaily?` Today: #${j.rankDaily}.`:"")
+      :`Saved — outside the top 100 of ${j.count} runs. Run it back!`;
+    SFX.fanfare();
+    setTimeout(()=>{
+      $("save-bg").classList.remove("on");
+      const sv=$("btn-save");
+      sv.textContent="🌍 View leaderboard →";
+      sv.onclick=()=>{show("board");loadBoard(S.daily?"daily":"all",true);};
+    },1400);
+  }catch(e){
+    btn.disabled=false;
+    msg.className="savemsg err";
+    msg.textContent="No connection — score kept locally, try again in a moment.";
+  }
+}
+
+const BOARD={tab:"all",timer:null};
+function fmtAgo(ms){const s=Math.max(1,Math.round(ms/1000));return s<60?s+"s ago":Math.round(s/60)+"m ago";}
+function boardRow(e,i,st){
+  const you=st.playerName&&e.n===st.playerName&&(e.c||"")===(st.playerCountry||"");
+  const xi=(e.xi||[]).map(p=>`${p[0]} ’${String(p[1]).slice(2)}`).join(" · ");
+  return `<div class="brow r${i+1}${you?" you":""}" data-i="${i}">
+    <div class="l1"><span class="rank">${i+1}</span><span>${flagOf(e.c)}</span>
+      <span class="bn">${e.n}${e.pf?" ✦":e.ch?" 🏆":""}</span>
+      <span class="bp mono">${e.p}</span></div>
+    <div class="l2"><span>${e.g||""}</span><span>${(e.m||"").replace(/·/g," · ")} · ${e.f||""}</span></div>
+    ${xi?`<div class="xi">${xi}</div>`:""}
+  </div>`;
+}
+async function loadBoard(tab,bust){
+  BOARD.tab=tab||BOARD.tab;
+  $("tab-all").classList.toggle("sel",BOARD.tab==="all");
+  $("tab-daily").classList.toggle("sel",BOARD.tab==="daily");
+  const list=$("board-list");
+  try{
+    const j=await API("/api/leaderboard?board="+(BOARD.tab==="daily"?"daily":"alltime")+(bust?"&cb="+Date.now():""));
+    const st=store.get();
+    $("board-count").textContent=j.count?j.count+" runs":"";
+    $("board-status").innerHTML=`<span class="livedot"></span> LIVE · world top ${Math.min(50,j.top.length)}${j.updated?` · updated ${fmtAgo(j.now-j.updated)}`:""}`;
+    list.innerHTML=j.top.length
+      ?j.top.map((e,i)=>boardRow(e,i,st)).join("")
+      :`<div class="bempty">${BOARD.tab==="daily"?"Nobody has posted a run today — the first spot is yours.":"No runs posted yet — be the first name on the board."}</div>`;
+    list.querySelectorAll(".brow").forEach(b=>b.onclick=()=>b.classList.toggle("open"));
+  }catch(e){
+    list.innerHTML=`<div class="bempty">Leaderboard unreachable — check your connection.</div>`;
+    $("board-status").textContent="";
+  }
+}
+function boardPolling(){
+  clearInterval(BOARD.timer);
+  BOARD.timer=setInterval(()=>{
+    if($("board").classList.contains("on")&&document.visibilityState==="visible")loadBoard();
+  },30000);
+}
+async function homeBoardPreview(){
+  try{
+    const j=await API("/api/leaderboard?board=alltime");
+    $("home-board-rows").innerHTML=j.top.length
+      ?j.top.slice(0,5).map((e,i)=>`<div class="row3"><span style="width:20px;font-weight:900;color:${i===0?"var(--gold)":"var(--chalk-dim)"}">${i+1}</span><span>${flagOf(e.c)}</span><b>${e.n}</b>${e.pf?" ✦":""}<span class="pts mono">${e.p}</span></div>`).join("")
+      :`<div class="empty">No runs posted yet — be the first name on the board.</div>`;
+  }catch(e){
+    $("home-board-rows").innerHTML=`<div class="empty">Leaderboard offline — scores still save locally.</div>`;
+  }
+}
+
+/* =========================================================
+   SHARE + CONFETTI
+========================================================= */
+const SITE="https://seven-zero-navy.vercel.app";
 function shareText(){
   const r=S.cup.record;
-  const head=S.cup.champion?(S.cup.regWins===7&&r.d===0&&r.l===0?"PERFECT 7-0 🏆":"WORLD CHAMPIONS 🏆"):"Knocked out at "+S.cup.outAt+" 📉";
-  return "7-0 — The World Cup Draft\n"+head+"\n"+S.cup.gridResults.join("")+"\nW"+r.w+" D"+r.d+" L"+r.l+" · Goals "+r.gf+"–"+r.ga+" · "+S.form+(S.mode!=="classic"?" · "+S.mode.toUpperCase():"")+"\nXI: "+S.slots.map(s=>s.player.name+(S.captain===s.id?" ©":"")).join(", ");
+  const head=S.cup.champion?(S.cup.perfect?"PERFECT 7-0 🏆":"WORLD CHAMPIONS 🏆"):"Knocked out at "+S.cup.outAt+" 📉";
+  const modeBits=[S.form];
+  if(S.draft!=="classic")modeBits.push(DRAFT_MODES[S.draft].n);
+  if(S.diff!=="classic")modeBits.push(S.diff.toUpperCase());
+  if(S.daily)modeBits.push("DAILY "+utcDay());
+  return "7-0 — The World Cup Draft\n"+head+"\n"+S.cup.gridResults.join("")+"\n"
+    +S.pts.pts+" pts · W"+r.w+" D"+r.d+" L"+r.l+" · "+modeBits.join(" · ")
+    +"\nXI: "+S.slots.map(s=>s.player.name+(S.captain===s.id?" ©":"")).join(", ")
+    +"\n"+SITE;
+}
+async function doShare(){
+  const txt=shareText();
+  if(navigator.share){try{await navigator.share({text:txt});return;}catch(e){}}
+  try{await navigator.clipboard.writeText(txt);$("copied").textContent="Copied — paste it anywhere.";}
+  catch(e){$("copied").textContent=txt;}
 }
 function renderCabinet(){
   const st=store.get();
+  renderBadges(st);
   if(!st.runs){$("cabinet").style.display="none";return;}
   $("cabinet").style.display="block";
   const top=Object.entries(st.topScorers).sort((a,b)=>b[1]-a[1])[0];
   $("cabinet-rows").innerHTML=
     `<div class="row2"><span>World titles</span><b class="gold">🏆 ${st.titles}</b></div>
      <div class="row2"><span>Perfect 7-0 runs</span><b class="gold">✦ ${st.perfects}</b></div>
+     <div class="row2"><span>Best score</span><b class="gold">${st.bestPts} pts</b></div>
      <div class="row2"><span>Runs played</span><b>${st.runs}</b></div>
      <div class="row2"><span>Most wins in a run</span><b>${st.bestW}</b></div>
+     <div class="row2"><span>Daily streak</span><b>🔥 ${st.streak||0}</b></div>
      <div class="row2"><span>All-time top scorer</span><b>${top?top[0]+" ("+top[1]+")":"—"}</b></div>`;
 }
-
-/* =========================================================
-   CONFETTI
-========================================================= */
 function confetti(){
   const cv=$("confetti"),ctx=cv.getContext("2d");
   cv.width=innerWidth;cv.height=innerHeight;
   const cols=["#e3b34c","#f3ecd9","#ffe9a8","#b8862c","#0f8a5f"];
-  const ps=Array.from({length:140},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.5,
+  const ps=Array.from({length:150},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.5,
     vy:2+Math.random()*3.5,vx:(Math.random()-0.5)*1.6,s:4+Math.random()*5,r:Math.random()*Math.PI,
-    vr:(Math.random()-0.5)*0.2,c:cols[rnd(cols.length)]}));
+    vr:(Math.random()-0.5)*0.2,c:cols[Math.floor(Math.random()*cols.length)]}));
   let t=0;
   function frame(){
     ctx.clearRect(0,0,cv.width,cv.height);
@@ -969,6 +1601,10 @@ function confetti(){
 /* =========================================================
    WIRES
 ========================================================= */
+function multline(){
+  const m=(DIFF_MULT[pref.diff]||1)*(DRAFT_MULT[pref.draft]||1);
+  $("multline").textContent="×"+m.toFixed(2).replace(/0$/,"")+(pref.draft==="dynasty"&&pref.dyn?" · "+pref.dyn:"");
+}
 function buildFormChips(){
   const c=$("formchips");c.innerHTML="";
   Object.keys(FORMATIONS).forEach(k=>{
@@ -979,41 +1615,82 @@ function buildFormChips(){
     c.appendChild(b);
   });
 }
-document.querySelectorAll("#modechips .chip").forEach(b=>{
-  b.onclick=()=>{pref.mode=b.dataset.m;
-    document.querySelectorAll("#modechips .chip").forEach(x=>x.classList.toggle("sel",x===b));};
-});
-$("btn-start").onclick=()=>{
-  resetState();
+function buildDraftChips(){
+  const c=$("draftchips");c.innerHTML="";
+  Object.entries(DRAFT_MODES).forEach(([k,v])=>{
+    const b=document.createElement("button");
+    b.className="chip"+(pref.draft===k?" sel":"");
+    b.innerHTML=v.n+"<small>"+v.d+"</small>";
+    b.onclick=()=>{pref.draft=k;buildDraftChips();multline();};
+    c.appendChild(b);
+  });
+  const dc=$("dynastychips");
+  if(pref.draft==="dynasty"){
+    if(!pref.dyn)pref.dyn=DYNASTIES[0][0];
+    dc.style.display="flex";dc.innerHTML="";
+    DYNASTIES.forEach(([k,v])=>{
+      const b=document.createElement("button");
+      b.className="chip"+(pref.dyn===k?" sel":"");
+      b.innerHTML=`${SQUADS[v[0]].f} ${k}<small>${v.length} squads</small>`;
+      b.onclick=()=>{pref.dyn=k;buildDraftChips();multline();};
+      dc.appendChild(b);
+    });
+  }else dc.style.display="none";
+}
+function wireDiffChips(){
+  document.querySelectorAll("#diffchips .chip").forEach(b=>{
+    b.onclick=()=>{pref.diff=b.dataset.m;
+      document.querySelectorAll("#diffchips .chip").forEach(x=>x.classList.toggle("sel",x===b));
+      multline();};
+  });
+}
+function paintDaily(){
+  const st=store.get();
+  const d=new Date();
+  $("daily-date").textContent=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:"UTC"})+" (UTC)";
+  const active=st.lastDaily===utcDay()||st.lastDaily===new Date(Date.now()-864e5).toISOString().slice(0,10);
+  $("daily-streak").textContent=active&&st.streak?"🔥 "+st.streak+"-day streak":"";
+  $("btn-daily").textContent=st.lastDaily===utcDay()?"Play again (best score counts)":"Play today's challenge";
+}
+function startRun(daily){
+  resetState(daily);
   buildWheel();renderPitch();
   $("picks-n").textContent=S.slots.length;
-  $("dm-form").textContent=S.form+(S.mode!=="classic"?" · "+S.mode.toUpperCase():"");
-  $("dm-respins").textContent=S.respins;
+  paintDraftMeta();
   $("landed").textContent="Spin to draw your first squad";
   $("btn-spin").textContent="Spin the wheel";
   $("btn-spin").onclick=spin;$("btn-spin").disabled=false;
-  $("wheel").style.transition="none";$("wheel").style.transform="rotate(0deg)";
-  requestAnimationFrame(()=>{$("wheel").style.transition="";});
   show("draft");
-};
+}
+function goHome(){
+  renderCabinet();paintDaily();homeBoardPreview();show("home");
+}
+$("btn-start").onclick=()=>startRun(false);
+$("btn-daily").onclick=()=>startRun(true);
 $("btn-respin").onclick=()=>{
   if(!$("btn-respin").dataset.free){
     if(S.respins<=0)return;
-    S.respins--;$("dm-respins").textContent=S.respins;
+    S.respins--;paintDraftMeta();
   }
   $("modal-bg").classList.remove("on");
   spin();
 };
-$("btn-restart-draft").onclick=()=>{renderCabinet();show("home");};
-$("btn-again").onclick=()=>{renderCabinet();show("home");};
-$("btn-share").onclick=async()=>{
-  try{await navigator.clipboard.writeText(shareText());$("copied").textContent="Copied — paste it anywhere.";}
-  catch(e){$("copied").textContent=shareText();}
-};
+$("btn-restart-draft").onclick=goHome;
+$("btn-again").onclick=goHome;
+$("btn-share").onclick=doShare;
+$("btn-submit-score").onclick=submitScore;
+$("btn-cancel-save").onclick=()=>$("save-bg").classList.remove("on");
+$("btn-board-home").onclick=()=>{show("board");loadBoard("all",true);};
+$("btn-board-back").onclick=goHome;
+$("btn-board-play").onclick=()=>startRun(false);
+$("tab-all").onclick=()=>loadBoard("all",true);
+$("tab-daily").onclick=()=>loadBoard("daily",true);
+
 $("stat-squads").textContent=SQUADS.length;
 $("stat-players").textContent=SQUADS.reduce((a,s)=>a+s.p.length,0)+"";
-resetState();
-buildFormChips();buildWheel();renderPitch();renderCabinet();
+wireMute();
+buildFormChips();buildDraftChips();wireDiffChips();multline();
+renderCabinet();paintDaily();homeBoardPreview();boardPolling();
 </script>
 </body>
 </html>
