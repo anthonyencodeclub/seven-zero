@@ -77,6 +77,9 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .modes .chip{min-width:0}
 .multline{font-size:12.5px;color:var(--chalk-dim);text-align:center;margin:10px 0 4px}
 .multline b{color:var(--gold)}
+.playas{font-size:12px;color:var(--chalk-dim);text-align:center;margin:8px 0 2px;min-height:16px}
+.playas b{color:var(--chalk)}
+.playas .edit{color:var(--gold);cursor:pointer;text-decoration:underline}
 
 .daily{border:1.5px solid var(--gold-deep);border-radius:14px;margin:18px 0 6px;padding:16px;text-align:left;
   background:linear-gradient(160deg,rgba(227,179,76,.12),rgba(10,44,33,.6));position:relative;overflow:hidden}
@@ -251,6 +254,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .live .log .goalus{color:var(--gold);font-weight:800}
 .live .log .goalthem{color:var(--loss);font-weight:800}
 .live .log .big{color:var(--chalk);font-weight:700}
+.fcom{font-style:italic;color:var(--gold-hi);line-height:1.5}
+.fcom span{color:var(--chalk-dim);font-style:normal;font-size:10.5px;letter-spacing:.04em}
 .tactics{display:flex;gap:8px;margin-top:10px}
 .tactics .tbtn{flex:1;border:1.5px solid var(--gold-deep);background:rgba(227,179,76,.08);color:var(--gold);
   border-radius:9px;padding:9px 4px;font-size:11.5px;font-weight:800;letter-spacing:.04em;cursor:pointer;text-transform:uppercase}
@@ -346,7 +351,7 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="daily">
       <div class="dl">⚡ Daily Challenge<span class="streak" id="daily-streak"></span></div>
       <div class="dd" id="daily-date"></div>
-      <div class="ds">One seeded run, the <b>same wheel for everyone</b> on Earth today. Classic rules, 4-3-3, ×1.1 score bonus. New challenge at midnight UTC.</div>
+      <div class="ds">One seeded run, the <b>same wheel for everyone</b> on Earth today. Classic rules, 4-3-3, ×1.1 score bonus. <b>One attempt</b> — saved automatically. New challenge at midnight UTC.</div>
       <button class="btn" id="btn-daily">Play today's challenge</button>
     </div>
 
@@ -369,6 +374,7 @@ footer a{color:rgba(243,236,217,.5)}
     </div>
     <div class="multline">Score multiplier: <b id="multline">×1.0</b></div>
     <button class="btn" id="btn-start">Start new run →</button>
+    <div class="playas" id="playas"></div>
 
     <div class="panel boardprev">
       <h2>🌍 World leaderboard <span class="more" id="btn-board-home">Full table →</span></h2>
@@ -384,11 +390,11 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="howto">
       <h2>How to play</h2>
       <li><span class="dot"></span><span><b>Spin the wheel.</b> Each spin lands on a real nation at a specific World Cup — Brazil 1970, Hungary 1954, Argentina 2022…</span></li>
-      <li><span class="dot"></span><span><b>Draft one player</b> per spin and <b>place them anywhere</b> — you pick the exact position. You hold <b>2 re-spins</b> to reject a squad you don't fancy.</span></li>
+      <li><span class="dot"></span><span><b>Draft one player</b> per spin and <b>place them anywhere</b> — you pick the exact position. You hold <b>one re-spin</b> to reject a squad you don't fancy.</span></li>
       <li><span class="dot"></span><span><b>Out of position costs.</b> One line out of place −4 rating, two lines −9, and anything involving the goalkeeper −15. A striker in goal is your call…</span></li>
-      <li><span class="dot"></span><span><b>Chemistry counts.</b> Natural positions and same-squad teammates earn ⚡ chemistry that boosts the whole XI.</span></li>
-      <li><span class="dot"></span><span><b>Name a captain</b>, then play the tournament live: tactics at half-time, extra time, penalty shootouts.</span></li>
-      <li><span class="dot"></span><span><b>The perfect run</b> is seven wins inside normal time: <b>7-0</b>. Save your score and climb the world rankings.</span></li>
+      <li><span class="dot"></span><span><b>Chemistry is history.</b> Players bond if they actually played together at a World Cup, share a national shirt, or come from the same era or continent — and natural positions earn ⚡ too.</span></li>
+      <li><span class="dot"></span><span><b>Name a captain</b>, then play the tournament live: tactics at half-time, extra time, penalty shootouts — and the occasional line of very famous commentary.</span></li>
+      <li><span class="dot"></span><span><b>The perfect run</b> is seven wins inside normal time: <b>7-0</b>. Every finished run is saved to the world rankings automatically.</span></li>
     </div>
     <footer>7-0 is an independent, fan-made game inspired by 38-0.app and 82-0.com. Not affiliated with FIFA or any federation. Player ratings are an unofficial, descriptive interpretation.<br>Leaderboard names are public. Emails are optional, encrypted and never displayed.</footer>
   </section>
@@ -402,7 +408,7 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="draftmeta">
       <span id="dm-form"></span>
       <span id="dm-extra"></span>
-      <span>Re-spins: <b id="dm-respins">2</b></span>
+      <span>Re-spin: <b id="dm-respins">1</b></span>
     </div>
     <div class="wheelwrap">
       <div class="wheel" id="wheel"></div>
@@ -441,8 +447,8 @@ footer a{color:rgba(243,236,217,.5)}
   <!-- SAVE SCORE MODAL -->
   <div class="modal-bg" id="save-bg">
     <div class="modal" role="dialog" aria-modal="true">
-      <h3>Save to the world leaderboard</h3>
-      <p class="hint">Post this run — <b id="sv-pts" style="color:var(--gold)"></b> pts — under your name.</p>
+      <h3>Manager profile</h3>
+      <p class="hint" id="sv-hint">Your name and country appear on the world leaderboard — every finished run is <b>saved automatically</b>.</p>
       <div class="field"><label for="sv-name">Nickname (public)</label>
         <input id="sv-name" maxlength="20" autocomplete="nickname" placeholder="e.g. GoldenBoot88"></div>
       <div class="field"><label for="sv-country">Country (optional)</label>
@@ -452,7 +458,7 @@ footer a{color:rgba(243,236,217,.5)}
       <label class="optin"><input type="checkbox" id="sv-optin">
         <span>Keep my email so I can be contacted about new modes, tournaments and my scores. Stored encrypted, never displayed, never shared. Leave unticked to save your score without it.</span></label>
       <input class="hpfield" id="sv-web" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <button class="btn" id="btn-submit-score">Post score</button>
+      <button class="btn" id="btn-submit-score">Save profile</button>
       <button class="btn ghost" id="btn-cancel-save" style="margin-top:8px">Not now</button>
       <div class="savemsg" id="sv-msg"></div>
       <p class="privacy">Your nickname, country, score and XI appear on the public leaderboard. Email is optional and encrypted at rest; to have it removed, reply to any message or contact the maintainer.</p>
@@ -506,6 +512,7 @@ footer a{color:rgba(243,236,217,.5)}
       <div class="award"><div class="al">⭐ Player of the cup</div><div class="av" id="r-pott">—</div><div class="as" id="r-pott2"></div></div>
     </div>
     <div class="finalxi" id="r-xi"></div>
+    <div class="savemsg" id="r-saved"></div>
     <div class="stack">
       <button class="btn" id="btn-save">🌍 Save to world leaderboard</button>
       <button class="btn ghost" id="btn-again">Run it back →</button>

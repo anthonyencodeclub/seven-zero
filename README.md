@@ -10,15 +10,15 @@ A free, fan-made World Cup draft game with a **live world leaderboard**. Spin th
 
 ## What's in the game
 
-- 🎡 **The wheel** — 136 real squads from Uruguay 1950 to Argentina 2022, in three rings of flags, physics-style spin with pointer ticks, sounds and a landing flash. 2 re-spins per run.
+- 🎡 **The wheel** — 136 real squads from Uruguay 1950 to Argentina 2022, in three rings of flags, physics-style spin with pointer ticks, sounds and a landing flash. One re-spin per run — choose wisely.
 - 🎯 **Place anyone anywhere** — you choose the exact slot for every pick. Out of position costs rating: −4 one line out, −9 two lines, −15 for anything involving the goalkeeper (yes, you can play Pelé in goal at 83).
-- ⚡ **Chemistry** — each player earns 0–3⚡ for playing their natural position and lining up with same-squad teammates; total chemistry boosts the whole XI.
-- ⚽ **Live match engine** — minute-by-minute simulation with commentary, half-time and extra-time **tactic calls** (push forward / keep shape / park the bus), group tables, shootouts.
+- ⚡ **Chemistry is shared history** — players link if they actually played together at the same World Cup (strongest), wore the same national shirt in another era, or come from the same decade or continent. Natural position adds ⚡ too; total chemistry boosts the whole XI.
+- ⚽ **Live match engine** — minute-by-minute simulation with commentary (including the occasional very famous line — "they think it's all over…"), half-time and extra-time **tactic calls**, group tables, shootouts.
 - 📜 **Lore** — every squad lands with a line of its history: the Maracanazo, the Disgrace of Gijón, Córdoba '78, the Battle of Santiago, Italia '90…
 - 🧩 **Draft modes** — Classic, **Era Tour** (a new decade each spin), **Dynasty** (one nation, all eras — 25 nations qualify, every major nation has at least 4 squads, Brazil has 9), **Wage Cap** (946 budget, spend wisely).
 - 💀 **Difficulties** — Classic, Hard (ratings hidden), Legend (brutal draw + hidden ratings). Modes multiply your score.
-- ⚡ **Daily Challenge** — one seeded run per day, the same wheel for everyone on Earth, with its own leaderboard and streaks.
-- 🌍 **Live world leaderboard** — all-time and daily tabs, top 100 kept, your best run highlighted, tap any row to see that player's XI.
+- ⚡ **Daily Challenge** — one seeded run per day, the same wheel for everyone on Earth, **one attempt only**, with its own leaderboard and streaks.
+- 🌍 **Live world leaderboard** — every finished run **saves automatically** under your manager profile (name + country collected up front, email optional and encrypted). All-time and daily tabs, top 100 kept, tap any row to see that player's XI.
 - 🏅 **Points, badges, trophy cabinet** — server-verified scoring with multipliers, 10 unlockable badges, career stats saved locally.
 - 📋 **Share** — emoji result grid via the native share sheet or clipboard.
 
@@ -60,7 +60,7 @@ Run tokens must be 45s–6h old (a plausible playtime), runs are structurally va
 
 ### Email privacy
 
-Emails are **optional and opt-in only** (a consent checkbox when saving a score). They're encrypted with AES-256-GCM before storage, never returned by any API, and never shown anywhere. Export them locally with:
+Emails are **optional and opt-in only** (a consent checkbox in the manager profile, collected before your first run). They're encrypted with AES-256-GCM before storage, never returned by any API, and never shown anywhere. Export them locally with:
 
 ```bash
 vercel env pull .env.local   # once

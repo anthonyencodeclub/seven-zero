@@ -73,7 +73,7 @@ function resetState(daily){
   const slots=[];F.rows.forEach(r=>r.forEach(id=>slots.push({id,cat:F.cats[id],player:null})));
   S={form,draft,diff,daily:!!daily,dyn:draft==="dynasty"?pref.dyn:null,
      slots,lastSquad:-1,spinning:false,wheelRot:0,picked:new Set(),
-     respins:2,captain:null,goals:{},era:0,budget:CAP_BUDGET,token:null,submitted:false,
+     respins:1,captain:null,goals:{},era:0,budget:CAP_BUDGET,token:null,submitted:false,
      rng:daily?mulberry32(hashStr("7-0:"+utcDay())):Math.random,
      pool:[],wheelIdx:[],
      cup:{stage:0,record:{w:0,d:0,l:0,gf:0,ga:0},group:null,knock:[],out:false,outAt:null,
@@ -86,7 +86,7 @@ const pickFrom=a=>a[rnd(a.length)];
 
 const STORE_KEY="seven_zero_stats_v3";
 const STORE_DEF={runs:0,titles:0,perfects:0,bestW:0,bestPts:0,goals:0,topScorers:{},
-  badges:{},streak:0,lastDaily:"",playerName:"",playerCountry:""};
+  badges:{},streak:0,lastDaily:"",playerName:"",playerCountry:"",playerEmail:"",optin:false,emailSent:0};
 const store={
   get(){
     try{
@@ -307,7 +307,8 @@ function renderPlacement(si,pi,key){
   back.className="backlink";back.textContent="← Back to squad";
   back.onclick=()=>renderSquadList(si);
   list.appendChild(back);
-  const mates=S.slots.filter(x=>x.player&&x.player.sq===si).length;
+  const cand={sq:si,team:SQUADS[si].t,year:SQUADS[si].y};
+  let candLinks=0;S.slots.forEach(x=>{if(x.player)candLinks+=linkPts(cand,x.player);});
   const grid=document.createElement("div");grid.className="placegrid";
   FORMATIONS[S.form].rows.forEach(r=>{
     const row=document.createElement("div");row.className="prow";
@@ -321,7 +322,7 @@ function renderPlacement(si,pi,key){
         const pen=oopPenalty(s.cat,pl[1]);
         const eff=Math.max(40,pl[2]-pen);
         b.classList.add(pen===0?"nat":pen<=4?"sli":"maj");
-        const chemBits=(pen===0?1:0)+Math.min(2,mates);
+        const chemBits=(pen===0?1:0)+(candLinks>=2?1:0)+(candLinks>=4.5?1:0);
         b.innerHTML=`<div class="pid">${id}</div>
           <div class="pe">${hidden()?(pen===0?"OK":pen<=4?"–":"– –"):eff}</div>
           <div class="pc">${pen?(hidden()?"out of position":"−"+pen+" OOP"):"natural"}${chemBits?" · ⚡"+chemBits:""}</div>`;
@@ -365,12 +366,31 @@ function oopPenalty(slotCat,playerPos){
   return Math.abs(LINE[slotCat]-LINE[playerPos])===1?4:9;
 }
 function effRating(s){return s.player?Math.max(40,s.player.rating-oopPenalty(s.cat,s.player.cat)):0;}
-/* per-player chemistry 0–3⚡: natural position +1, same-squad teammates +1 each (max +2) */
+
+/* chemistry v3 — links are shared history:
+   played together at the same World Cup 1.0 · same national shirt 0.75
+   same decade + continent 0.6 · same decade 0.4 · same continent 0.25 */
+const CONT={Brazil:"SA",Argentina:"SA",Uruguay:"SA",Chile:"SA",Peru:"SA",Colombia:"SA",
+  Mexico:"NA","United States":"NA","Costa Rica":"NA",
+  Cameroon:"AF",Nigeria:"AF",Senegal:"AF",Morocco:"AF",Ghana:"AF",Algeria:"AF",
+  Japan:"AS","South Korea":"AS","Saudi Arabia":"AS",Australia:"AS"};
+const contOf=t=>CONT[t]||"EU";
+const decOf=y=>Math.floor(y/10);
+function linkPts(a,b){
+  if(a.sq===b.sq)return 1.0;
+  if(DYN_ALIAS(a.team)===DYN_ALIAS(b.team))return .75;
+  const dec=decOf(a.year)===decOf(b.year),cont=contOf(a.team)===contOf(b.team);
+  return dec&&cont?.6:dec?.4:cont?.25:0;
+}
+function slotLinks(s){
+  let l=0;S.slots.forEach(x=>{if(x.player&&x!==s)l+=linkPts(s.player,x.player);});
+  return l;
+}
+/* per-player 0–3⚡: natural position +1 · linked squad +1 (links ≥2) · deeply linked +1 (links ≥4.5) */
 function playerChem(s){
   if(!s.player)return 0;
-  let c=s.cat===s.player.cat?1:0;
-  const mates=S.slots.filter(x=>x.player&&x!==s&&x.player.sq===s.player.sq).length;
-  return c+Math.min(2,mates);
+  const l=slotLinks(s);
+  return (s.cat===s.player.cat?1:0)+(l>=2?1:0)+(l>=4.5?1:0);
 }
 function chemistry(){
   const total=S.slots.reduce((a,s)=>a+playerChem(s),0);

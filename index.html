@@ -77,6 +77,9 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .modes .chip{min-width:0}
 .multline{font-size:12.5px;color:var(--chalk-dim);text-align:center;margin:10px 0 4px}
 .multline b{color:var(--gold)}
+.playas{font-size:12px;color:var(--chalk-dim);text-align:center;margin:8px 0 2px;min-height:16px}
+.playas b{color:var(--chalk)}
+.playas .edit{color:var(--gold);cursor:pointer;text-decoration:underline}
 
 .daily{border:1.5px solid var(--gold-deep);border-radius:14px;margin:18px 0 6px;padding:16px;text-align:left;
   background:linear-gradient(160deg,rgba(227,179,76,.12),rgba(10,44,33,.6));position:relative;overflow:hidden}
@@ -251,6 +254,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .live .log .goalus{color:var(--gold);font-weight:800}
 .live .log .goalthem{color:var(--loss);font-weight:800}
 .live .log .big{color:var(--chalk);font-weight:700}
+.fcom{font-style:italic;color:var(--gold-hi);line-height:1.5}
+.fcom span{color:var(--chalk-dim);font-style:normal;font-size:10.5px;letter-spacing:.04em}
 .tactics{display:flex;gap:8px;margin-top:10px}
 .tactics .tbtn{flex:1;border:1.5px solid var(--gold-deep);background:rgba(227,179,76,.08);color:var(--gold);
   border-radius:9px;padding:9px 4px;font-size:11.5px;font-weight:800;letter-spacing:.04em;cursor:pointer;text-transform:uppercase}
@@ -346,7 +351,7 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="daily">
       <div class="dl">⚡ Daily Challenge<span class="streak" id="daily-streak"></span></div>
       <div class="dd" id="daily-date"></div>
-      <div class="ds">One seeded run, the <b>same wheel for everyone</b> on Earth today. Classic rules, 4-3-3, ×1.1 score bonus. New challenge at midnight UTC.</div>
+      <div class="ds">One seeded run, the <b>same wheel for everyone</b> on Earth today. Classic rules, 4-3-3, ×1.1 score bonus. <b>One attempt</b> — saved automatically. New challenge at midnight UTC.</div>
       <button class="btn" id="btn-daily">Play today's challenge</button>
     </div>
 
@@ -369,6 +374,7 @@ footer a{color:rgba(243,236,217,.5)}
     </div>
     <div class="multline">Score multiplier: <b id="multline">×1.0</b></div>
     <button class="btn" id="btn-start">Start new run →</button>
+    <div class="playas" id="playas"></div>
 
     <div class="panel boardprev">
       <h2>🌍 World leaderboard <span class="more" id="btn-board-home">Full table →</span></h2>
@@ -384,11 +390,11 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="howto">
       <h2>How to play</h2>
       <li><span class="dot"></span><span><b>Spin the wheel.</b> Each spin lands on a real nation at a specific World Cup — Brazil 1970, Hungary 1954, Argentina 2022…</span></li>
-      <li><span class="dot"></span><span><b>Draft one player</b> per spin and <b>place them anywhere</b> — you pick the exact position. You hold <b>2 re-spins</b> to reject a squad you don't fancy.</span></li>
+      <li><span class="dot"></span><span><b>Draft one player</b> per spin and <b>place them anywhere</b> — you pick the exact position. You hold <b>one re-spin</b> to reject a squad you don't fancy.</span></li>
       <li><span class="dot"></span><span><b>Out of position costs.</b> One line out of place −4 rating, two lines −9, and anything involving the goalkeeper −15. A striker in goal is your call…</span></li>
-      <li><span class="dot"></span><span><b>Chemistry counts.</b> Natural positions and same-squad teammates earn ⚡ chemistry that boosts the whole XI.</span></li>
-      <li><span class="dot"></span><span><b>Name a captain</b>, then play the tournament live: tactics at half-time, extra time, penalty shootouts.</span></li>
-      <li><span class="dot"></span><span><b>The perfect run</b> is seven wins inside normal time: <b>7-0</b>. Save your score and climb the world rankings.</span></li>
+      <li><span class="dot"></span><span><b>Chemistry is history.</b> Players bond if they actually played together at a World Cup, share a national shirt, or come from the same era or continent — and natural positions earn ⚡ too.</span></li>
+      <li><span class="dot"></span><span><b>Name a captain</b>, then play the tournament live: tactics at half-time, extra time, penalty shootouts — and the occasional line of very famous commentary.</span></li>
+      <li><span class="dot"></span><span><b>The perfect run</b> is seven wins inside normal time: <b>7-0</b>. Every finished run is saved to the world rankings automatically.</span></li>
     </div>
     <footer>7-0 is an independent, fan-made game inspired by 38-0.app and 82-0.com. Not affiliated with FIFA or any federation. Player ratings are an unofficial, descriptive interpretation.<br>Leaderboard names are public. Emails are optional, encrypted and never displayed.</footer>
   </section>
@@ -402,7 +408,7 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="draftmeta">
       <span id="dm-form"></span>
       <span id="dm-extra"></span>
-      <span>Re-spins: <b id="dm-respins">2</b></span>
+      <span>Re-spin: <b id="dm-respins">1</b></span>
     </div>
     <div class="wheelwrap">
       <div class="wheel" id="wheel"></div>
@@ -441,8 +447,8 @@ footer a{color:rgba(243,236,217,.5)}
   <!-- SAVE SCORE MODAL -->
   <div class="modal-bg" id="save-bg">
     <div class="modal" role="dialog" aria-modal="true">
-      <h3>Save to the world leaderboard</h3>
-      <p class="hint">Post this run — <b id="sv-pts" style="color:var(--gold)"></b> pts — under your name.</p>
+      <h3>Manager profile</h3>
+      <p class="hint" id="sv-hint">Your name and country appear on the world leaderboard — every finished run is <b>saved automatically</b>.</p>
       <div class="field"><label for="sv-name">Nickname (public)</label>
         <input id="sv-name" maxlength="20" autocomplete="nickname" placeholder="e.g. GoldenBoot88"></div>
       <div class="field"><label for="sv-country">Country (optional)</label>
@@ -452,7 +458,7 @@ footer a{color:rgba(243,236,217,.5)}
       <label class="optin"><input type="checkbox" id="sv-optin">
         <span>Keep my email so I can be contacted about new modes, tournaments and my scores. Stored encrypted, never displayed, never shared. Leave unticked to save your score without it.</span></label>
       <input class="hpfield" id="sv-web" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <button class="btn" id="btn-submit-score">Post score</button>
+      <button class="btn" id="btn-submit-score">Save profile</button>
       <button class="btn ghost" id="btn-cancel-save" style="margin-top:8px">Not now</button>
       <div class="savemsg" id="sv-msg"></div>
       <p class="privacy">Your nickname, country, score and XI appear on the public leaderboard. Email is optional and encrypted at rest; to have it removed, reply to any message or contact the maintainer.</p>
@@ -506,6 +512,7 @@ footer a{color:rgba(243,236,217,.5)}
       <div class="award"><div class="al">⭐ Player of the cup</div><div class="av" id="r-pott">—</div><div class="as" id="r-pott2"></div></div>
     </div>
     <div class="finalxi" id="r-xi"></div>
+    <div class="savemsg" id="r-saved"></div>
     <div class="stack">
       <button class="btn" id="btn-save">🌍 Save to world leaderboard</button>
       <button class="btn ghost" id="btn-again">Run it back →</button>
@@ -788,7 +795,7 @@ function resetState(daily){
   const slots=[];F.rows.forEach(r=>r.forEach(id=>slots.push({id,cat:F.cats[id],player:null})));
   S={form,draft,diff,daily:!!daily,dyn:draft==="dynasty"?pref.dyn:null,
      slots,lastSquad:-1,spinning:false,wheelRot:0,picked:new Set(),
-     respins:2,captain:null,goals:{},era:0,budget:CAP_BUDGET,token:null,submitted:false,
+     respins:1,captain:null,goals:{},era:0,budget:CAP_BUDGET,token:null,submitted:false,
      rng:daily?mulberry32(hashStr("7-0:"+utcDay())):Math.random,
      pool:[],wheelIdx:[],
      cup:{stage:0,record:{w:0,d:0,l:0,gf:0,ga:0},group:null,knock:[],out:false,outAt:null,
@@ -801,7 +808,7 @@ const pickFrom=a=>a[rnd(a.length)];
 
 const STORE_KEY="seven_zero_stats_v3";
 const STORE_DEF={runs:0,titles:0,perfects:0,bestW:0,bestPts:0,goals:0,topScorers:{},
-  badges:{},streak:0,lastDaily:"",playerName:"",playerCountry:""};
+  badges:{},streak:0,lastDaily:"",playerName:"",playerCountry:"",playerEmail:"",optin:false,emailSent:0};
 const store={
   get(){
     try{
@@ -1022,7 +1029,8 @@ function renderPlacement(si,pi,key){
   back.className="backlink";back.textContent="← Back to squad";
   back.onclick=()=>renderSquadList(si);
   list.appendChild(back);
-  const mates=S.slots.filter(x=>x.player&&x.player.sq===si).length;
+  const cand={sq:si,team:SQUADS[si].t,year:SQUADS[si].y};
+  let candLinks=0;S.slots.forEach(x=>{if(x.player)candLinks+=linkPts(cand,x.player);});
   const grid=document.createElement("div");grid.className="placegrid";
   FORMATIONS[S.form].rows.forEach(r=>{
     const row=document.createElement("div");row.className="prow";
@@ -1036,7 +1044,7 @@ function renderPlacement(si,pi,key){
         const pen=oopPenalty(s.cat,pl[1]);
         const eff=Math.max(40,pl[2]-pen);
         b.classList.add(pen===0?"nat":pen<=4?"sli":"maj");
-        const chemBits=(pen===0?1:0)+Math.min(2,mates);
+        const chemBits=(pen===0?1:0)+(candLinks>=2?1:0)+(candLinks>=4.5?1:0);
         b.innerHTML=`<div class="pid">${id}</div>
           <div class="pe">${hidden()?(pen===0?"OK":pen<=4?"–":"– –"):eff}</div>
           <div class="pc">${pen?(hidden()?"out of position":"−"+pen+" OOP"):"natural"}${chemBits?" · ⚡"+chemBits:""}</div>`;
@@ -1080,12 +1088,31 @@ function oopPenalty(slotCat,playerPos){
   return Math.abs(LINE[slotCat]-LINE[playerPos])===1?4:9;
 }
 function effRating(s){return s.player?Math.max(40,s.player.rating-oopPenalty(s.cat,s.player.cat)):0;}
-/* per-player chemistry 0–3⚡: natural position +1, same-squad teammates +1 each (max +2) */
+
+/* chemistry v3 — links are shared history:
+   played together at the same World Cup 1.0 · same national shirt 0.75
+   same decade + continent 0.6 · same decade 0.4 · same continent 0.25 */
+const CONT={Brazil:"SA",Argentina:"SA",Uruguay:"SA",Chile:"SA",Peru:"SA",Colombia:"SA",
+  Mexico:"NA","United States":"NA","Costa Rica":"NA",
+  Cameroon:"AF",Nigeria:"AF",Senegal:"AF",Morocco:"AF",Ghana:"AF",Algeria:"AF",
+  Japan:"AS","South Korea":"AS","Saudi Arabia":"AS",Australia:"AS"};
+const contOf=t=>CONT[t]||"EU";
+const decOf=y=>Math.floor(y/10);
+function linkPts(a,b){
+  if(a.sq===b.sq)return 1.0;
+  if(DYN_ALIAS(a.team)===DYN_ALIAS(b.team))return .75;
+  const dec=decOf(a.year)===decOf(b.year),cont=contOf(a.team)===contOf(b.team);
+  return dec&&cont?.6:dec?.4:cont?.25:0;
+}
+function slotLinks(s){
+  let l=0;S.slots.forEach(x=>{if(x.player&&x!==s)l+=linkPts(s.player,x.player);});
+  return l;
+}
+/* per-player 0–3⚡: natural position +1 · linked squad +1 (links ≥2) · deeply linked +1 (links ≥4.5) */
 function playerChem(s){
   if(!s.player)return 0;
-  let c=s.cat===s.player.cat?1:0;
-  const mates=S.slots.filter(x=>x.player&&x!==s&&x.player.sq===s.player.sq).length;
-  return c+Math.min(2,mates);
+  const l=slotLinks(s);
+  return (s.cat===s.player.cat?1:0)+(l>=2?1:0)+(l>=4.5?1:0);
 }
 function chemistry(){
   const total=S.slots.reduce((a,s)=>a+playerChem(s),0);
@@ -1165,6 +1192,27 @@ const C_OURGOAL=["What a finish!","The stadium erupts!","Cool as you like.","An 
 const C_THGOAL=["Disaster at the back.","Sucker punch.","They'd been threatening.","A hammer blow.","Silence falls."];
 
 const TACTICS={keep:{f:1,a:1,n:"Keep shape"},push:{f:1.45,a:1.5,n:"Push forward"},park:{f:.55,a:.5,n:"Park the bus"}};
+
+/* the greatest hits — dropped in as fun asides */
+const FAMOUS_GOAL=[
+ ["\u201cOh, you have to say that's magnificent.\u201d","Barry Davies, Italia '90"],
+ ["\u201cDennis Bergkamp! Dennis Bergkamp! DENNIS BERGKAMP!\u201d","Jack van Gelder, France '98"],
+ ["\u201cGOL DI GROSSO! GOL DI GROSSO!\u201d","Fabio Caressa, 2006"],
+ ["\u201c¡Iniesta de mi vida!\u201d","Spanish radio, Soccer City 2010"],
+ ["\u201cGenius! Genius! Genius!\u201d","Bryon Butler, Mexico '86"],
+ ["\u201cGOOOOOOOOOL! GOL GOL GOL!\u201d","every South American radio, forever"],
+ ["\u201cA goal worthy of winning any match, anywhere, any time.\u201d","the commentary box, in awe"]
+];
+const FAMOUS_LATE=[
+ ["\u201cSome people are on the pitch… they think it's all over — IT IS NOW!\u201d","Kenneth Wolstenholme, 1966"],
+ ["\u201cAGUEROOOOO! I swear you'll never see anything like this ever again!\u201d","Martin Tyler, 2012"],
+ ["\u201cIt's up for grabs now…!\u201d","Brian Moore, 1989"]
+];
+const FAMOUS_TITLE=[
+ ["\u201cIt's only twelve inches high, it's solid gold — and it means you are champions of the world.\u201d","after Kenneth Wolstenholme, 1966"],
+ ["\u201c¡CAMPEONES DEL MUNDO!\u201d","every commentator who ever lived this moment"]
+];
+const fcom=([q,who])=>`<div class="fcom">${q} <span>— ${who}</span></div>`;
 let ticker=null;
 
 function runLive(opp,knockout,done){
@@ -1213,6 +1261,9 @@ function runLive(opp,knockout,done){
     if(R()<xf/90*mf*boost){
       const n=scorerName();ourGoals.push([n,min]);
       addLog(`<span class="goalus">⚽ GOAL! ${n} ${min}'</span> — ${pickFrom(C_OURGOAL)}`);
+      const ahead=ourGoals.length===theirMin.length+1;
+      if(min>=85&&ahead&&R()<.55)addLog(fcom(pickFrom(FAMOUS_LATE)));
+      else if(R()<.16)addLog(fcom(pickFrom(FAMOUS_GOAL)));
       if(!silent)SFX.goalUs();
     }else if(R()<xa/90*ma*boost){
       theirMin.push(min);
@@ -1412,7 +1463,13 @@ function finalizeMatch(opp,res,isGroup){
     if(lost){S.cup.out=true;S.cup.outAt=ROUNDS[S.cup.stage];S.cup.lostPill=S.cup.stage-2;renderBracket();finish_();return;}
     S.cup.stage++;
     renderBracket();
-    if(S.cup.stage===7){S.cup.champion=true;renderBracket();finish_();return;}
+    if(S.cup.stage===7){
+      S.cup.champion=true;renderBracket();
+      const fq=document.createElement("div");fq.className="match";
+      fq.innerHTML=fcom(pickFrom(FAMOUS_TITLE));
+      $("cup-feed").appendChild(fq);fq.scrollIntoView({behavior:"smooth",block:"end"});
+      finish_();return;
+    }
     $("btn-next").textContent="Kick off — "+ROUNDS[S.cup.stage];$("btn-next").disabled=false;
   }
 }
@@ -1563,12 +1620,10 @@ function showResult(){
   $("r-badges").innerHTML=newB.map(k=>`<span class="rbadge">${BADGES[k][0]} ${BADGES[k][1]} unlocked</span>`).join("");
   $("r-foot").textContent="Career: "+st.titles+" title"+(st.titles===1?"":"s")+" · "+st.perfects+" perfect run"+(st.perfects===1?"":"s")+" · best "+st.bestPts+" pts · "+st.runs+" run"+(st.runs===1?"":"s");
   $("copied").textContent="";
-  const sv=$("btn-save");
-  sv.style.display="block";sv.disabled=false;
-  sv.textContent="🌍 Save to world leaderboard";
-  sv.onclick=openSave;
   S.submitted=false;
+  $("btn-save").style.display="none";
   show("result");
+  autoSubmit();
   if(S.cup.champion){confetti();SFX.fanfare();}
 }
 
@@ -1588,25 +1643,54 @@ function buildCountrySelect(){
   sel.innerHTML=`<option value="">🌍 Prefer not to say</option>`+
     opts.map(([c,n])=>`<option value="${c}"${c===guess?" selected":""}>${flagOf(c)} ${n}</option>`).join("");
 }
-function openSave(){
-  if(S.submitted){show("board");loadBoard(S.daily?"daily":"all",true);return;}
+let PENDING_START=null,PENDING_SUBMIT=false;
+function openProfile(opts){
   const st=store.get();
   $("sv-name").value=st.playerName||"";
   buildCountrySelect();
-  $("sv-pts").textContent=S.pts.pts+" pts";
+  $("sv-email").value=st.playerEmail||"";
+  $("sv-optin").checked=!!st.optin;
+  $("sv-hint").innerHTML=opts&&opts.onboard
+    ?"Before your first spin: your name and country go on the <b>world leaderboard</b>, and every finished run is <b>saved automatically</b>."
+    :"Your name and country appear on the world leaderboard — every finished run is <b>saved automatically</b>.";
+  $("btn-submit-score").textContent=opts&&opts.onboard?"Save & play →":"Save profile";
   $("sv-msg").textContent="";$("sv-msg").className="savemsg";
   $("save-bg").classList.add("on");
 }
-async function submitScore(){
+function saveProfile(){
   const msg=$("sv-msg");
   const name=$("sv-name").value.trim();
   if(name.length<2){msg.textContent="Pick a nickname (2–20 characters).";msg.className="savemsg err";return;}
-  const btn=$("btn-submit-score");btn.disabled=true;
-  msg.textContent="Posting…";msg.className="savemsg";
+  const email=$("sv-email").value.trim();
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){msg.textContent="That email doesn't look right — fix it or leave it empty.";msg.className="savemsg err";return;}
+  const st=store.get();
+  if(email!==st.playerEmail)st.emailSent=0;
+  st.playerName=name;
+  st.playerCountry=$("sv-country").value;
+  st.playerEmail=email;
+  st.optin=$("sv-optin").checked&&!!email;
+  store.set(st);
+  $("save-bg").classList.remove("on");
+  paintProfile();
+  if(PENDING_START!=null){const d=PENDING_START;PENDING_START=null;startRun(d);}
+  else if(PENDING_SUBMIT){PENDING_SUBMIT=false;autoSubmit();}
+}
+async function autoSubmit(){
+  if(S.submitted)return;
+  const st=store.get(),el=$("r-saved"),sv=$("btn-save");
+  if(!st.playerName){
+    el.textContent="";sv.style.display="block";sv.disabled=false;
+    sv.textContent="🌍 Save to world leaderboard";
+    sv.onclick=()=>{PENDING_SUBMIT=true;openProfile({});};
+    return;
+  }
+  el.className="savemsg";el.textContent="Posting to the world leaderboard…";
+  sv.style.display="none";
   if(!S.token){try{S.token=await API("/api/token");}catch(e){}}
+  const sendEmail=!!(st.optin&&st.playerEmail&&!st.emailSent);
   const body={
-    token:S.token,name,country:$("sv-country").value,
-    email:$("sv-email").value.trim(),optin:$("sv-optin").checked,web:$("sv-web").value,
+    token:S.token,name:st.playerName,country:st.playerCountry,
+    email:sendEmail?st.playerEmail:"",optin:sendEmail,web:$("sv-web").value,
     matches:S.cup.matches,grid:S.cup.gridResults.join(""),
     draft:S.draft,diff:S.diff,daily:S.daily,dyn:S.dyn||"",form:S.form,pts:S.pts.pts,
     xi:S.slots.map(s=>[s.player.name,s.player.year,s.player.flag])
@@ -1614,34 +1698,38 @@ async function submitScore(){
   try{
     const r=await fetch("/api/score",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
     const j=await r.json().catch(()=>({}));
-    if(!r.ok){
-      btn.disabled=false;
-      msg.className="savemsg err";
-      if(j.err==="name")msg.textContent="That nickname can't be used — try another.";
-      else if(j.err==="token"||j.err==="token-age")msg.textContent="Couldn't verify this run — give it a minute and try again.";
-      else msg.textContent="Couldn't post ("+(j.err||r.status)+"). Try again.";
-      return;
-    }
-    const st=store.get();
-    st.playerName=name;st.playerCountry=$("sv-country").value;
-    if(j.rank&&j.rank<=10&&!st.badges.top10){st.badges.top10=1;}
-    store.set(st);
+    if(!r.ok)throw j.err||r.status;
+    if(sendEmail){const s2=store.get();s2.emailSent=1;store.set(s2);}
+    if(j.rank&&j.rank<=10){const s2=store.get();if(!s2.badges.top10){s2.badges.top10=1;store.set(s2);}}
     S.submitted=true;
-    msg.className="savemsg";
-    msg.textContent=j.rank?`You're world #${j.rank} of ${j.count} runs!`+(j.rankDaily?` Today: #${j.rankDaily}.`:"")
-      :`Saved — outside the top 100 of ${j.count} runs. Run it back!`;
-    SFX.fanfare();
-    setTimeout(()=>{
-      $("save-bg").classList.remove("on");
-      const sv=$("btn-save");
-      sv.textContent="🌍 View leaderboard →";
-      sv.onclick=()=>{show("board");loadBoard(S.daily?"daily":"all",true);};
-    },1400);
-  }catch(e){
-    btn.disabled=false;
-    msg.className="savemsg err";
-    msg.textContent="No connection — score kept locally, try again in a moment.";
+    el.textContent=j.rank
+      ?`🌍 Saved — world #${j.rank} of ${j.count} run${j.count===1?"":"s"}`+(j.rankDaily?` · today #${j.rankDaily}`:"")
+      :`🌍 Saved — outside the top 100 of ${j.count} runs`;
+    sv.style.display="block";sv.disabled=false;
+    sv.textContent="🌍 View leaderboard →";
+    sv.onclick=()=>{show("board");loadBoard(S.daily?"daily":"all",true);};
+    SFX.pick();
+  }catch(err){
+    el.className="savemsg err";
+    sv.style.display="block";sv.disabled=false;
+    if(err==="name"){
+      el.textContent="The leaderboard rejected that nickname — edit your profile and retry.";
+      sv.textContent="Edit profile";sv.onclick=()=>{PENDING_SUBMIT=true;openProfile({});};
+    }else if(err==="token"||err==="token-age"){
+      el.textContent="Couldn't verify this run yet — give it a minute.";
+      sv.textContent="Retry save";sv.onclick=autoSubmit;
+    }else{
+      el.textContent="Couldn't reach the leaderboard — run kept locally.";
+      sv.textContent="Retry save";sv.onclick=autoSubmit;
+    }
   }
+}
+function paintProfile(){
+  const st=store.get();
+  $("playas").innerHTML=st.playerName
+    ?`Managing as <b>${st.playerName}</b> ${flagOf(st.playerCountry)} · <span class="edit" id="edit-profile">edit profile</span>`
+    :"Your first run sets up your manager profile.";
+  const e=$("edit-profile");if(e)e.onclick=()=>openProfile({});
 }
 
 const BOARD={tab:"all",timer:null};
@@ -1801,9 +1889,14 @@ function paintDaily(){
   $("daily-date").textContent=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:"UTC"})+" (UTC)";
   const active=st.lastDaily===utcDay()||st.lastDaily===new Date(Date.now()-864e5).toISOString().slice(0,10);
   $("daily-streak").textContent=active&&st.streak?"🔥 "+st.streak+"-day streak":"";
-  $("btn-daily").textContent=st.lastDaily===utcDay()?"Play again (best score counts)":"Play today's challenge";
+  const played=st.lastDaily===utcDay();
+  $("btn-daily").textContent=played?"✓ Played today — back at midnight UTC":"Play today's challenge";
+  $("btn-daily").disabled=played;
 }
 function startRun(daily){
+  const st=store.get();
+  if(!st.playerName){PENDING_START=!!daily;openProfile({onboard:true});return;}
+  if(daily&&st.lastDaily===utcDay()){paintDaily();return;}
   resetState(daily);
   buildWheel();renderPitch();
   $("picks-n").textContent=S.slots.length;
@@ -1814,7 +1907,7 @@ function startRun(daily){
   show("draft");
 }
 function goHome(){
-  renderCabinet();paintDaily();homeBoardPreview();show("home");
+  renderCabinet();paintDaily();paintProfile();homeBoardPreview();show("home");
 }
 $("btn-start").onclick=()=>startRun(false);
 $("btn-daily").onclick=()=>startRun(true);
@@ -1829,8 +1922,8 @@ $("btn-respin").onclick=()=>{
 $("btn-restart-draft").onclick=goHome;
 $("btn-again").onclick=goHome;
 $("btn-share").onclick=doShare;
-$("btn-submit-score").onclick=submitScore;
-$("btn-cancel-save").onclick=()=>$("save-bg").classList.remove("on");
+$("btn-submit-score").onclick=saveProfile;
+$("btn-cancel-save").onclick=()=>{PENDING_START=null;PENDING_SUBMIT=false;$("save-bg").classList.remove("on");};
 $("btn-board-home").onclick=()=>{show("board");loadBoard("all",true);};
 $("btn-board-back").onclick=goHome;
 $("btn-board-play").onclick=()=>startRun(false);
@@ -1841,7 +1934,7 @@ $("stat-squads").textContent=SQUADS.length;
 $("stat-players").textContent=SQUADS.reduce((a,s)=>a+s.p.length,0)+"";
 wireMute();
 buildFormChips();buildDraftChips();wireDiffChips();multline();
-renderCabinet();paintDaily();homeBoardPreview();boardPolling();
+renderCabinet();paintDaily();paintProfile();homeBoardPreview();boardPolling();
 </script>
 </body>
 </html>

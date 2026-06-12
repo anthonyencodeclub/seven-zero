@@ -10,6 +10,27 @@ const C_OURGOAL=["What a finish!","The stadium erupts!","Cool as you like.","An 
 const C_THGOAL=["Disaster at the back.","Sucker punch.","They'd been threatening.","A hammer blow.","Silence falls."];
 
 const TACTICS={keep:{f:1,a:1,n:"Keep shape"},push:{f:1.45,a:1.5,n:"Push forward"},park:{f:.55,a:.5,n:"Park the bus"}};
+
+/* the greatest hits — dropped in as fun asides */
+const FAMOUS_GOAL=[
+ ["\u201cOh, you have to say that's magnificent.\u201d","Barry Davies, Italia '90"],
+ ["\u201cDennis Bergkamp! Dennis Bergkamp! DENNIS BERGKAMP!\u201d","Jack van Gelder, France '98"],
+ ["\u201cGOL DI GROSSO! GOL DI GROSSO!\u201d","Fabio Caressa, 2006"],
+ ["\u201c¡Iniesta de mi vida!\u201d","Spanish radio, Soccer City 2010"],
+ ["\u201cGenius! Genius! Genius!\u201d","Bryon Butler, Mexico '86"],
+ ["\u201cGOOOOOOOOOL! GOL GOL GOL!\u201d","every South American radio, forever"],
+ ["\u201cA goal worthy of winning any match, anywhere, any time.\u201d","the commentary box, in awe"]
+];
+const FAMOUS_LATE=[
+ ["\u201cSome people are on the pitch… they think it's all over — IT IS NOW!\u201d","Kenneth Wolstenholme, 1966"],
+ ["\u201cAGUEROOOOO! I swear you'll never see anything like this ever again!\u201d","Martin Tyler, 2012"],
+ ["\u201cIt's up for grabs now…!\u201d","Brian Moore, 1989"]
+];
+const FAMOUS_TITLE=[
+ ["\u201cIt's only twelve inches high, it's solid gold — and it means you are champions of the world.\u201d","after Kenneth Wolstenholme, 1966"],
+ ["\u201c¡CAMPEONES DEL MUNDO!\u201d","every commentator who ever lived this moment"]
+];
+const fcom=([q,who])=>`<div class="fcom">${q} <span>— ${who}</span></div>`;
 let ticker=null;
 
 function runLive(opp,knockout,done){
@@ -58,6 +79,9 @@ function runLive(opp,knockout,done){
     if(R()<xf/90*mf*boost){
       const n=scorerName();ourGoals.push([n,min]);
       addLog(`<span class="goalus">⚽ GOAL! ${n} ${min}'</span> — ${pickFrom(C_OURGOAL)}`);
+      const ahead=ourGoals.length===theirMin.length+1;
+      if(min>=85&&ahead&&R()<.55)addLog(fcom(pickFrom(FAMOUS_LATE)));
+      else if(R()<.16)addLog(fcom(pickFrom(FAMOUS_GOAL)));
       if(!silent)SFX.goalUs();
     }else if(R()<xa/90*ma*boost){
       theirMin.push(min);
@@ -257,7 +281,13 @@ function finalizeMatch(opp,res,isGroup){
     if(lost){S.cup.out=true;S.cup.outAt=ROUNDS[S.cup.stage];S.cup.lostPill=S.cup.stage-2;renderBracket();finish_();return;}
     S.cup.stage++;
     renderBracket();
-    if(S.cup.stage===7){S.cup.champion=true;renderBracket();finish_();return;}
+    if(S.cup.stage===7){
+      S.cup.champion=true;renderBracket();
+      const fq=document.createElement("div");fq.className="match";
+      fq.innerHTML=fcom(pickFrom(FAMOUS_TITLE));
+      $("cup-feed").appendChild(fq);fq.scrollIntoView({behavior:"smooth",block:"end"});
+      finish_();return;
+    }
     $("btn-next").textContent="Kick off — "+ROUNDS[S.cup.stage];$("btn-next").disabled=false;
   }
 }
@@ -408,12 +438,10 @@ function showResult(){
   $("r-badges").innerHTML=newB.map(k=>`<span class="rbadge">${BADGES[k][0]} ${BADGES[k][1]} unlocked</span>`).join("");
   $("r-foot").textContent="Career: "+st.titles+" title"+(st.titles===1?"":"s")+" · "+st.perfects+" perfect run"+(st.perfects===1?"":"s")+" · best "+st.bestPts+" pts · "+st.runs+" run"+(st.runs===1?"":"s");
   $("copied").textContent="";
-  const sv=$("btn-save");
-  sv.style.display="block";sv.disabled=false;
-  sv.textContent="🌍 Save to world leaderboard";
-  sv.onclick=openSave;
   S.submitted=false;
+  $("btn-save").style.display="none";
   show("result");
+  autoSubmit();
   if(S.cup.champion){confetti();SFX.fanfare();}
 }
 
@@ -433,25 +461,54 @@ function buildCountrySelect(){
   sel.innerHTML=`<option value="">🌍 Prefer not to say</option>`+
     opts.map(([c,n])=>`<option value="${c}"${c===guess?" selected":""}>${flagOf(c)} ${n}</option>`).join("");
 }
-function openSave(){
-  if(S.submitted){show("board");loadBoard(S.daily?"daily":"all",true);return;}
+let PENDING_START=null,PENDING_SUBMIT=false;
+function openProfile(opts){
   const st=store.get();
   $("sv-name").value=st.playerName||"";
   buildCountrySelect();
-  $("sv-pts").textContent=S.pts.pts+" pts";
+  $("sv-email").value=st.playerEmail||"";
+  $("sv-optin").checked=!!st.optin;
+  $("sv-hint").innerHTML=opts&&opts.onboard
+    ?"Before your first spin: your name and country go on the <b>world leaderboard</b>, and every finished run is <b>saved automatically</b>."
+    :"Your name and country appear on the world leaderboard — every finished run is <b>saved automatically</b>.";
+  $("btn-submit-score").textContent=opts&&opts.onboard?"Save & play →":"Save profile";
   $("sv-msg").textContent="";$("sv-msg").className="savemsg";
   $("save-bg").classList.add("on");
 }
-async function submitScore(){
+function saveProfile(){
   const msg=$("sv-msg");
   const name=$("sv-name").value.trim();
   if(name.length<2){msg.textContent="Pick a nickname (2–20 characters).";msg.className="savemsg err";return;}
-  const btn=$("btn-submit-score");btn.disabled=true;
-  msg.textContent="Posting…";msg.className="savemsg";
+  const email=$("sv-email").value.trim();
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){msg.textContent="That email doesn't look right — fix it or leave it empty.";msg.className="savemsg err";return;}
+  const st=store.get();
+  if(email!==st.playerEmail)st.emailSent=0;
+  st.playerName=name;
+  st.playerCountry=$("sv-country").value;
+  st.playerEmail=email;
+  st.optin=$("sv-optin").checked&&!!email;
+  store.set(st);
+  $("save-bg").classList.remove("on");
+  paintProfile();
+  if(PENDING_START!=null){const d=PENDING_START;PENDING_START=null;startRun(d);}
+  else if(PENDING_SUBMIT){PENDING_SUBMIT=false;autoSubmit();}
+}
+async function autoSubmit(){
+  if(S.submitted)return;
+  const st=store.get(),el=$("r-saved"),sv=$("btn-save");
+  if(!st.playerName){
+    el.textContent="";sv.style.display="block";sv.disabled=false;
+    sv.textContent="🌍 Save to world leaderboard";
+    sv.onclick=()=>{PENDING_SUBMIT=true;openProfile({});};
+    return;
+  }
+  el.className="savemsg";el.textContent="Posting to the world leaderboard…";
+  sv.style.display="none";
   if(!S.token){try{S.token=await API("/api/token");}catch(e){}}
+  const sendEmail=!!(st.optin&&st.playerEmail&&!st.emailSent);
   const body={
-    token:S.token,name,country:$("sv-country").value,
-    email:$("sv-email").value.trim(),optin:$("sv-optin").checked,web:$("sv-web").value,
+    token:S.token,name:st.playerName,country:st.playerCountry,
+    email:sendEmail?st.playerEmail:"",optin:sendEmail,web:$("sv-web").value,
     matches:S.cup.matches,grid:S.cup.gridResults.join(""),
     draft:S.draft,diff:S.diff,daily:S.daily,dyn:S.dyn||"",form:S.form,pts:S.pts.pts,
     xi:S.slots.map(s=>[s.player.name,s.player.year,s.player.flag])
@@ -459,34 +516,38 @@ async function submitScore(){
   try{
     const r=await fetch("/api/score",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
     const j=await r.json().catch(()=>({}));
-    if(!r.ok){
-      btn.disabled=false;
-      msg.className="savemsg err";
-      if(j.err==="name")msg.textContent="That nickname can't be used — try another.";
-      else if(j.err==="token"||j.err==="token-age")msg.textContent="Couldn't verify this run — give it a minute and try again.";
-      else msg.textContent="Couldn't post ("+(j.err||r.status)+"). Try again.";
-      return;
-    }
-    const st=store.get();
-    st.playerName=name;st.playerCountry=$("sv-country").value;
-    if(j.rank&&j.rank<=10&&!st.badges.top10){st.badges.top10=1;}
-    store.set(st);
+    if(!r.ok)throw j.err||r.status;
+    if(sendEmail){const s2=store.get();s2.emailSent=1;store.set(s2);}
+    if(j.rank&&j.rank<=10){const s2=store.get();if(!s2.badges.top10){s2.badges.top10=1;store.set(s2);}}
     S.submitted=true;
-    msg.className="savemsg";
-    msg.textContent=j.rank?`You're world #${j.rank} of ${j.count} runs!`+(j.rankDaily?` Today: #${j.rankDaily}.`:"")
-      :`Saved — outside the top 100 of ${j.count} runs. Run it back!`;
-    SFX.fanfare();
-    setTimeout(()=>{
-      $("save-bg").classList.remove("on");
-      const sv=$("btn-save");
-      sv.textContent="🌍 View leaderboard →";
-      sv.onclick=()=>{show("board");loadBoard(S.daily?"daily":"all",true);};
-    },1400);
-  }catch(e){
-    btn.disabled=false;
-    msg.className="savemsg err";
-    msg.textContent="No connection — score kept locally, try again in a moment.";
+    el.textContent=j.rank
+      ?`🌍 Saved — world #${j.rank} of ${j.count} run${j.count===1?"":"s"}`+(j.rankDaily?` · today #${j.rankDaily}`:"")
+      :`🌍 Saved — outside the top 100 of ${j.count} runs`;
+    sv.style.display="block";sv.disabled=false;
+    sv.textContent="🌍 View leaderboard →";
+    sv.onclick=()=>{show("board");loadBoard(S.daily?"daily":"all",true);};
+    SFX.pick();
+  }catch(err){
+    el.className="savemsg err";
+    sv.style.display="block";sv.disabled=false;
+    if(err==="name"){
+      el.textContent="The leaderboard rejected that nickname — edit your profile and retry.";
+      sv.textContent="Edit profile";sv.onclick=()=>{PENDING_SUBMIT=true;openProfile({});};
+    }else if(err==="token"||err==="token-age"){
+      el.textContent="Couldn't verify this run yet — give it a minute.";
+      sv.textContent="Retry save";sv.onclick=autoSubmit;
+    }else{
+      el.textContent="Couldn't reach the leaderboard — run kept locally.";
+      sv.textContent="Retry save";sv.onclick=autoSubmit;
+    }
   }
+}
+function paintProfile(){
+  const st=store.get();
+  $("playas").innerHTML=st.playerName
+    ?`Managing as <b>${st.playerName}</b> ${flagOf(st.playerCountry)} · <span class="edit" id="edit-profile">edit profile</span>`
+    :"Your first run sets up your manager profile.";
+  const e=$("edit-profile");if(e)e.onclick=()=>openProfile({});
 }
 
 const BOARD={tab:"all",timer:null};
@@ -646,9 +707,14 @@ function paintDaily(){
   $("daily-date").textContent=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:"UTC"})+" (UTC)";
   const active=st.lastDaily===utcDay()||st.lastDaily===new Date(Date.now()-864e5).toISOString().slice(0,10);
   $("daily-streak").textContent=active&&st.streak?"🔥 "+st.streak+"-day streak":"";
-  $("btn-daily").textContent=st.lastDaily===utcDay()?"Play again (best score counts)":"Play today's challenge";
+  const played=st.lastDaily===utcDay();
+  $("btn-daily").textContent=played?"✓ Played today — back at midnight UTC":"Play today's challenge";
+  $("btn-daily").disabled=played;
 }
 function startRun(daily){
+  const st=store.get();
+  if(!st.playerName){PENDING_START=!!daily;openProfile({onboard:true});return;}
+  if(daily&&st.lastDaily===utcDay()){paintDaily();return;}
   resetState(daily);
   buildWheel();renderPitch();
   $("picks-n").textContent=S.slots.length;
@@ -659,7 +725,7 @@ function startRun(daily){
   show("draft");
 }
 function goHome(){
-  renderCabinet();paintDaily();homeBoardPreview();show("home");
+  renderCabinet();paintDaily();paintProfile();homeBoardPreview();show("home");
 }
 $("btn-start").onclick=()=>startRun(false);
 $("btn-daily").onclick=()=>startRun(true);
@@ -674,8 +740,8 @@ $("btn-respin").onclick=()=>{
 $("btn-restart-draft").onclick=goHome;
 $("btn-again").onclick=goHome;
 $("btn-share").onclick=doShare;
-$("btn-submit-score").onclick=submitScore;
-$("btn-cancel-save").onclick=()=>$("save-bg").classList.remove("on");
+$("btn-submit-score").onclick=saveProfile;
+$("btn-cancel-save").onclick=()=>{PENDING_START=null;PENDING_SUBMIT=false;$("save-bg").classList.remove("on");};
 $("btn-board-home").onclick=()=>{show("board");loadBoard("all",true);};
 $("btn-board-back").onclick=goHome;
 $("btn-board-play").onclick=()=>startRun(false);
@@ -686,4 +752,4 @@ $("stat-squads").textContent=SQUADS.length;
 $("stat-players").textContent=SQUADS.reduce((a,s)=>a+s.p.length,0)+"";
 wireMute();
 buildFormChips();buildDraftChips();wireDiffChips();multline();
-renderCabinet();paintDaily();homeBoardPreview();boardPolling();
+renderCabinet();paintDaily();paintProfile();homeBoardPreview();boardPolling();
