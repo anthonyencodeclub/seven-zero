@@ -1,6 +1,6 @@
 # 7-0 — Build the Ultimate World Cup XI
 
-A free, fan-made World Cup draft game with a **live world leaderboard**. Spin the wheel, draft legends from **86 iconic World Cup squads (1950–2022, 1,006 players)** — each with its own line of lore, pick your formation and captain, then live out the whole tournament minute by minute — tactics at half-time, extra time, penalty shootouts.
+A free, fan-made World Cup draft game with a **live world leaderboard**. Spin the wheel, draft legends from **136 iconic World Cup squads (1950–2022, 1,608 players)** — each with its own line of lore, pick your formation and captain, then live out the whole tournament minute by minute — tactics at half-time, extra time, penalty shootouts.
 
 **The perfect run is seven wins inside normal time: 7-0.**
 
@@ -10,12 +10,12 @@ A free, fan-made World Cup draft game with a **live world leaderboard**. Spin th
 
 ## What's in the game
 
-- 🎡 **The wheel** — 86 real squads from Uruguay 1950 to Argentina 2022, physics-style spin with pointer ticks, sounds and a landing flash. 2 re-spins per run.
+- 🎡 **The wheel** — 136 real squads from Uruguay 1950 to Argentina 2022, in three rings of flags, physics-style spin with pointer ticks, sounds and a landing flash. 2 re-spins per run.
 - 🎯 **Place anyone anywhere** — you choose the exact slot for every pick. Out of position costs rating: −4 one line out, −9 two lines, −15 for anything involving the goalkeeper (yes, you can play Pelé in goal at 83).
 - ⚡ **Chemistry** — each player earns 0–3⚡ for playing their natural position and lining up with same-squad teammates; total chemistry boosts the whole XI.
 - ⚽ **Live match engine** — minute-by-minute simulation with commentary, half-time and extra-time **tactic calls** (push forward / keep shape / park the bus), group tables, shootouts.
 - 📜 **Lore** — every squad lands with a line of its history: the Maracanazo, the Disgrace of Gijón, Córdoba '78, the Battle of Santiago, Italia '90…
-- 🧩 **Draft modes** — Classic, **Era Tour** (a new decade each spin), **Dynasty** (one nation, all eras — Brazil has 9 squads), **Wage Cap** (946 budget, spend wisely).
+- 🧩 **Draft modes** — Classic, **Era Tour** (a new decade each spin), **Dynasty** (one nation, all eras — 25 nations qualify, every major nation has at least 4 squads, Brazil has 9), **Wage Cap** (946 budget, spend wisely).
 - 💀 **Difficulties** — Classic, Hard (ratings hidden), Legend (brutal draw + hidden ratings). Modes multiply your score.
 - ⚡ **Daily Challenge** — one seeded run per day, the same wheel for everyone on Earth, with its own leaderboard and streaks.
 - 🌍 **Live world leaderboard** — all-time and daily tabs, top 100 kept, your best run highlighted, tap any row to see that player's XI.
@@ -78,7 +78,7 @@ vercel dev            # local game + API
 node scripts/rebuild.mjs --remove-name "SomeName"   # moderation
 ```
 
-Squad data lives in [src/squads-new.mjs](src/squads-new.mjs) and [src/squads-v3.mjs](src/squads-v3.mjs), with per-squad history in [src/lore.mjs](src/lore.mjs), merged with the v1 squads by `scripts/extract.mjs` (which fails the build on any squad/lore mismatch). The v1 game is preserved at [v1/index.html](v1/index.html).
+Squad data lives in [src/squads-new.mjs](src/squads-new.mjs), [src/squads-v3.mjs](src/squads-v3.mjs) and [src/squads-v4.mjs](src/squads-v4.mjs), with per-squad history in [src/lore.mjs](src/lore.mjs), merged with the v1 squads by `scripts/extract.mjs` (which fails the build on any squad/lore mismatch). The v1 game is preserved at [v1/index.html](v1/index.html).
 
 ---
 

@@ -28,7 +28,7 @@ const FORMATIONS={
 const DIFF_MULT={classic:1,hard:1.3,legend:1.7};
 const DRAFT_MULT={classic:1,era:1.15,dynasty:1.2,cap:1.3};
 const DRAFT_MODES={
-  classic:{n:"Classic",d:"all 64 squads"},
+  classic:{n:"Classic",d:"all "+SQUADS.length+" squads"},
   era:{n:"Era Tour",d:"a new decade each spin"},
   dynasty:{n:"Dynasty",d:"one nation, all eras"},
   cap:{n:"Wage Cap",d:"budget 946 — spend wisely"}
@@ -177,9 +177,12 @@ function buildWheel(){
   const wrapW=w.parentElement.getBoundingClientRect().width||320;
   S.pool.forEach((si,i)=>{
     const e=document.createElement("div");
-    e.className="seg-flag"+(n>40&&i%2?" dim":"");
+    let radius,dim=false;
+    if(n>80){const ring=i%3;radius=[0.60,0.755,0.90][ring];dim=ring<2;}
+    else if(n>40){radius=i%2?0.665:0.86;dim=!!(i%2);}
+    else radius=0.78;
+    e.className="seg-flag"+(dim?" dim":"");
     e.textContent=SQUADS[si].f;
-    const radius=n>40?(i%2?0.665:0.86):0.78;
     e.style.transform=`rotate(${i*seg}deg) translate(-50%,-50%) translateY(${-wrapW/2*radius}px)`;
     w.appendChild(e);
   });

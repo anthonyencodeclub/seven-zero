@@ -3,6 +3,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { NEW_SQUADS, NEW_OPP } from '../src/squads-new.mjs';
 import { NEW_SQUADS_V3 } from '../src/squads-v3.mjs';
+import { NEW_SQUADS_V4 } from '../src/squads-v4.mjs';
 import { LORE } from '../src/lore.mjs';
 
 const src = readFileSync(new URL('../v1/index.html', import.meta.url), 'utf8');
@@ -14,7 +15,7 @@ const grab = name => {
 const squads = grab('SQUADS');
 const opp = grab('OPP');
 
-const all = [...squads, ...NEW_SQUADS, ...NEW_SQUADS_V3].sort((a, b) => a.y - b.y || a.t.localeCompare(b.t));
+const all = [...squads, ...NEW_SQUADS, ...NEW_SQUADS_V3, ...NEW_SQUADS_V4].sort((a, b) => a.y - b.y || a.t.localeCompare(b.t));
 const dupes = new Set();
 for (const s of all) {
   const k = s.t + '|' + s.y;
