@@ -6,7 +6,7 @@ A free, fan-made World Cup draft game. Spin the wheel, draft legends from **43 i
 
 ## Play
 
-🎮 **[Play it live](https://seven-zero.vercel.app)**
+🎮 **[Play it live](https://seven-zero-navy.vercel.app)**
 
 ## How it works
 
