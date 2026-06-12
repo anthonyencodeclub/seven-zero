@@ -278,21 +278,30 @@ function openSquad(i){
 }
 function renderSquadList(i){
   const sq=SQUADS[i];
+  const open=openCats();
+  const counts={GK:0,DEF:0,MID:0,FWD:0};
+  S.slots.forEach(x=>{if(!x.player)counts[x.cat]++;});
+  const needs=$("m-needs");
+  needs.style.display="flex";
+  needs.innerHTML='<span class="npill" style="border:0;padding-left:0;opacity:.7">Still to fill</span>'+
+    ["GK","DEF","MID","FWD"].map(c=>
+      `<span class="npill${counts[c]?"":" done"}">${c} ${counts[c]?"<b>×"+counts[c]+"</b>":"✓"}</span>`).join("");
   const list=$("m-list");list.innerHTML="";
   let anyFit=false;
   sq.p.forEach((pl,idx)=>{
     const key=i+":"+idx;
     const fits=!S.picked.has(key)&&capOK(pl[2])&&picksLeft()>0;
     if(fits)anyFit=true;
+    const natOpen=open.has(pl[1]);
     const b=document.createElement("button");
     b.className="pl";b.disabled=!fits;
     const t=hidden()?"plain":tier(pl[2]);
-    b.innerHTML=`<span class="pos">${pl[1]}</span><span class="pname">${pl[0]}</span><span class="rt t-${t}">${hidden()?"??":pl[2]}</span>`;
+    b.innerHTML=`<span class="pos ${natOpen?"open":"oop"}" title="${natOpen?"natural slot open":"only out-of-position slots left"}">${pl[1]}</span><span class="pname">${pl[0]}</span><span class="rt t-${t}">${hidden()?"??":pl[2]}</span>`;
     b.onclick=()=>renderPlacement(i,idx,key);
     list.appendChild(b);
   });
   $("m-hint").textContent=anyFit
-    ?(S.draft==="cap"?`Pick a player, then choose where they play. Budget left: ${S.budget}.`:"Pick a player, then choose where they play.")
+    ?(S.draft==="cap"?`Pick a player, then place them. Green position = natural slot open, amber = out-of-position only. Budget left: ${S.budget}.`:"Pick a player, then place them. Green position = natural slot open, amber = out-of-position only.")
     :(S.draft==="cap"?"Everyone here is already taken or beyond your budget — spin again for free.":"Everyone in this squad is already in your XI — spin again for free.");
   const r=$("btn-respin");
   if(!anyFit){r.style.display="block";r.disabled=false;r.textContent="Spin again (free)";r.dataset.free=1;}
@@ -300,6 +309,7 @@ function renderSquadList(i){
   else{r.style.display="none";}
 }
 function renderPlacement(si,pi,key){
+  $("m-needs").style.display="none";
   const pl=SQUADS[si].p[pi];
   $("m-hint").innerHTML=`Place <b>${pl[0]}</b> — natural <b>${pl[1]}</b>${hidden()?"":" · "+pl[2]}. Out of position drops the rating.`;
   const list=$("m-list");list.innerHTML="";

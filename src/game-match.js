@@ -753,3 +753,7 @@ $("stat-players").textContent=SQUADS.reduce((a,s)=>a+s.p.length,0)+"";
 wireMute();
 buildFormChips();buildDraftChips();wireDiffChips();multline();
 renderCabinet();paintDaily();paintProfile();homeBoardPreview();boardPolling();
+let rsT=null;
+addEventListener("resize",()=>{clearTimeout(rsT);rsT=setTimeout(()=>{
+  if(S&&S.slots&&$("draft").classList.contains("on")&&!S.spinning)buildWheel();
+},250);});
