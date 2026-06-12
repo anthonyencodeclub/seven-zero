@@ -199,6 +199,19 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .rt.t-plain{color:var(--chalk);background:rgba(243,236,217,.1)}
 .respin{margin-top:6px}
 
+/* placement step */
+.backlink{background:none;border:0;color:var(--gold);font-weight:800;font-size:13px;cursor:pointer;padding:6px 0 10px;letter-spacing:.04em;display:block}
+.placegrid .prow{display:flex;gap:6px;justify-content:center;margin-bottom:8px}
+.pslot{flex:1;max-width:96px;min-height:60px;border-radius:10px;border:1.5px solid var(--line);
+  background:rgba(6,35,27,.55);color:var(--chalk);cursor:pointer;padding:6px 4px;text-align:center}
+.pslot:disabled{opacity:.35;cursor:default}
+.pslot .pid{font-size:10px;letter-spacing:.14em;font-weight:800;color:var(--chalk-dim);text-transform:uppercase}
+.pslot .pe{font-size:15px;font-weight:900;margin-top:3px}
+.pslot .pc{font-size:9px;color:var(--chalk-dim);margin-top:1px;line-height:1.2}
+.pslot.nat{border-color:#27c084}.pslot.nat .pe{color:#27c084}
+.pslot.sli{border-color:var(--gold)}.pslot.sli .pe{color:var(--gold)}
+.pslot.maj{border-color:var(--loss)}.pslot.maj .pe{color:var(--loss)}
+
 /* save-score modal */
 .field{margin-bottom:12px;text-align:left}
 .field label{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--chalk-dim);font-weight:700;margin-bottom:6px}
@@ -369,8 +382,9 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="howto">
       <h2>How to play</h2>
       <li><span class="dot"></span><span><b>Spin the wheel.</b> Each spin lands on a real nation at a specific World Cup — Brazil 1970, Hungary 1954, Argentina 2022…</span></li>
-      <li><span class="dot"></span><span><b>Draft one player</b> per spin. You hold <b>2 re-spins</b> to reject a squad you don't fancy.</span></li>
-      <li><span class="dot"></span><span><b>Chemistry counts.</b> Teammates from the same World Cup squad link up and boost your team.</span></li>
+      <li><span class="dot"></span><span><b>Draft one player</b> per spin and <b>place them anywhere</b> — you pick the exact position. You hold <b>2 re-spins</b> to reject a squad you don't fancy.</span></li>
+      <li><span class="dot"></span><span><b>Out of position costs.</b> One line out of place −4 rating, two lines −9, and anything involving the goalkeeper −15. A striker in goal is your call…</span></li>
+      <li><span class="dot"></span><span><b>Chemistry counts.</b> Natural positions and same-squad teammates earn ⚡ chemistry that boosts the whole XI.</span></li>
       <li><span class="dot"></span><span><b>Name a captain</b>, then play the tournament live: tactics at half-time, extra time, penalty shootouts.</span></li>
       <li><span class="dot"></span><span><b>The perfect run</b> is seven wins inside normal time: <b>7-0</b>. Save your score and climb the world rankings.</span></li>
     </div>
@@ -398,7 +412,7 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="landed" id="landed">Spin to draw your first squad</div>
     <button class="btn" id="btn-spin">Spin the wheel</button>
     <div class="pitch" id="pitch"></div>
-    <div class="chemline"><span>Chemistry links: <b id="chem-n">0</b></span><span>Team boost: <b id="chem-b">+0.0</b></span></div>
+    <div class="chemline"><span>Chemistry: <b id="chem-n">0/33</b> ⚡</span><span>Team boost: <b id="chem-b">+0.0</b></span></div>
     <button class="btn ghost" id="btn-restart-draft" style="margin-top:14px">Abandon run</button>
   </section>
 

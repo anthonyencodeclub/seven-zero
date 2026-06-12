@@ -334,7 +334,7 @@ function awards(){
   let pott=null,best=-1;
   S.slots.forEach(s=>{
     const g=S.goals[s.player.name]||0;
-    const sc=g*3+s.player.rating*0.05+(S.captain===s.id?0.5:0);
+    const sc=g*3+effRating(s)*0.05+(S.captain===s.id?0.5:0);
     if(sc>best){best=sc;pott=s.player;}
   });
   return{boot,pott};
@@ -382,8 +382,11 @@ function showResult(){
   $("r-boot2").textContent=a.boot?a.boot[1]+(a.boot[1]===1?" goal":" goals"):"";
   $("r-pott").textContent=a.pott?a.pott.name:"—";
   $("r-pott2").textContent=a.pott?a.pott.flag+" "+a.pott.year:"";
-  $("r-xi").innerHTML=`<h4>Your XI · ${S.form} · Chem +${chemistry().boost.toFixed(1)}</h4>`+S.slots.map(s=>
-    `<div class="li"><span><b>${s.player.name}${S.captain===s.id?" ©":""}</b> · ${s.id}${(S.goals[s.player.name]||0)?" · ⚽"+S.goals[s.player.name]:""}</span><span>${s.player.flag} ${s.player.year} · ${s.player.rating}</span></div>`).join("");
+  const ch=chemistry();
+  $("r-xi").innerHTML=`<h4>Your XI · ${S.form} · Chem ⚡${ch.total}/${ch.max} (+${ch.boost.toFixed(1)})</h4>`+S.slots.map(s=>{
+    const pen=oopPenalty(s.cat,s.player.cat),eff=effRating(s);
+    return `<div class="li"><span><b>${s.player.name}${S.captain===s.id?" ©":""}</b> · ${s.id}${(S.goals[s.player.name]||0)?" · ⚽"+S.goals[s.player.name]:""}</span><span>${s.player.flag} ${s.player.year} · ${pen?s.player.rating+"→"+eff:s.player.rating}</span></div>`;
+  }).join("");
   // persist career
   const st=store.get();
   st.runs++;st.goals+=r.gf;

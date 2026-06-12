@@ -11,6 +11,8 @@ A free, fan-made World Cup draft game with a **live world leaderboard**. Spin th
 ## What's in the game
 
 - 🎡 **The wheel** — 64 real squads from Uruguay 1950 to Argentina 2022, physics-style spin with pointer ticks, sounds and a landing flash. 2 re-spins per run.
+- 🎯 **Place anyone anywhere** — you choose the exact slot for every pick. Out of position costs rating: −4 one line out, −9 two lines, −15 for anything involving the goalkeeper (yes, you can play Pelé in goal at 83).
+- ⚡ **Chemistry** — each player earns 0–3⚡ for playing their natural position and lining up with same-squad teammates; total chemistry boosts the whole XI.
 - ⚽ **Live match engine** — minute-by-minute simulation with commentary, half-time and extra-time **tactic calls** (push forward / keep shape / park the bus), group tables, shootouts.
 - 🧩 **Draft modes** — Classic, **Era Tour** (a new decade each spin), **Dynasty** (one nation, all eras — Brazil has 8 squads), **Wage Cap** (946 budget, spend wisely).
 - 💀 **Difficulties** — Classic, Hard (ratings hidden), Legend (brutal draw + hidden ratings). Modes multiply your score.

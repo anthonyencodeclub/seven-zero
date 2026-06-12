@@ -218,13 +218,12 @@ function spinTo(poolPos,done){
 }
 function spin(){
   if(S.spinning)return;
-  const open=openCats();
-  // era tour: hop decades until one can serve an open position
+  // era tour: hop decades until one still has a draftable player
   if(S.draft==="era"){
     let guard=0;
     while(guard++<ERAS.length){
       const pool=wheelPool();
-      const fits=pool.some(si=>SQUADS[si].p.some((pl,pi)=>open.has(pl[1])&&!S.picked.has(si+":"+pi)&&capOK(pl[2])));
+      const fits=pool.some(si=>SQUADS[si].p.some((pl,pi)=>!S.picked.has(si+":"+pi)&&capOK(pl[2])));
       if(fits)break;
       S.era++;
     }
@@ -268,33 +267,72 @@ function paintDraftMeta(){
   $("dm-respins").textContent=S.respins;
 }
 function openSquad(i){
-  const sq=SQUADS[i],open=openCats();
+  const sq=SQUADS[i];
   $("m-title").innerHTML=`${sq.f} ${sq.t} <span class="yr">${sq.y}</span>`;
+  renderSquadList(i);
+  $("modal-bg").classList.add("on");
+}
+function renderSquadList(i){
+  const sq=SQUADS[i];
   const list=$("m-list");list.innerHTML="";
   let anyFit=false;
   sq.p.forEach((pl,idx)=>{
     const key=i+":"+idx;
-    const fits=open.has(pl[1])&&!S.picked.has(key)&&capOK(pl[2]);
+    const fits=!S.picked.has(key)&&capOK(pl[2])&&picksLeft()>0;
     if(fits)anyFit=true;
     const b=document.createElement("button");
     b.className="pl";b.disabled=!fits;
     const t=hidden()?"plain":tier(pl[2]);
     b.innerHTML=`<span class="pos">${pl[1]}</span><span class="pname">${pl[0]}</span><span class="rt t-${t}">${hidden()?"??":pl[2]}</span>`;
-    b.onclick=()=>draft(i,idx,key);
+    b.onclick=()=>renderPlacement(i,idx,key);
     list.appendChild(b);
   });
   $("m-hint").textContent=anyFit
-    ?(S.draft==="cap"?`Pick one player. Budget left: ${S.budget} (cheapest slot reserve ${CAP_FLOOR}).`:"Pick one player for an open position.")
-    :(S.draft==="cap"?"Nobody here fits your budget and remaining positions — spin again for free.":"Nobody in this squad fits your remaining positions — spin again for free.");
+    ?(S.draft==="cap"?`Pick a player, then choose where they play. Budget left: ${S.budget}.`:"Pick a player, then choose where they play.")
+    :(S.draft==="cap"?"Everyone here is already taken or beyond your budget — spin again for free.":"Everyone in this squad is already in your XI — spin again for free.");
   const r=$("btn-respin");
   if(!anyFit){r.style.display="block";r.disabled=false;r.textContent="Spin again (free)";r.dataset.free=1;}
   else if(S.respins>0){r.style.display="block";r.disabled=false;r.textContent=`Use a re-spin (${S.respins} left)`;delete r.dataset.free;}
   else{r.style.display="none";}
-  $("modal-bg").classList.add("on");
 }
-function draft(si,pi,key){
+function renderPlacement(si,pi,key){
   const pl=SQUADS[si].p[pi];
-  const slot=S.slots.find(s=>!s.player&&s.cat===pl[1]);
+  $("m-hint").innerHTML=`Place <b>${pl[0]}</b> — natural <b>${pl[1]}</b>${hidden()?"":" · "+pl[2]}. Out of position drops the rating.`;
+  const list=$("m-list");list.innerHTML="";
+  const back=document.createElement("button");
+  back.className="backlink";back.textContent="← Back to squad";
+  back.onclick=()=>renderSquadList(si);
+  list.appendChild(back);
+  const mates=S.slots.filter(x=>x.player&&x.player.sq===si).length;
+  const grid=document.createElement("div");grid.className="placegrid";
+  FORMATIONS[S.form].rows.forEach(r=>{
+    const row=document.createElement("div");row.className="prow";
+    r.forEach(id=>{
+      const s=S.slots.find(x=>x.id===id);
+      const b=document.createElement("button");b.className="pslot";
+      if(s.player){
+        b.disabled=true;
+        b.innerHTML=`<div class="pid">${id}</div><div class="pe" style="font-size:11px">${s.player.name.split(" ").pop()}</div>`;
+      }else{
+        const pen=oopPenalty(s.cat,pl[1]);
+        const eff=Math.max(40,pl[2]-pen);
+        b.classList.add(pen===0?"nat":pen<=4?"sli":"maj");
+        const chemBits=(pen===0?1:0)+Math.min(2,mates);
+        b.innerHTML=`<div class="pid">${id}</div>
+          <div class="pe">${hidden()?(pen===0?"OK":pen<=4?"–":"– –"):eff}</div>
+          <div class="pc">${pen?(hidden()?"out of position":"−"+pen+" OOP"):"natural"}${chemBits?" · ⚡"+chemBits:""}</div>`;
+        b.onclick=()=>draft(si,pi,key,id);
+      }
+      row.appendChild(b);
+    });
+    grid.appendChild(row);
+  });
+  list.appendChild(grid);
+  $("btn-respin").style.display="none";
+}
+function draft(si,pi,key,slotId){
+  const pl=SQUADS[si].p[pi];
+  const slot=slotId?S.slots.find(s=>s.id===slotId&&!s.player):S.slots.find(s=>!s.player&&s.cat===pl[1]);
   if(!slot)return;
   slot.player={name:pl[0],rating:pl[2],team:SQUADS[si].t,year:SQUADS[si].y,flag:SQUADS[si].f,cat:pl[1],sq:si};
   S.picked.add(key);
@@ -315,12 +353,25 @@ function draft(si,pi,key){
     $("btn-spin").disabled=false;
   }
 }
+/* positional fit: 0 natural · −4 one line out · −9 two lines · −15 anything with GK */
+const LINE={GK:0,DEF:1,MID:2,FWD:3};
+function oopPenalty(slotCat,playerPos){
+  if(slotCat===playerPos)return 0;
+  if(slotCat==="GK"||playerPos==="GK")return 15;
+  return Math.abs(LINE[slotCat]-LINE[playerPos])===1?4:9;
+}
+function effRating(s){return s.player?Math.max(40,s.player.rating-oopPenalty(s.cat,s.player.cat)):0;}
+/* per-player chemistry 0–3⚡: natural position +1, same-squad teammates +1 each (max +2) */
+function playerChem(s){
+  if(!s.player)return 0;
+  let c=s.cat===s.player.cat?1:0;
+  const mates=S.slots.filter(x=>x.player&&x!==s&&x.player.sq===s.player.sq).length;
+  return c+Math.min(2,mates);
+}
 function chemistry(){
-  const counts={};
-  S.slots.forEach(s=>{if(s.player)counts[s.player.sq]=(counts[s.player.sq]||0)+1;});
-  let links=0;
-  Object.values(counts).forEach(n=>{links+=n*(n-1)/2;});
-  return{links,boost:Math.min(2.5,links*0.4)};
+  const total=S.slots.reduce((a,s)=>a+playerChem(s),0);
+  const max=S.slots.length*3;
+  return{total,max,boost:Math.min(3,total*0.09)};
 }
 function renderPitch(justId){
   const F=FORMATIONS[S.form];
@@ -330,17 +381,18 @@ function renderPitch(justId){
     r.forEach(id=>{
       const s=S.slots.find(x=>x.id===id);
       const d=document.createElement("div");
-      const t=s.player?(hidden()?"plain":tier(s.player.rating)):"";
+      const eff=effRating(s),pen=s.player?oopPenalty(s.cat,s.player.cat):0;
+      const t=s.player?(hidden()?"plain":tier(eff)):"";
       d.className="slot"+(s.player?" filled t-"+t:"")+(justId===id?" justin":"");
       d.innerHTML=s.player
-        ?`${S.captain===s.id?'<div class="cap">C</div>':""}<div class="ptag">${s.id}</div><div class="nm">${s.player.name}</div><div class="meta">${s.player.flag} ${s.player.year}${hidden()?"":" · "+s.player.rating}</div>`
+        ?`${S.captain===s.id?'<div class="cap">C</div>':""}<div class="ptag">${s.id}</div><div class="nm">${s.player.name}</div><div class="meta">${s.player.flag} ${s.player.year}${hidden()?"":" · "+eff}${pen?"▾":""} · ⚡${playerChem(s)}</div>`
         :`<div class="ptag">${s.id}</div><div class="nm" style="color:var(--chalk-dim)">—</div>`;
       row.appendChild(d);
     });
     p.appendChild(row);
   });
   const c=chemistry();
-  $("chem-n").textContent=c.links;
+  $("chem-n").textContent=c.total+"/"+c.max;
   $("chem-b").textContent="+"+c.boost.toFixed(1);
 }
 function openCaptain(){
@@ -348,8 +400,9 @@ function openCaptain(){
   S.slots.forEach(s=>{
     const b=document.createElement("button");
     b.className="pl";
-    const t=hidden()?"plain":tier(s.player.rating);
-    b.innerHTML=`<span class="pos">${s.id}</span><span class="pname">${s.player.name}</span><span class="rt t-${t}">${hidden()?"??":s.player.rating}</span>`;
+    const eff=effRating(s);
+    const t=hidden()?"plain":tier(eff);
+    b.innerHTML=`<span class="pos">${s.id}</span><span class="pname">${s.player.name} <span style="color:var(--chalk-dim)">⚡${playerChem(s)}</span></span><span class="rt t-${t}">${hidden()?"??":eff}</span>`;
     b.onclick=()=>{S.captain=s.id;$("cap-bg").classList.remove("on");SFX.fanfare();renderPitch();startCup();};
     list.appendChild(b);
   });
@@ -361,7 +414,7 @@ function openCaptain(){
 ========================================================= */
 function avg(a){return a.reduce((x,y)=>x+y,0)/a.length;}
 function strengths(){
-  const by=c=>S.slots.filter(s=>s.cat===c).map(s=>s.player.rating);
+  const by=c=>S.slots.filter(s=>s.cat===c).map(s=>effRating(s));
   const F=FORMATIONS[S.form];
   const bonus=chemistry().boost+(S.captain?1.0:0);
   const att=avg(by("FWD"))*0.6+avg(by("MID"))*0.4+F.mod.att+bonus;
@@ -371,7 +424,8 @@ function strengths(){
 function scorerName(){
   const pool=[];
   S.slots.forEach(s=>{
-    let w=s.cat==="FWD"?s.player.rating*1.7:s.cat==="MID"?s.player.rating*0.9:s.cat==="DEF"?s.player.rating*0.22:0;
+    const e=effRating(s);
+    let w=s.cat==="FWD"?e*1.7:s.cat==="MID"?e*0.9:s.cat==="DEF"?e*0.22:0;
     if(S.captain===s.id)w*=1.35;
     if(w>0)pool.push([s.player.name,w]);
   });
