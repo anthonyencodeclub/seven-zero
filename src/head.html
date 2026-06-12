@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>7-0 | Build the Ultimate World Cup XI</title>
-<meta name="description" content="7-0 is a free World Cup draft game. Spin the wheel, draft legends from 64 iconic World Cup squads from 1950 to 2022, pick your formation and captain, then live out the whole tournament — and climb the live world leaderboard. Can you win all seven?">
+<meta name="description" content="7-0 is a free World Cup draft game. Spin the wheel, draft legends from 86 iconic World Cup squads from 1950 to 2022, pick your formation and captain, then live out the whole tournament — and climb the live world leaderboard. Can you win all seven?">
 <meta name="theme-color" content="#06231b">
 <meta property="og:title" content="7-0 — Build the Ultimate World Cup XI">
-<meta property="og:description" content="Spin the wheel. Draft from 64 legendary World Cup squads (1950–2022). Win all seven and climb the world leaderboard.">
+<meta property="og:description" content="Spin the wheel. Draft from 86 legendary World Cup squads (1950–2022), with the story behind every side. Win all seven and climb the world leaderboard.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://seven-zero-navy.vercel.app">
 <meta name="twitter:card" content="summary">
@@ -182,6 +182,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 @keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
 .modal h3{font-size:20px;font-weight:900}
 .modal .yr{color:var(--gold)}
+.modal .lore{font-size:12.5px;color:var(--gold);opacity:.9;font-style:italic;line-height:1.55;
+  margin:8px 0 6px;border-left:2px solid var(--gold-deep);padding-left:10px}
 .modal .hint{font-size:13px;color:var(--chalk-dim);margin:4px 0 14px}
 .pl{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
   background:rgba(243,236,217,.04);border:1px solid var(--line);border-radius:10px;
@@ -334,7 +336,7 @@ footer a{color:rgba(243,236,217,.5)}
   <section class="screen on" id="home">
     <div class="eyebrow">Unofficial Fan Draft Game</div>
     <div class="mark display">7<em>-</em>0</div>
-    <p class="sub">Build the ultimate <b>World Cup XI</b> from seven decades of legends. Pick your shape, name your captain, live out the whole tournament — then take on the <b>world leaderboard</b>.</p>
+    <p class="sub">Build the ultimate <b>World Cup XI</b> from eight decades of legends. Pick your shape, name your captain, live out the whole tournament — then take on the <b>world leaderboard</b>.</p>
     <div class="stats">
       <div class="stat"><div class="n mono" id="stat-squads"></div><div class="l">Squads</div></div>
       <div class="stat"><div class="n mono" id="stat-players"></div><div class="l">Legends</div></div>
@@ -420,6 +422,7 @@ footer a{color:rgba(243,236,217,.5)}
   <div class="modal-bg" id="modal-bg">
     <div class="modal" role="dialog" aria-modal="true">
       <h3 id="m-title"></h3>
+      <p class="lore" id="m-lore"></p>
       <p class="hint" id="m-hint"></p>
       <div id="m-list"></div>
       <button class="btn ghost respin" id="btn-respin">Use a re-spin</button>

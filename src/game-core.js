@@ -269,6 +269,7 @@ function paintDraftMeta(){
 function openSquad(i){
   const sq=SQUADS[i];
   $("m-title").innerHTML=`${sq.f} ${sq.t} <span class="yr">${sq.y}</span>`;
+  $("m-lore").textContent=sq.l||"";
   renderSquadList(i);
   $("modal-bg").classList.add("on");
 }
