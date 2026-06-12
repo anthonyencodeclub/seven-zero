@@ -4,6 +4,7 @@ import { put, list } from '@vercel/blob';
 /* ---- scoring (mirrored in the client — keep in sync) ---- */
 export const DIFF_MULT = { classic: 1, hard: 1.3, legend: 1.7 };
 export const DRAFT_MULT = { classic: 1, era: 1.15, dynasty: 1.2, cap: 1.3 };
+export const POOL_MULT = { all: 1, p90: 0.9, p06: 0.8 };
 
 export function validateRun(matches) {
   if (!Array.isArray(matches) || matches.length < 3 || matches.length > 7) return 'matches';
@@ -48,7 +49,7 @@ export function scoreRun(matches, flags) {
   const perfect = champion && reg === 7 && matches.every(x => x.gf > x.ga && !x.et);
   if (perfect) pts += 300;
   pts = Math.max(0, pts);
-  const mult = (DIFF_MULT[flags.diff] || 1) * (DRAFT_MULT[flags.draft] || 1) * (flags.daily ? 1.1 : 1);
+  const mult = (DIFF_MULT[flags.diff] || 1) * (DRAFT_MULT[flags.draft] || 1) * (POOL_MULT[flags.pool] ?? 1) * (flags.daily ? 1.1 : 1);
   return { pts: Math.round(pts * mult), champion, perfect };
 }
 

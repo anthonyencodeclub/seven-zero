@@ -15,7 +15,9 @@ A free, fan-made World Cup draft game with a **live world leaderboard**. Spin th
 - ⚡ **Chemistry is shared history** — players link if they actually played together at the same World Cup (strongest), wore the same national shirt in another era, or come from the same decade or continent. Natural position adds ⚡ too; total chemistry boosts the whole XI.
 - ⚽ **Live match engine** — minute-by-minute simulation with commentary (including the occasional very famous line — "they think it's all over…"), half-time and extra-time **tactic calls**, group tables, shootouts.
 - 📜 **Lore** — every squad lands with a line of its history: the Maracanazo, the Disgrace of Gijón, Córdoba '78, the Battle of Santiago, Italia '90…
-- 🧩 **Draft modes** — Classic, **Era Tour** (a new decade each spin), **Dynasty** (one nation, all eras — 25 nations qualify, every major nation has at least 4 squads, Brazil has 9), **Wage Cap** (946 budget, spend wisely).
+- 🧩 **Draft modes** — Classic, **Era Tour** (a new decade each spin), **Dynasty** (one nation, all eras — 25 nations qualify), **Wage Cap** (946 budget). Plus a **player-pool filter**: All-time ×1.0, Post-1990 ×0.9, Post-2006 ×0.8.
+- 👕 **Every player has a shirt** — nation-coloured jersey icons with squad numbers, and **specific positions** (RB/LB/CB/DM/CM/AM/RM/LM/RW/LW/ST): wrong role on the right line costs −2/−3, with the full out-of-position ladder beyond.
+- 🫡 **Hidden leadership** — every player carries a hidden leadership stat; great captains (Moore, Beckenbauer, Varela…) lift the side harder, rally late comebacks and steady penalty shootouts.
 - 💀 **Difficulties** — Classic, Hard (ratings hidden), Legend (brutal draw + hidden ratings). Modes multiply your score.
 - 🗓 **One run per day** — Wordle-style scarcity: spend it on the seeded **Daily Challenge** (same wheel for everyone on Earth, own leaderboard, streaks) or a custom mode. The day burns when the run kicks off; the lock counts down to midnight UTC.
 - 🌍 **Live world leaderboard** — every finished run **saves automatically** under your manager profile (name + country collected up front, email optional and encrypted). All-time and daily tabs, top 100 kept, tap any row to see that player's XI.
@@ -34,7 +36,7 @@ A free, fan-made World Cup draft game with a **live world leaderboard**. Spin th
 | Champion | +200 |
 | Perfect 7-0 | +300 |
 
-Multipliers: Hard ×1.3 · Legend ×1.7 · Era Tour ×1.15 · Dynasty ×1.2 · Wage Cap ×1.3 · Daily ×1.1. The server recomputes every submitted run — client-claimed points are ignored.
+Multipliers: Hard ×1.3 · Legend ×1.7 · Era Tour ×1.15 · Dynasty ×1.2 · Wage Cap ×1.3 · Post-1990 ×0.9 · Post-2006 ×0.8 · Daily ×1.1. The server recomputes every submitted run — client-claimed points are ignored.
 
 ## Architecture
 

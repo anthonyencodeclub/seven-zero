@@ -27,6 +27,8 @@ const FORMATIONS={
 ========================================================= */
 const DIFF_MULT={classic:1,hard:1.3,legend:1.7};
 const DRAFT_MULT={classic:1,era:1.15,dynasty:1.2,cap:1.3};
+const POOL_MULT={all:1,p90:0.9,p06:0.8};
+const POOLS={all:{n:"All-time",y:0},p90:{n:"Post-1990",y:1990},p06:{n:"Post-2006",y:2006}};
 const DRAFT_MODES={
   classic:{n:"Classic",d:"all "+SQUADS.length+" squads"},
   era:{n:"Era Tour",d:"a new decade each spin"},
@@ -54,7 +56,7 @@ function scoreRun(matches,flags){
   const perfect=champion&&reg===7&&matches.every(x=>x.gf>x.ga&&!x.et);
   if(perfect)pts+=300;
   pts=Math.max(0,pts);
-  const mult=(DIFF_MULT[flags.diff]||1)*(DRAFT_MULT[flags.draft]||1)*(flags.daily?1.1:1);
+  const mult=(DIFF_MULT[flags.diff]||1)*(DRAFT_MULT[flags.draft]||1)*(POOL_MULT[flags.pool]??1)*(flags.daily?1.1:1);
   return{pts:Math.round(pts*mult),champion,perfect,base:pts,mult};
 }
 
@@ -62,16 +64,17 @@ function scoreRun(matches,flags){
    STATE + STORAGE
 ========================================================= */
 let S={};
-let pref={form:"4-3-3",draft:"classic",diff:"classic",dyn:null};
+let pref={form:"4-3-3",draft:"classic",diff:"classic",dyn:null,pool:"all"};
 const utcDay=()=>new Date().toISOString().slice(0,10);
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
 
 function resetState(daily){
   const draft=daily?"classic":pref.draft, form=daily?"4-3-3":pref.form, diff=daily?"classic":pref.diff;
+  const poolMode=daily?"all":(draft==="dynasty"?"all":pref.pool);
   const F=FORMATIONS[form];
   const slots=[];F.rows.forEach(r=>r.forEach(id=>slots.push({id,cat:F.cats[id],player:null})));
-  S={form,draft,diff,daily:!!daily,dyn:draft==="dynasty"?pref.dyn:null,
+  S={form,draft,diff,poolMode,daily:!!daily,dyn:draft==="dynasty"?pref.dyn:null,
      slots,lastSquad:-1,spinning:false,wheelRot:0,picked:new Set(),
      respins:1,captain:null,goals:{},era:0,budget:CAP_BUDGET,token:null,submitted:false,
      rng:daily?mulberry32(hashStr("7-0:"+utcDay())):Math.random,
@@ -150,31 +153,103 @@ function wireMute(){
 }
 
 /* =========================================================
-   WHEEL v2 — RAF spin, pointer kicks, two flag rings, landing flash
+   JERSEYS — national shirt + squad number per player
 ========================================================= */
+const KIT={
+ Brazil:["#ffdc26","#1aa053","#1a6b46"],Argentina:["#9fd4f0","#ffffff","#1d3c6e"],
+ Germany:["#f5f5f0","#1a1a1a","#1a1a1a"],"West Germany":["#f5f5f0","#1a1a1a","#1a1a1a"],
+ Italy:["#1c52a4","#ffffff","#ffffff"],France:["#1e3f8f","#ffffff","#ffffff"],
+ England:["#f5f5f0","#1d2f5e","#1d2f5e"],Netherlands:["#f08020","#ffffff","#ffffff"],
+ Spain:["#c8261e","#f2c14e","#f2c14e"],Portugal:["#a31322","#1c6b50","#f2c14e"],
+ Uruguay:["#7ab4dd","#ffffff","#1d3c6e"],Hungary:["#c8261e","#ffffff","#ffffff"],
+ Poland:["#f5f5f0","#cc2233","#cc2233"],Sweden:["#f2c829","#1c5aa0","#1c5aa0"],
+ Denmark:["#c8261e","#ffffff","#ffffff"],Austria:["#f5f5f0","#cc2233","#cc2233"],
+ Scotland:["#1d2a5e","#ffffff","#ffffff"],"Northern Ireland":["#1a8a4a","#ffffff","#ffffff"],
+ Ireland:["#1a8a4a","#f5a623","#ffffff"],"Soviet Union":["#c8261e","#ffffff","#ffffff"],
+ Croatia:["#e63946","#ffffff","#1d3c6e"],Belgium:["#c8261e","#1a1a1a","#f2c14e"],
+ Mexico:["#1a7a44","#ffffff","#ffffff"],"United States":["#f5f5f0","#1d2f5e","#1d2f5e"],
+ Colombia:["#f2c829","#1c5aa0","#1c5aa0"],Chile:["#c8261e","#1d2f5e","#ffffff"],
+ Peru:["#f5f5f0","#cc2233","#cc2233"],Cameroon:["#1a7a44","#cc2233","#f2c829"],
+ Nigeria:["#1a9a55","#ffffff","#ffffff"],Senegal:["#f5f5f0","#1a8a4a","#1a8a4a"],
+ Morocco:["#c8261e","#1a7a44","#1a7a44"],Ghana:["#f5f5f0","#1a1a1a","#cc2233"],
+ Algeria:["#f5f5f0","#1a8a4a","#1a8a4a"],Japan:["#1c3f8f","#ffffff","#ffffff"],
+ "South Korea":["#c8261e","#1d2f5e","#ffffff"],"Saudi Arabia":["#f5f5f0","#1a8a4a","#1a8a4a"],
+ Australia:["#f2c829","#1a7a44","#1a7a44"],"Costa Rica":["#c8261e","#1c5aa0","#ffffff"],
+ "Türkiye":["#c8261e","#ffffff","#ffffff"],Bulgaria:["#f5f5f0","#1a8a4a","#1a8a4a"],
+ Romania:["#f2c829","#1c5aa0","#1c5aa0"],_d:["#0f4030","#f3ecd9","#f3ecd9"]};
+function jersey(team,num,size){
+  const k=KIT[team]||KIT._d;
+  return `<svg class="jsy" style="width:${size||24}px;height:${size||24}px" viewBox="0 0 40 40" aria-hidden="true">
+    <path d="M8 7 L15 3.5 Q20 8 25 3.5 L32 7 L38 14 L31.5 18.5 L31.5 36.5 L8.5 36.5 L8.5 18.5 L2 14 Z" fill="${k[0]}" stroke="rgba(0,0,0,.35)" stroke-width="1.2"/>
+    <path d="M2 14 L8 7 L8.5 18.5 Z" fill="${k[1]}"/><path d="M38 14 L32 7 L31.5 18.5 Z" fill="${k[1]}"/>
+    <path d="M15 3.5 Q20 8 25 3.5 L23.5 6.5 Q20 9.5 16.5 6.5 Z" fill="${k[1]}"/>
+    <text x="20" y="28" text-anchor="middle" font-size="15" font-weight="900" fill="${k[2]}">${num}</text>
+  </svg>`;
+}
+
+/* =========================================================
+   LEADERSHIP — hidden captain stat (4–10)
+========================================================= */
+const LEAD={
+ "Bobby Moore":10,"Franz Beckenbauer":10,"Obdulio Varela":10,
+ "Daniel Passarella":9,"Diego Maradona":9,"Lothar Matthäus":9,"Fabio Cannavaro":9,"Franco Baresi":9,
+ "Dino Zoff":9,"Lev Yashin":9,"Fritz Walter":9,"Didier Deschamps":9,"Dunga":9,"Cafu":9,
+ "Carles Puyol":9,"Steven Gerrard":9,"Philipp Lahm":9,"Vincent Kompany":9,"Diego Godín":9,
+ "Luka Modrić":9,"Hong Myung-bo":9,"Graeme Souness":9,"Billy Bremner":9,"Peter Schmeichel":9,
+ "Gianluigi Buffon":9,"Stephen Appiah":9,"Roger Milla":9,
+ "Paolo Maldini":8,"Sergio Ramos":8,"Iker Casillas":8,"Xavi":8,"Fernando Hierro":8,"John Terry":8,
+ "Bryan Robson":8,"Jay-Jay Okocha":8,"Javier Mascherano":8,"Thiago Silva":8,"Diego Forlán":8,
+ "Carlos Valderrama":8,"Gheorghe Hagi":8,"Kalidou Koulibaly":8,"Manuel Neuer":8,
+ "Bastian Schweinsteiger":8,"Ferenc Puskás":8,"Bobby Charlton":8,"Zinedine Zidane":8,
+ "Lionel Messi":8,"Cristiano Ronaldo":8,"Rinat Dasayev":8,"Mick McCarthy":8,"Paul McGrath":8,
+ "Harry Kane":7,"Hristo Stoichkov":7,"Luis Suárez":7,"Wayne Rooney":7,"Neymar":7,"Eden Hazard":7
+};
+function leadership(p){return LEAD[p.name]!=null?LEAD[p.name]:4+hashStr(p.name)%5;}
+function capLead(){const s=S.slots.find(x=>x.id===S.captain);return s&&s.player?leadership(s.player):0;}
+function leadWord(l){return l>=9?"a colossal leader":l>=7?"a strong voice":"a quiet captain";}
+
+/* =========================================================
+   WHEEL v3 — RAF spin, pointer kicks, decade-tinted segments,
+   gold tick ring, up to three flag rings, landing flash + flag pop
+========================================================= */
+function poolBase(){
+  const minY=(POOLS[S.poolMode]||POOLS.all).y;
+  return SQUADS.map((_,i)=>i).filter(i=>SQUADS[i].y>=minY);
+}
 function wheelPool(){
   if(S.draft==="dynasty"&&S.dyn){
     const idxs=(DYNASTIES.find(([k])=>k===S.dyn)||[null,[]])[1];
     return idxs.slice();
   }
+  const base=poolBase();
   if(S.draft==="era"){
     const[e0,e1]=ERAS[S.era%ERAS.length];
-    return SQUADS.map((s,i)=>s.y>=e0&&s.y<=e1?i:-1).filter(i=>i>=0);
+    return base.filter(i=>SQUADS[i].y>=e0&&SQUADS[i].y<=e1);
   }
-  return SQUADS.map((_,i)=>i);
+  return base;
 }
+/* one tint pair per decade — old gold-greens drifting to cool modern greens */
+const DEC_TINT={
+  195:["#123a26","#16432d"],196:["#10402b","#144a33"],197:["#0d432e","#114e37"],
+  198:["#0c4534","#10503c"],199:["#0b463b",
+"#0f5143"],200:["#0a4541","#0e504b"],
+  201:["#094252","#0d4d5e"],202:["#0a3d5c","#0e4869"]};
 function buildWheel(){
   S.pool=wheelPool();
   const w=$("wheel");
   const n=S.pool.length, seg=360/n;
   let stops=[];
   for(let i=0;i<n;i++){
-    const c=i%2?"var(--pitch-2)":"var(--pitch)";
-    stops.push(`${c} ${i*seg}deg ${(i+1)*seg}deg`);
+    const dec=Math.floor(SQUADS[S.pool[i]].y/10);
+    const pair=DEC_TINT[dec]||["var(--pitch)","var(--pitch-2)"];
+    stops.push(`${pair[i%2]} ${i*seg}deg ${(i+1)*seg}deg`);
   }
   w.style.background=`conic-gradient(from ${-seg/2}deg, ${stops.join(",")})`;
+  const ticks=$("wheelticks");
+  if(ticks)ticks.style.background=`repeating-conic-gradient(rgba(227,179,76,.4) 0deg ${Math.min(.5,seg*.12)}deg, transparent ${Math.min(.5,seg*.12)}deg ${seg}deg)`;
   w.innerHTML="";
   const wrapW=w.parentElement.getBoundingClientRect().width||320;
+  S.flagEls=[];
   S.pool.forEach((si,i)=>{
     const e=document.createElement("div");
     let radius,dim=false;
@@ -182,9 +257,10 @@ function buildWheel(){
     else if(n>40){radius=i%2?0.665:0.86;dim=!!(i%2);}
     else radius=0.78;
     e.className="seg-flag"+(dim?" dim":"");
-    e.textContent=SQUADS[si].f;
+    e.innerHTML=`<span>${SQUADS[si].f}</span>`;
     e.style.transform=`rotate(${i*seg}deg) translate(-50%,-50%) translateY(${-wrapW/2*radius}px)`;
     w.appendChild(e);
+    S.flagEls.push(e);
   });
   w.style.transform=`rotate(${S.wheelRot}deg)`;
 }
@@ -243,6 +319,7 @@ function spin(){
     const sq=SQUADS[si];
     SFX.land();
     $("wheelflash").classList.remove("on");void $("wheelflash").offsetWidth;$("wheelflash").classList.add("on");
+    if(S.flagEls){S.flagEls.forEach(f=>f.classList.remove("pop"));if(S.flagEls[pos])S.flagEls[pos].classList.add("pop");}
     $("landed").innerHTML=`${sq.f} <span>${sq.t} ${sq.y}</span>`;
     openSquad(si);
   });
@@ -292,11 +369,12 @@ function renderSquadList(i){
     const key=i+":"+idx;
     const fits=!S.picked.has(key)&&capOK(pl[2])&&picksLeft()>0;
     if(fits)anyFit=true;
-    const natOpen=open.has(pl[1]);
+    const sp=pl[3]||pl[1];
+    const natOpen=S.slots.some(x=>!x.player&&(ROLE_OF_SLOT[x.id]||x.cat)===sp);
     const b=document.createElement("button");
     b.className="pl";b.disabled=!fits;
     const t=hidden()?"plain":tier(pl[2]);
-    b.innerHTML=`<span class="pos ${natOpen?"open":"oop"}" title="${natOpen?"natural slot open":"only out-of-position slots left"}">${pl[1]}</span><span class="pname">${pl[0]}</span><span class="rt t-${t}">${hidden()?"??":pl[2]}</span>`;
+    b.innerHTML=`${jersey(sq.t,idx+1,26)}<span class="pos ${natOpen?"open":"oop"}" title="${natOpen?"natural slot open":"only out-of-position slots left"}">${sp}</span><span class="pname">${pl[0]}</span><span class="rt t-${t}">${hidden()?"??":pl[2]}</span>`;
     b.onclick=()=>renderPlacement(i,idx,key);
     list.appendChild(b);
   });
@@ -329,7 +407,7 @@ function renderPlacement(si,pi,key){
         b.disabled=true;
         b.innerHTML=`<div class="pid">${id}</div><div class="pe" style="font-size:11px">${s.player.name.split(" ").pop()}</div>`;
       }else{
-        const pen=oopPenalty(s.cat,pl[1]);
+        const pen=oopPenalty(s,{cat:pl[1],sp:pl[3]||pl[1]});
         const eff=Math.max(40,pl[2]-pen);
         b.classList.add(pen===0?"nat":pen<=4?"sli":"maj");
         const chemBits=(pen===0?1:0)+(candLinks>=2?1:0)+(candLinks>=4.5?1:0);
@@ -349,7 +427,7 @@ function draft(si,pi,key,slotId){
   const pl=SQUADS[si].p[pi];
   const slot=slotId?S.slots.find(s=>s.id===slotId&&!s.player):S.slots.find(s=>!s.player&&s.cat===pl[1]);
   if(!slot)return;
-  slot.player={name:pl[0],rating:pl[2],team:SQUADS[si].t,year:SQUADS[si].y,flag:SQUADS[si].f,cat:pl[1],sq:si};
+  slot.player={name:pl[0],rating:pl[2],team:SQUADS[si].t,year:SQUADS[si].y,flag:SQUADS[si].f,cat:pl[1],sp:pl[3]||pl[1],num:pi+1,sq:si};
   S.picked.add(key);
   if(S.draft==="cap")S.budget-=pl[2];
   if(S.draft==="era")S.era++;
@@ -368,14 +446,24 @@ function draft(si,pi,key,slotId){
     $("btn-spin").disabled=false;
   }
 }
-/* positional fit: 0 natural · −4 one line out · −9 two lines · −15 anything with GK */
+/* positional fit, role-specific:
+   exact role 0 · same line wrong role −2/−3 · adjacent line −4 · two lines −9 · GK −15 */
 const LINE={GK:0,DEF:1,MID:2,FWD:3};
-function oopPenalty(slotCat,playerPos){
-  if(slotCat===playerPos)return 0;
-  if(slotCat==="GK"||playerPos==="GK")return 15;
-  return Math.abs(LINE[slotCat]-LINE[playerPos])===1?4:9;
+const ROLE_OF_SLOT={GK:"GK",LB:"LB",RB:"RB",LCB:"CB",RCB:"CB",CB:"CB",LWB:"LB",RWB:"RB",
+  LDM:"DM",RDM:"DM",CDM:"DM",LCM:"CM",CM:"CM",RCM:"CM",LM:"LM",RM:"RM",
+  LAM:"AM",CAM:"AM",RAM:"AM",LW:"LW",RW:"RW",ST:"ST",ST1:"ST",ST2:"ST"};
+const SIDED={LB:1,RB:1,LM:1,RM:1,LW:1,RW:1};
+function oopPenalty(slot,pl){ // slot {id,cat} · pl {cat,sp}
+  const role=ROLE_OF_SLOT[slot.id]||slot.cat;
+  const sp=pl.sp||pl.cat;
+  if(role===sp)return 0;
+  if(slot.cat===pl.cat){ // right line, wrong role
+    return (SIDED[role]&&SIDED[sp])||(!SIDED[role]&&!SIDED[sp])?2:3;
+  }
+  if(slot.cat==="GK"||pl.cat==="GK")return 15;
+  return Math.abs(LINE[slot.cat]-LINE[pl.cat])===1?4:9;
 }
-function effRating(s){return s.player?Math.max(40,s.player.rating-oopPenalty(s.cat,s.player.cat)):0;}
+function effRating(s){return s.player?Math.max(40,s.player.rating-oopPenalty(s,s.player)):0;}
 
 /* chemistry v3 — links are shared history:
    played together at the same World Cup 1.0 · same national shirt 0.75
@@ -400,7 +488,7 @@ function slotLinks(s){
 function playerChem(s){
   if(!s.player)return 0;
   const l=slotLinks(s);
-  return (s.cat===s.player.cat?1:0)+(l>=2?1:0)+(l>=4.5?1:0);
+  return (oopPenalty(s,s.player)===0?1:0)+(l>=2?1:0)+(l>=4.5?1:0);
 }
 function chemistry(){
   const total=S.slots.reduce((a,s)=>a+playerChem(s),0);
@@ -415,11 +503,11 @@ function renderPitch(justId){
     r.forEach(id=>{
       const s=S.slots.find(x=>x.id===id);
       const d=document.createElement("div");
-      const eff=effRating(s),pen=s.player?oopPenalty(s.cat,s.player.cat):0;
+      const eff=effRating(s),pen=s.player?oopPenalty(s,s.player):0;
       const t=s.player?(hidden()?"plain":tier(eff)):"";
       d.className="slot"+(s.player?" filled t-"+t:"")+(justId===id?" justin":"");
       d.innerHTML=s.player
-        ?`${S.captain===s.id?'<div class="cap">C</div>':""}<div class="ptag">${s.id}</div><div class="nm">${s.player.name}</div><div class="meta">${s.player.flag} ${s.player.year}${hidden()?"":" · "+eff}${pen?"▾":""} · ⚡${playerChem(s)}</div>`
+        ?`${S.captain===s.id?'<div class="cap">C</div>':""}<div class="jwrap">${jersey(s.player.team,s.player.num,20)}</div><div class="ptag">${s.id}</div><div class="nm">${s.player.name}</div><div class="meta">${s.player.flag} ${s.player.year}${hidden()?"":" · "+eff}${pen?"▾":""} · ⚡${playerChem(s)}</div>`
         :`<div class="ptag">${s.id}</div><div class="nm" style="color:var(--chalk-dim)">—</div>`;
       row.appendChild(d);
     });
@@ -436,7 +524,7 @@ function openCaptain(){
     b.className="pl";
     const eff=effRating(s);
     const t=hidden()?"plain":tier(eff);
-    b.innerHTML=`<span class="pos">${s.id}</span><span class="pname">${s.player.name} <span style="color:var(--chalk-dim)">⚡${playerChem(s)}</span></span><span class="rt t-${t}">${hidden()?"??":eff}</span>`;
+    b.innerHTML=`${jersey(s.player.team,s.player.num,26)}<span class="pos">${s.id}</span><span class="pname">${s.player.name} <span style="color:var(--chalk-dim)">⚡${playerChem(s)}</span></span><span class="rt t-${t}">${hidden()?"??":eff}</span>`;
     b.onclick=()=>{S.captain=s.id;$("cap-bg").classList.remove("on");SFX.fanfare();renderPitch();startCup();};
     list.appendChild(b);
   });
@@ -450,7 +538,7 @@ function avg(a){return a.reduce((x,y)=>x+y,0)/a.length;}
 function strengths(){
   const by=c=>S.slots.filter(s=>s.cat===c).map(s=>effRating(s));
   const F=FORMATIONS[S.form];
-  const bonus=chemistry().boost+(S.captain?1.0:0);
+  const bonus=chemistry().boost+(S.captain?0.4+capLead()*0.16:0);
   const att=avg(by("FWD"))*0.6+avg(by("MID"))*0.4+F.mod.att+bonus;
   const def=avg(by("DEF"))*0.7+by("GK")[0]*0.3+F.mod.def+bonus;
   return{att,def,overall:(att+def)/2};
@@ -460,7 +548,7 @@ function scorerName(){
   S.slots.forEach(s=>{
     const e=effRating(s);
     let w=s.cat==="FWD"?e*1.7:s.cat==="MID"?e*0.9:s.cat==="DEF"?e*0.22:0;
-    if(S.captain===s.id)w*=1.35;
+    if(S.captain===s.id)w*=1.15+capLead()*0.04;
     if(w>0)pool.push([s.player.name,w]);
   });
   let tot=pool.reduce((a,b)=>a+b[1],0),r=R()*tot;

@@ -43,8 +43,9 @@ export default async function handler(req, res) {
 
   const draft = ['classic', 'era', 'dynasty', 'cap'].includes(b.draft) ? b.draft : 'classic';
   const diff = ['classic', 'hard', 'legend'].includes(b.diff) ? b.diff : 'classic';
+  const pool = ['all', 'p90', 'p06'].includes(b.pool) ? b.pool : 'all';
   const daily = b.daily === true;
-  const { pts, champion, perfect } = scoreRun(b.matches, { draft, diff, daily });
+  const { pts, champion, perfect } = scoreRun(b.matches, { draft, diff, daily, pool });
 
   let w = 0, d = 0, l = 0, gf = 0, ga = 0;
   b.matches.forEach((x, i) => {
@@ -60,7 +61,7 @@ export default async function handler(req, res) {
   const entry = {
     n: name, c: country, p: pts,
     g: grid, w, d, l, gf, ga,
-    m: draft + (dyn ? '(' + dyn + ')' : '') + '·' + diff + (daily ? '·daily' : ''),
+    m: draft + (dyn ? '(' + dyn + ')' : '') + '·' + diff + (pool !== 'all' ? '·' + (pool === 'p90' ? 'post-90' : 'post-06') : '') + (daily ? '·daily' : ''),
     f: String(b.form || '').slice(0, 10),
     xi: cleanXI(b.xi),
     ch: champion ? 1 : 0, pf: perfect ? 1 : 0,

@@ -76,7 +76,8 @@ function runLive(opp,knockout,done){
   function minute(silent){
     min++;
     const boost=min>90?1.05:1;
-    if(R()<xf/90*mf*boost){
+    const rally=(theirMin.length>ourGoals.length&&min>=75)?1+capLead()*0.02:1;
+    if(R()<xf/90*mf*boost*rally){
       const n=scorerName();ourGoals.push([n,min]);
       addLog(`<span class="goalus">⚽ GOAL! ${n} ${min}'</span> — ${pickFrom(C_OURGOAL)}`);
       const ahead=ourGoals.length===theirMin.length+1;
@@ -131,7 +132,7 @@ function runLive(opp,knockout,done){
 }
 
 function penShootout(diff){
-  const pUs=clamp(0.76+diff*0.005,0.55,0.92);
+  const pUs=clamp(0.76+diff*0.005+capLead()*0.004,0.55,0.94);
   const pTh=clamp(0.76-diff*0.005,0.55,0.92);
   const us=[],th=[];let su=0,st_=0;
   for(let k=0;k<5;k++){
@@ -204,7 +205,7 @@ function startCup(){
   const intro=document.createElement("div");intro.className="match";
   intro.innerHTML=`<div class="ln"><div class="team">Squad report</div>
       <div class="score mono w">${Math.round(st.overall)}</div></div>
-    <div class="scorers">Attack ${Math.round(st.att)} · Defence ${Math.round(st.def)} · ${S.form} · Captain: <b style="color:var(--gold)">${capName()}</b>${S.diff==="legend"?" · <b style='color:var(--loss)'>LEGEND DRAW</b>":""}${S.daily?" · <b style='color:var(--gold)'>DAILY</b>":""}</div>
+    <div class="scorers">Attack ${Math.round(st.att)} · Defence ${Math.round(st.def)} · ${S.form} · Captain: <b style="color:var(--gold)">${capName()}</b> — ${leadWord(capLead())}${S.diff==="legend"?" · <b style='color:var(--loss)'>LEGEND DRAW</b>":""}${S.daily?" · <b style='color:var(--gold)'>DAILY</b>":""}</div>
     <div class="scorers" style="margin-top:4px">Your group: ${S.cup.group.opps.map(o=>o.f+" "+o.n).join(" · ")}</div>`;
   feed.appendChild(intro);
   updateRecord();
@@ -380,7 +381,7 @@ function countUp(el,to,suffix){
 }
 function showResult(){
   const r=S.cup.record;
-  const sc=scoreRun(S.cup.matches,{draft:S.draft,diff:S.diff,daily:S.daily});
+  const sc=scoreRun(S.cup.matches,{draft:S.draft,diff:S.diff,daily:S.daily,pool:S.poolMode});
   S.cup.perfect=sc.perfect;S.pts=sc;
   $("r-icon").textContent=S.cup.champion?"🏆":"📉";
   $("r-icon").className="trophy"+(S.cup.champion?" win":"");
@@ -414,8 +415,8 @@ function showResult(){
   $("r-pott2").textContent=a.pott?a.pott.flag+" "+a.pott.year:"";
   const ch=chemistry();
   $("r-xi").innerHTML=`<h4>Your XI · ${S.form} · Chem ⚡${ch.total}/${ch.max} (+${ch.boost.toFixed(1)})</h4>`+S.slots.map(s=>{
-    const pen=oopPenalty(s.cat,s.player.cat),eff=effRating(s);
-    return `<div class="li"><span><b>${s.player.name}${S.captain===s.id?" ©":""}</b> · ${s.id}${(S.goals[s.player.name]||0)?" · ⚽"+S.goals[s.player.name]:""}</span><span>${s.player.flag} ${s.player.year} · ${pen?s.player.rating+"→"+eff:s.player.rating}</span></div>`;
+    const pen=oopPenalty(s,s.player),eff=effRating(s);
+    return `<div class="li"><span style="display:flex;align-items:center;gap:7px">${jersey(s.player.team,s.player.num,18)}<span><b>${s.player.name}${S.captain===s.id?" ©":""}</b> · ${s.id}${(S.goals[s.player.name]||0)?" · ⚽"+S.goals[s.player.name]:""}</span></span><span>${s.player.flag} ${s.player.year} · ${pen?s.player.rating+"→"+eff:s.player.rating}</span></div>`;
   }).join("");
   // persist career
   const st=store.get();
@@ -510,7 +511,7 @@ async function autoSubmit(){
     token:S.token,name:st.playerName,country:st.playerCountry,
     email:sendEmail?st.playerEmail:"",optin:sendEmail,web:$("sv-web").value,
     matches:S.cup.matches,grid:S.cup.gridResults.join(""),
-    draft:S.draft,diff:S.diff,daily:S.daily,dyn:S.dyn||"",form:S.form,pts:S.pts.pts,
+    draft:S.draft,diff:S.diff,daily:S.daily,pool:S.poolMode,dyn:S.dyn||"",form:S.form,pts:S.pts.pts,
     xi:S.slots.map(s=>[s.player.name,s.player.year,s.player.flag])
   };
   try{
@@ -563,7 +564,16 @@ function boardRow(e,i,st){
     ${xi?`<div class="xi">${xi}</div>`:""}
   </div>`;
 }
+function paintBoardPlay(){
+  const st=store.get();
+  const locked=st.lastRun===utcDay();
+  const bp=$("btn-board-play");
+  if(!bp)return;
+  bp.disabled=locked;
+  bp.textContent=locked?"✓ Run played — back tomorrow":"Play today's run →";
+}
 async function loadBoard(tab,bust){
+  paintBoardPlay();
   BOARD.tab=tab||BOARD.tab;
   $("tab-all").classList.toggle("sel",BOARD.tab==="all");
   $("tab-daily").classList.toggle("sel",BOARD.tab==="daily");
@@ -658,8 +668,16 @@ function confetti(){
 /* =========================================================
    WIRES
 ========================================================= */
+function paintPoolChips(){
+  const dyn=pref.draft==="dynasty";
+  document.querySelectorAll("#poolchips .chip").forEach(b=>{
+    b.disabled=dyn;
+    b.classList.toggle("sel",dyn?b.dataset.p==="all":pref.pool===b.dataset.p);
+  });
+}
 function multline(){
-  const m=(DIFF_MULT[pref.diff]||1)*(DRAFT_MULT[pref.draft]||1);
+  const effPool=pref.draft==="dynasty"?"all":pref.pool;
+  const m=(DIFF_MULT[pref.diff]||1)*(DRAFT_MULT[pref.draft]||1)*(POOL_MULT[effPool]??1);
   $("multline").textContent="×"+m.toFixed(2).replace(/0$/,"")+(pref.draft==="dynasty"&&pref.dyn?" · "+pref.dyn:"");
 }
 function buildFormChips(){
@@ -678,7 +696,7 @@ function buildDraftChips(){
     const b=document.createElement("button");
     b.className="chip"+(pref.draft===k?" sel":"");
     b.innerHTML=v.n+"<small>"+v.d+"</small>";
-    b.onclick=()=>{pref.draft=k;buildDraftChips();multline();};
+    b.onclick=()=>{pref.draft=k;buildDraftChips();paintPoolChips();multline();};
     c.appendChild(b);
   });
   const dc=$("dynastychips");
@@ -765,7 +783,10 @@ $("tab-daily").onclick=()=>loadBoard("daily",true);
 $("stat-squads").textContent=SQUADS.length;
 $("stat-players").textContent=SQUADS.reduce((a,s)=>a+s.p.length,0)+"";
 wireMute();
-buildFormChips();buildDraftChips();wireDiffChips();multline();
+document.querySelectorAll("#poolchips .chip").forEach(b=>{
+  b.onclick=()=>{if(b.disabled)return;pref.pool=b.dataset.p;paintPoolChips();multline();SFX.pick();};
+});
+buildFormChips();buildDraftChips();wireDiffChips();paintPoolChips();multline();
 renderCabinet();paintDaily();paintProfile();homeBoardPreview();boardPolling();
 setInterval(()=>{if($("home").classList.contains("on"))paintLock();},30000);
 let rsT=null;
