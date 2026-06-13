@@ -491,6 +491,7 @@ function saveProfile(){
   store.set(st);
   $("save-bg").classList.remove("on");
   paintProfile();
+  syncWallet();   // push nickname/country to the player record
   if(PENDING_START!=null){const d=PENDING_START;PENDING_START=null;startRun(d);}
   else if(PENDING_SUBMIT){PENDING_SUBMIT=false;autoSubmit();}
 }
@@ -520,6 +521,18 @@ async function autoSubmit(){
     if(!r.ok)throw j.err||r.status;
     if(sendEmail){const s2=store.get();s2.emailSent=1;store.set(s2);}
     if(j.rank&&j.rank<=10){const s2=store.get();if(!s2.badges.top10){s2.badges.top10=1;store.set(s2);}}
+    if(j.wallet&&typeof j.wallet.cr==="number"){
+      WALLET.cr=j.wallet.cr;WALLET.ready=true;paintWallet();bumpWallet();
+      const earned=j.wallet.earned||0,bd=j.wallet.breakdown||{};
+      if(earned>0){
+        const bits=[];
+        if(bd.run)bits.push("run +"+bd.run);
+        if(bd.daily)bits.push("daily +"+bd.daily);
+        if(bd.milestone)bits.push("streak +"+bd.milestone);
+        if(bd.welcome)bits.push("welcome +"+bd.welcome);
+        $("r-credits").innerHTML=`🪙 <b>+${earned} credits</b> <span>(${bits.join(" · ")})</span> · balance ${j.wallet.cr}`;
+      }
+    }
     S.submitted=true;
     el.textContent=j.rank
       ?`🌍 Saved — world #${j.rank} of ${j.count} run${j.count===1?"":"s"}`+(j.rankDaily?` · today #${j.rankDaily}`:"")
@@ -574,14 +587,15 @@ function streakRow(e,i,st){
   </div>`;
 }
 function paintBoardPlay(){
-  const st=store.get();
-  const locked=st.lastRun===utcDay();
   const bp=$("btn-board-play"),og=$("board-other");
   if(!bp)return;
-  bp.style.display=locked?"none":"block";
-  bp.textContent="Play today's run →";
-  og.style.display=locked?"flex":"none";
-  if(locked)og.innerHTML=`<a href="https://38-0.app" target="_blank" rel="noopener">38-0<small>the Invincibles game</small></a><a href="https://82-0.com" target="_blank" rel="noopener">82-0<small>the NFL one</small></a>`;
+  const cost=WALLET.cost||100;
+  bp.style.display="block";
+  bp.textContent=!WALLET.ready?"Play a run →":WALLET.cr>=cost?`Play custom run · ${cost} 🪙`:`Need ${cost} 🪙 — tap to earn`;
+  const st=store.get();
+  const dailyPlayed=st.lastDaily===utcDay();
+  og.style.display=dailyPlayed?"flex":"none";
+  if(dailyPlayed)og.innerHTML=OTHER_GAMES;
 }
 async function loadBoard(tab,bust){
   paintBoardPlay();
@@ -732,22 +746,21 @@ function wireDiffChips(){
       multline();};
   });
 }
-function nextRunMs(){return Date.parse(utcDay()+"T00:00:00Z")+864e5-Date.now();}
-function fmtCountdown(ms){const h=Math.floor(ms/36e5),m=Math.max(1,Math.ceil((ms%36e5)/6e4));return(h?h+"h ":"")+m+"m";}
-function paintLock(){
+const OTHER_GAMES=`<a href="https://38-0.app" target="_blank" rel="noopener">38-0<small>the Invincibles game</small></a><a href="https://82-0.com" target="_blank" rel="noopener">82-0<small>the NFL one</small></a>`;
+function paintHomeCTAs(){
   const st=store.get();
-  const locked=st.lastRun===utcDay();
-  const bs=$("btn-start");
-  bs.disabled=locked;
-  bs.textContent=locked?"✓ Today's run played — next in "+fmtCountdown(nextRunMs()):"Start today's run →";
-  const db=$("btn-daily");
   const dailyPlayed=st.lastDaily===utcDay();
-  db.disabled=dailyPlayed||locked;
-  db.textContent=dailyPlayed?"✓ Played today — back at midnight UTC"
-    :locked?"Today's run already used":"Play today's challenge";
+  const db=$("btn-daily");
+  if(db){db.disabled=dailyPlayed;
+    db.textContent=dailyPlayed?"✓ Played today — back at midnight UTC":"Play today's challenge · FREE";}
+  const bs=$("btn-start");
+  const cost=WALLET.cost||100;
+  if(bs){bs.disabled=false;
+    bs.textContent=!WALLET.ready?"Start a custom run →"
+      :WALLET.cr>=cost?`Play custom run · ${cost} 🪙`
+      :`Need ${cost} 🪙 — tap to earn`;}
   const og=$("home-other");
-  og.style.display=locked?"flex":"none";
-  if(locked)og.innerHTML=`<a href="https://38-0.app" target="_blank" rel="noopener">38-0<small>the Invincibles game</small></a><a href="https://82-0.com" target="_blank" rel="noopener">82-0<small>the NFL one</small></a>`;
+  if(og){og.style.display=dailyPlayed?"flex":"none";if(dailyPlayed)og.innerHTML=OTHER_GAMES;}
 }
 function paintDaily(){
   const st=store.get();
@@ -755,22 +768,36 @@ function paintDaily(){
   $("daily-date").textContent=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:"UTC"})+" (UTC)";
   const active=st.lastDaily===utcDay()||st.lastDaily===new Date(Date.now()-864e5).toISOString().slice(0,10);
   $("daily-streak").textContent=active&&st.streak?"🔥 "+st.streak+"-day streak":"";
-  paintLock();
+  paintHomeCTAs();
 }
-function startRun(daily){
+let RUN_BUSY=false;
+async function startRun(daily){
   const st=store.get();
   if(!st.playerName){PENDING_START=!!daily;openProfile({onboard:true});return;}
-  if(st.lastRun===utcDay()){goHome();return;}
   if(daily&&st.lastDaily===utcDay()){goHome();return;}
-  st.lastRun=utcDay();store.set(st);
-  resetState(daily);
-  buildWheel();renderPitch();
-  $("picks-n").textContent=S.slots.length;
-  paintDraftMeta();
-  $("landed").textContent="Spin to draw your first squad";
-  $("btn-spin").textContent="Spin the wheel";
-  $("btn-spin").onclick=spin;$("btn-spin").disabled=false;
-  show("draft");
+  if(RUN_BUSY)return;
+  // credit gate for custom runs — tapping a too-pricey button opens the earn hub
+  if(!daily&&WALLET.ready&&WALLET.cr<WALLET.cost){openInvite("low");return;}
+  RUN_BUSY=true;
+  let token=null;
+  try{
+    if(WALLET.ready){
+      const pr=await apiPost("/api/play",{auth:WALLET.auth,daily:!!daily});
+      if(pr&&pr.err==="insufficient"){WALLET.cr=pr.cr;paintWallet();RUN_BUSY=false;openInvite("low");return;}
+      if(pr&&pr.err==="daily-used"){const s2=store.get();s2.lastDaily=utcDay();store.set(s2);RUN_BUSY=false;goHome();return;}
+      if(pr&&pr.token){token=pr.token;if(typeof pr.cr==="number"){const before=WALLET.cr;WALLET.cr=pr.cr;paintWallet();if(!daily&&before!==pr.cr)bumpWallet();}}
+    }
+    if(!token){try{token=await apiPost("/api/token",{});}catch(e){}}  // anon/offline: free token, earns nothing
+    resetState(daily);
+    if(token)S.token=token;
+    buildWheel();renderPitch();
+    $("picks-n").textContent=S.slots.length;
+    paintDraftMeta();
+    $("landed").textContent="Spin to draw your first squad";
+    $("btn-spin").textContent="Spin the wheel";
+    $("btn-spin").onclick=spin;$("btn-spin").disabled=false;
+    show("draft");
+  }finally{RUN_BUSY=false;}
 }
 function goHome(){
   renderCabinet();paintDaily();paintProfile();homeBoardPreview();show("home");
@@ -797,6 +824,23 @@ $("tab-all").onclick=()=>loadBoard("all",true);
 $("tab-daily").onclick=()=>loadBoard("daily",true);
 $("tab-streaks").onclick=()=>loadBoard("streaks",true);
 
+/* wallet + invite wiring */
+$("wallet-pill").onclick=()=>openInvite();
+$("open-invite").onclick=()=>openInvite();
+$("inv-close").onclick=()=>$("invite-bg").classList.remove("on");
+$("invite-bg").onclick=e=>{if(e.target===$("invite-bg"))$("invite-bg").classList.remove("on");};
+$("inv-copy").onclick=async()=>{
+  const link=$("inv-link").value;
+  try{await navigator.clipboard.writeText(link);toast("Invite link copied 🎁");}
+  catch(e){$("inv-link").select();}
+};
+$("inv-share").onclick=async()=>{
+  const link=SITE_URL+"/?ref="+(WALLET.uid||"");
+  const text="Play 7-0 — build a World Cup XI and win all seven. Join with my link for +150 credits:";
+  if(navigator.share){try{await navigator.share({title:"7-0",text,url:link});return;}catch(e){}}
+  try{await navigator.clipboard.writeText(text+" "+link);toast("Invite copied — paste it anywhere 🎁");}catch(e){}
+};
+
 $("stat-squads").textContent=SQUADS.length;
 $("stat-players").textContent=SQUADS.reduce((a,s)=>a+s.p.length,0)+"";
 wireMute();
@@ -805,7 +849,8 @@ document.querySelectorAll("#poolchips .chip").forEach(b=>{
 });
 buildFormChips();buildDraftChips();wireDiffChips();paintPoolChips();multline();
 renderCabinet();paintDaily();paintProfile();homeBoardPreview();boardPolling();
-setInterval(()=>{if($("home").classList.contains("on"))paintLock();},30000);
+syncWallet();
+setInterval(()=>{if($("home").classList.contains("on"))paintHomeCTAs();},30000);
 let rsT=null;
 addEventListener("resize",()=>{clearTimeout(rsT);rsT=setTimeout(()=>{
   if(S&&S.slots&&$("draft").classList.contains("on")&&!S.spinning)buildWheel();

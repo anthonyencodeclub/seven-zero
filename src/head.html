@@ -51,6 +51,27 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 
 #mute{position:fixed;top:calc(10px + env(safe-area-inset-top));right:10px;z-index:60;width:38px;height:38px;border-radius:50%;
   border:1px solid var(--line);background:rgba(10,44,33,.85);color:var(--chalk);font-size:16px;cursor:pointer;backdrop-filter:blur(3px)}
+#wallet-pill{position:fixed;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:60;height:38px;padding:0 13px;border-radius:19px;
+  border:1px solid var(--gold-deep);background:rgba(10,44,33,.85);color:var(--gold);font-size:14px;font-weight:900;cursor:pointer;
+  backdrop-filter:blur(3px);display:flex;align-items:center;gap:5px;font-variant-numeric:tabular-nums}
+#wallet-pill .coin{font-size:13px}
+#wallet-pill.bump{animation:bump .5s ease}
+@keyframes bump{0%,100%{transform:scale(1)}40%{transform:scale(1.18)}}
+.toast{position:fixed;left:50%;top:calc(58px + env(safe-area-inset-top));transform:translate(-50%,-12px);z-index:70;
+  background:rgba(10,44,33,.96);border:1px solid var(--gold-deep);color:var(--gold);font-weight:800;font-size:13px;
+  padding:9px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.walletline{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--chalk-dim);margin:10px 2px 2px}
+.walletline b{color:var(--gold);font-weight:900}
+.walletline .lnk{background:none;border:0;color:var(--gold);font-weight:800;font-size:13px;cursor:pointer;text-decoration:underline}
+.creditline{font-size:14px;color:var(--gold);font-weight:800;margin:6px 0 2px;min-height:18px}
+.creditline span{color:var(--chalk-dim);font-weight:600;font-size:12px}
+.invlow{font-size:13px;color:var(--chalk);background:rgba(217,100,89,.12);border:1px solid var(--loss);border-radius:10px;padding:10px 12px;margin-bottom:12px;line-height:1.45}
+.invrow{display:flex;gap:8px;margin:4px 0 10px}
+.invrow input{flex:1;min-width:0;background:rgba(243,236,217,.05);border:1px solid var(--line);border-radius:9px;color:var(--chalk);padding:11px 12px;font-size:13px;font-family:inherit}
+.invrow .btn.small{flex:0 0 auto}
+.invstats{font-size:12.5px;color:var(--chalk-dim);text-align:center;margin:12px 0 4px}
+.invstats b{color:var(--gold)}
 
 /* ---------- home ---------- */
 #home{padding-top:46px;text-align:center}
@@ -386,6 +407,8 @@ footer a{color:rgba(243,236,217,.5)}
 <body>
 <canvas id="confetti"></canvas>
 <button id="mute" aria-label="Toggle sound">🔊</button>
+<button id="wallet-pill" aria-label="Credits"><span class="coin">🪙</span> <span id="wallet-bal">—</span></button>
+<div id="toast" class="toast"></div>
 <div id="app">
 
   <!-- HOME -->
@@ -432,7 +455,11 @@ footer a{color:rgba(243,236,217,.5)}
       </div>
     </div>
     <div class="multline">Score multiplier: <b id="multline">×1.0</b></div>
-    <button class="btn" id="btn-start">Start today's run →</button>
+    <button class="btn" id="btn-start">Start a custom run →</button>
+    <div class="walletline" id="walletline">
+      <span>Balance <b id="home-bal">…</b></span>
+      <button class="lnk" id="open-invite">🎁 Invite &amp; earn</button>
+    </div>
     <div class="playas" id="playas"></div>
     <div class="othergames" id="home-other" style="display:none"></div>
 
@@ -482,7 +509,7 @@ footer a{color:rgba(243,236,217,.5)}
     <button class="btn" id="btn-spin">Spin the wheel</button>
     <div class="pitch" id="pitch"></div>
     <div class="chemline"><span>Chemistry: <b id="chem-n">0/33</b> ⚡</span><span>Team boost: <b id="chem-b">+0.0</b></span></div>
-    <button class="btn ghost" id="btn-restart-draft" style="margin-top:14px">Abandon run · no retry today</button>
+    <button class="btn ghost" id="btn-restart-draft" style="margin-top:14px">Abandon run · entry fee spent</button>
   </section>
 
   <!-- SQUAD MODAL -->
@@ -503,6 +530,22 @@ footer a{color:rgba(243,236,217,.5)}
       <h3>Name your captain</h3>
       <p class="hint">Your captain lifts the whole side and steps up in the big moments — some legends carry more <b>hidden leadership</b> than others. Choose with your gut.</p>
       <div id="cap-list"></div>
+    </div>
+  </div>
+
+  <!-- INVITE / EARN MODAL -->
+  <div class="modal-bg" id="invite-bg">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3>🎁 Invite &amp; earn credits</h3>
+      <div class="invlow" id="inv-low" style="display:none">Out of credits for a custom run. Play the <b>free Daily</b>, come back tomorrow for your <b>+40 🪙 top-up</b>, or invite a friend below to earn more now.</div>
+      <p class="hint">Share your link. When a friend joins you get <b>+20 🪙</b> — and <b>+250 🪙</b> when they play their first run. They get <b>+150 🪙</b> to start too.</p>
+      <div class="invrow">
+        <input id="inv-link" readonly aria-label="Your invite link">
+        <button class="btn small" id="inv-copy">Copy</button>
+      </div>
+      <button class="btn" id="inv-share">Share invite</button>
+      <div class="invstats">Balance <b id="inv-bal">—</b> 🪙 · earned from friends <b id="inv-earn">0</b> 🪙 · <b id="inv-acc">0</b> joined</div>
+      <button class="btn ghost" id="inv-close" style="margin-top:8px">Close</button>
     </div>
   </div>
 
@@ -576,6 +619,7 @@ footer a{color:rgba(243,236,217,.5)}
       <div class="award"><div class="al">⭐ Player of the cup</div><div class="av" id="r-pott">—</div><div class="as" id="r-pott2"></div></div>
     </div>
     <div class="finalxi" id="r-xi"></div>
+    <div class="creditline" id="r-credits"></div>
     <div class="savemsg" id="r-saved"></div>
     <div class="stack">
       <button class="btn" id="btn-save">🌍 Save to world leaderboard</button>

@@ -1,6 +1,6 @@
 # 7-0 — Build the Ultimate World Cup XI
 
-A free, fan-made World Cup draft game with a **live world leaderboard**. Spin the wheel, draft legends from **136 iconic World Cup squads (1950–2022, 1,608 players)** — each with its own line of lore, pick your formation and captain, then live out the whole tournament minute by minute — tactics at half-time, extra time, penalty shootouts.
+A free, fan-made World Cup draft game with a **live world leaderboard** and a **credits economy**. Spin the wheel, draft legends from **136 iconic World Cup squads (1950–2022, 1,608 players)** — each with its own line of lore, pick your formation and captain, then live out the whole tournament minute by minute — tactics at half-time, extra time, penalty shootouts.
 
 **The perfect run is seven wins inside normal time: 7-0.**
 
@@ -19,9 +19,11 @@ A free, fan-made World Cup draft game with a **live world leaderboard**. Spin th
 - 👕 **Every player has a shirt** — nation-coloured jersey icons with squad numbers, and **specific positions** (RB/LB/CB/DM/CM/AM/RM/LM/RW/LW/ST): wrong role on the right line costs −2/−3, with the full out-of-position ladder beyond.
 - 🫡 **Hidden leadership** — every player carries a hidden leadership stat; great captains (Moore, Beckenbauer, Varela…) lift the side harder, rally late comebacks and steady penalty shootouts.
 - 💀 **Difficulties** — Classic, Hard (ratings hidden), Legend (brutal draw + hidden ratings). Modes multiply your score.
-- 🗓 **One run per day** — Wordle-style scarcity: spend it on the seeded **Daily Challenge** (same wheel for everyone on Earth, own leaderboard, streaks) or a custom mode. The day burns when the run kicks off; the lock counts down to midnight UTC.
+- 🗓 **Daily Challenge** — one free seeded run a day, the same wheel for everyone on Earth, its own leaderboard and streaks. Beyond that, play as many credit-funded custom runs as you've earned.
 - 🌍 **Live world leaderboard** — every finished run **saves automatically** under your manager profile (name + country collected up front, email optional and encrypted). All-time, daily and **🔥 Regulars** tabs (active daily streaks, days played, cumulative points), top 100 kept, tap any row to see that player's XI.
 - 📬 **Daily reminder emails** — opted-in players get a morning nudge when the new challenge drops (Vercel Cron → `/api/remind`, sends via Resend when `RESEND_API_KEY` is set), with one-click HMAC-signed unsubscribe. After your run is spent, the game points you at the genre siblings, [38-0.app](https://38-0.app) and [82-0.com](https://82-0.com).
+- 🪙 **Credits economy** — the **free Daily** is always one-a-day and ranked; **credits unlock extra custom runs** (100 each). You earn credits by how well you play (a poor run nets ~−70, a champion ~break-even, a Perfect 7-0 a tidy profit), plus a daily login top-up and streak milestones, so a free player is never walled out.
+- 🎁 **Invite & earn** — share your link: **+20** when a friend joins, **+250** when they play their first run (they get **+150** to start). Two-tier, capped, gated on a real played run to deter farming.
 - 🏅 **Points, badges, trophy cabinet** — server-verified scoring with multipliers, 10 unlockable badges, career stats saved locally.
 - 📋 **Share** — emoji result grid via the native share sheet or clipboard.
 
@@ -39,6 +41,24 @@ A free, fan-made World Cup draft game with a **live world leaderboard**. Spin th
 
 Multipliers: Hard ×1.3 · Legend ×1.7 · Era Tour ×1.15 · Dynasty ×1.2 · Wage Cap ×1.3 · Post-1990 ×0.9 · Post-2006 ×0.8 · Daily ×1.1. The server recomputes every submitted run — client-claimed points are ignored.
 
+### Credits (smart economics)
+
+Single soft currency, **server-authoritative** (balances live in `players/<uid>.json`, keyed to a device secret kept only in the browser). The golden rule: **the faucet is smaller than the drain for the median player, but skill, habit and friends widen it, and nobody is ever fully walled out.**
+
+| | |
+|---|---|
+| New player | 200 credits (≈2 custom runs to taste) |
+| Custom run | −100 |
+| Run payout | `min(90, pts/12)` + 40 champion + 120 perfect |
+| Free Daily completion | +20 (+20 if streak alive) |
+| Daily login top-up | +40 |
+| Streak milestones | 3→+50 · 7→+120 · 14→+250 · 30→+500 |
+| Referral | +20 land · +250 accept (friend +150), capped 25 lifetime |
+
+Credits are minted **only** for runs that went through `/api/play` (which debits, or checks the free Daily) and are deduped per run-token, so a run can't be resubmitted for more and free practice can't farm credits. Virtual-only for now — structured so a premium hard currency / paid packs drop in cleanly later.
+
+**Known limitation:** player balances live in Vercel Blob, which is eventually-consistent (~60s) and not transactional. Rapid-fire writes to one wallet (sub-minute) can race; real human play has minute-scale gaps so it's a non-issue in practice, and with no real money + capped referrals the worst case is marginal. Vercel KV / Redis (atomic `INCR`) is the clean upgrade path if it ever monetizes.
+
 ## Architecture
 
 ```
@@ -46,7 +66,9 @@ index.html        ← the whole game, one self-contained file (built from src/)
 src/              ← head.html (markup+css), data.js (squads), game-*.js (logic)
 build.mjs         ← concatenates src/ → index.html (runs on Vercel deploy)
 api/              ← Vercel serverless functions (leaderboard backend)
-  token.js        ← HMAC run tokens (anti-instant-replay)
+  token.js        ← legacy/anon free run token
+  player.js       ← wallet get-or-create, daily top-up, referral land
+  play.js         ← debit a custom run / check Daily, mint typed run token
   score.js        ← validate + recompute + store runs, encrypt opt-in emails
   leaderboard.js  ← cached top-50 reads (alltime / daily / streaks)
   remind.js       ← daily reminder cron (Resend; dry-runs without key)

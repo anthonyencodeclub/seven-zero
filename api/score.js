@@ -1,8 +1,8 @@
 import crypto from 'node:crypto';
 import { put } from '@vercel/blob';
 import {
-  validateRun, scoreRun, signToken, cleanName, cleanCountry, cleanXI,
-  readAgg, writeAgg, mergeTop, utcDay
+  validateRun, scoreRun, verifyRun, cleanName, cleanCountry, cleanXI,
+  readAgg, writeAgg, mergeTop, bumpStreak, grantRun, utcDay
 } from './_shared.js';
 
 const MIN_AGE_MS = 45_000;        // shortest believable full run
@@ -27,11 +27,11 @@ export default async function handler(req, res) {
   // honeypot: real client always sends web:"" — bots that fill it get a quiet yes
   if (b.web) return res.status(200).json({ ok: 1, rank: null });
 
-  // run token: proves a plausible playtime (QA header bypasses age only)
+  // run token: proves a plausible playtime + carries run kind/uid (QA header bypasses age only)
   const qa = req.headers['x-qa-key'] && req.headers['x-qa-key'] === process.env.TOKEN_KEY;
-  const tok = b.token || {};
-  if (!tok.t || !tok.s || tok.s !== signToken(tok.t)) return res.status(401).json({ err: 'token' });
-  const age = Date.now() - tok.t;
+  const v = verifyRun(b.token);
+  if (!v) return res.status(401).json({ err: 'token' });
+  const age = Date.now() - v.t;
   if (!qa && (age < MIN_AGE_MS || age > MAX_AGE_MS)) return res.status(401).json({ err: 'token-age' });
 
   const name = cleanName(b.name);
@@ -103,5 +103,13 @@ export default async function handler(req, res) {
     }
   }
 
-  return res.status(200).json({ ok: 1, pts, champion, perfect, rank, count: all.count, rankDaily, countDaily });
+  // credits: minted only for runs that went through /api/play (paid or free daily),
+  // deduped per token so a run can't be resubmitted for more
+  let wallet = null;
+  if ((v.kind === 'paid' || v.kind === 'daily') && /^[a-f0-9]{16}$/.test(v.uid)) {
+    try { wallet = await grantRun({ uid: v.uid, t: v.t, kind: v.kind, pts, champion, perfect, name, country }); }
+    catch { wallet = null; }
+  }
+
+  return res.status(200).json({ ok: 1, pts, champion, perfect, rank, count: all.count, rankDaily, countDaily, wallet });
 }
