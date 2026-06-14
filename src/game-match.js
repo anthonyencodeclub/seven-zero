@@ -793,7 +793,7 @@ async function startRun(daily){
     buildWheel();renderPitch();
     $("picks-n").textContent=S.slots.length;
     paintDraftMeta();
-    $("landed").textContent="Spin to draw your first squad";
+    $("landed").classList.remove("pop");$("landed").innerHTML=`<span class="prompt">Spin to draw your first squad</span>`;
     $("btn-spin").textContent="Spin the wheel";
     $("btn-spin").onclick=spin;$("btn-spin").disabled=false;
     show("draft");

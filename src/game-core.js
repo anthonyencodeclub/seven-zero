@@ -289,12 +289,22 @@ function wheelPool(){
   }
   return base;
 }
-/* one tint pair per decade — old gold-greens drifting to cool modern greens */
+/* one tint pair per decade — a clear progression from warm 1950s greens
+   through teal to cool 2020s blues, so the disc reads as 8 era zones */
 const DEC_TINT={
-  195:["#123a26","#16432d"],196:["#10402b","#144a33"],197:["#0d432e","#114e37"],
-  198:["#0c4534","#10503c"],199:["#0b463b",
-"#0f5143"],200:["#0a4541","#0e504b"],
-  201:["#094252","#0d4d5e"],202:["#0a3d5c","#0e4869"]};
+  195:["#1b3a24","#214529"],196:["#173c28","#1d472f"],197:["#123f2d","#184b37"],
+  198:["#0f4336","#13503f"],199:["#0c463f","#10514a"],200:["#0b4350","#0e4d5d"],
+  201:["#0c3f59","#104a67"],202:["#103a5e","#13446b"]};
+/* group the (year-sorted) pool into contiguous decade arcs */
+function decadeArcs(){
+  const a=[]; if(!S.pool.length)return a;
+  let from=0, dec=Math.floor(SQUADS[S.pool[0]].y/10);
+  for(let i=1;i<=S.pool.length;i++){
+    const d=i<S.pool.length?Math.floor(SQUADS[S.pool[i]].y/10):null;
+    if(d!==dec){a.push({dec,from,to:i});from=i;dec=d;}
+  }
+  return a;
+}
 function buildWheel(){
   S.pool=wheelPool();
   const w=$("wheel");
@@ -302,26 +312,27 @@ function buildWheel(){
   let stops=[];
   for(let i=0;i<n;i++){
     const dec=Math.floor(SQUADS[S.pool[i]].y/10);
-    const pair=DEC_TINT[dec]||["var(--pitch)","var(--pitch-2)"];
+    const pair=DEC_TINT[dec]||["#123f2d","#184b37"];
     stops.push(`${pair[i%2]} ${i*seg}deg ${(i+1)*seg}deg`);
   }
   w.style.background=`conic-gradient(from ${-seg/2}deg, ${stops.join(",")})`;
-  const ticks=$("wheelticks");
-  if(ticks)ticks.style.background=`repeating-conic-gradient(rgba(227,179,76,.4) 0deg ${Math.min(.5,seg*.12)}deg, transparent ${Math.min(.5,seg*.12)}deg ${seg}deg)`;
+  const ticks=$("wheelticks");if(ticks)ticks.style.background="none";
   w.innerHTML="";
-  const wrapW=w.parentElement.getBoundingClientRect().width||320;
-  S.flagEls=[];
-  S.pool.forEach((si,i)=>{
-    const e=document.createElement("div");
-    let radius,dim=false;
-    if(n>80){const ring=i%3;radius=[0.60,0.755,0.90][ring];dim=ring<2;}
-    else if(n>40){radius=i%2?0.665:0.86;dim=!!(i%2);}
-    else radius=0.78;
-    e.className="seg-flag"+(dim?" dim":"");
-    e.innerHTML=`<span>${SQUADS[si].f}</span>`;
-    e.style.transform=`rotate(${i*seg}deg) translate(-50%,-50%) translateY(${-wrapW/2*radius}px)`;
-    w.appendChild(e);
-    S.flagEls.push(e);
+  // a thin gold spoke at each decade boundary + a quiet era label mid-arc,
+  // both children of the disc so they rotate with it (no stacked flags)
+  const wrapW=w.getBoundingClientRect().width||320, R=wrapW*0.31;
+  decadeArcs().forEach(a=>{
+    const bound=a.from*seg-seg/2;
+    const sp=document.createElement("div");sp.className="spoke";
+    sp.style.transform=`rotate(${180+bound}deg)`;
+    w.appendChild(sp);
+    if((a.to-a.from)*seg>=22){
+      const mid=((a.from+a.to)/2)*seg-seg/2;
+      const lb=document.createElement("div");lb.className="declab";
+      lb.textContent=`${a.dec*10}s`;
+      lb.style.transform=`translate(-50%,-50%) rotate(${mid}deg) translateY(${-R}px) rotate(${-mid}deg)`;
+      w.appendChild(lb);
+    }
   });
   w.style.transform=`rotate(${S.wheelRot}deg)`;
 }
@@ -370,7 +381,8 @@ function spin(){
     buildWheel();
     paintDraftMeta();
   }
-  S.spinning=true;$("btn-spin").disabled=true;$("landed").textContent="…";
+  S.spinning=true;$("btn-spin").disabled=true;
+  $("landed").classList.remove("pop");$("landed").innerHTML=`<span class="prompt">Spinning…</span>`;
   let pos;
   do{pos=rnd(S.pool.length);}while(S.pool[pos]===S.lastSquad&&S.pool.length>1);
   const si=S.pool[pos];
@@ -380,8 +392,9 @@ function spin(){
     const sq=SQUADS[si];
     SFX.land();
     $("wheelflash").classList.remove("on");void $("wheelflash").offsetWidth;$("wheelflash").classList.add("on");
-    if(S.flagEls){S.flagEls.forEach(f=>f.classList.remove("pop"));if(S.flagEls[pos])S.flagEls[pos].classList.add("pop");}
-    $("landed").innerHTML=`${sq.f} <span>${sq.t} ${sq.y}</span>`;
+    const l=$("landed");
+    l.innerHTML=`<span class="reveal"><span class="fl">${sq.f}</span> <b>${sq.t} ${sq.y}</b></span>`;
+    l.classList.remove("pop");void l.offsetWidth;l.classList.add("pop");
     openSquad(si);
   });
 }
@@ -504,7 +517,7 @@ function draft(si,pi,key,slotId){
     $("btn-spin").textContent="Name your captain →";
     $("btn-spin").onclick=openCaptain;
     $("btn-spin").disabled=false;
-    $("landed").innerHTML=`<span>Your XI is complete.</span>`;
+    $("landed").classList.remove("pop");$("landed").innerHTML=`<span class="reveal"><b>Your XI is complete ✓</b></span>`;
   }else{
     if(S.draft==="era"||S.draft==="dynasty")buildWheel();
     $("btn-spin").disabled=false;

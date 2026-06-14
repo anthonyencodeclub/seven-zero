@@ -160,15 +160,16 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   border:3px solid var(--gold-deep);
   box-shadow:0 0 0 6px rgba(227,179,76,.08), 0 18px 44px rgba(0,0,0,.55), inset 0 0 70px rgba(0,0,0,.5)}
 .wheelring::before{content:"";position:absolute;inset:4px;border-radius:50%;border:1px solid rgba(255,233,168,.25)}
-.wheelticks{position:absolute;inset:10px;border-radius:50%;pointer-events:none;opacity:.5;z-index:1}
-.seg-flag span{display:inline-block;transition:transform .28s cubic-bezier(.2,2.2,.4,1)}
-.seg-flag.pop span{transform:scale(1.9)}
+.wheelticks{position:absolute;inset:10px;border-radius:50%;pointer-events:none;z-index:1}
+.wheel .spoke{position:absolute;left:50%;top:50%;width:2px;height:50%;margin-left:-1px;transform-origin:top center;
+  background:linear-gradient(to top,transparent,rgba(227,179,76,.38) 55%,rgba(255,233,168,.6))}
+.wheel .declab{position:absolute;left:50%;top:50%;font-size:11px;font-weight:800;letter-spacing:.06em;
+  color:rgba(255,233,168,.55);text-shadow:0 1px 2px rgba(0,0,0,.6);user-select:none;pointer-events:none;white-space:nowrap}
 .jsy{display:inline-block;vertical-align:middle;flex:0 0 auto;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
 .pl .jsy{margin-right:2px}
 .slot .jwrap{position:absolute;top:-7px;left:-5px}
-.wheel .seg-flag{position:absolute;left:50%;top:50%;font-size:13px;transform-origin:0 0;user-select:none;
-  text-shadow:0 1px 3px rgba(0,0,0,.6)}
-.wheel .seg-flag.dim{font-size:11.5px;opacity:.92}
+.wheel::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 50% 36%, rgba(255,233,168,.07), transparent 58%)}
 .hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   width:33%;aspect-ratio:1;border-radius:50%;
   background:radial-gradient(circle at 35% 30%, #16493a, var(--night) 75%);
@@ -183,8 +184,15 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   background:radial-gradient(closest-side, rgba(255,233,168,.32), transparent 72%)}
 .wheelflash.on{animation:wflash .9s ease}
 @keyframes wflash{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
-.landed{text-align:center;min-height:24px;font-size:15px;font-weight:700;margin-bottom:10px}
-.landed span{color:var(--gold)}
+.landed{text-align:center;min-height:38px;margin:4px 0 10px;display:flex;align-items:center;justify-content:center}
+.landed .prompt{font-size:15px;font-weight:700;color:var(--chalk-dim)}
+.landed .reveal{display:inline-flex;align-items:center;gap:9px;padding:8px 18px;border-radius:999px;
+  border:1.5px solid var(--gold-deep);background:rgba(10,44,33,.72);font-size:16px;font-weight:800;
+  box-shadow:0 4px 16px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,233,168,.18)}
+.landed .reveal .fl{font-size:22px;line-height:1}
+.landed .reveal b{color:var(--gold);letter-spacing:.01em}
+.landed.pop .reveal{animation:revealpop .5s cubic-bezier(.2,1.8,.4,1)}
+@keyframes revealpop{0%{transform:scale(.55);opacity:0}55%{transform:scale(1.09);opacity:1}100%{transform:scale(1)}}
 
 .pitch{border:2px solid var(--line);border-radius:14px;padding:18px 8px 14px;margin-top:16px;
   background:repeating-linear-gradient(180deg,var(--pitch) 0 56px,var(--pitch-2) 56px 112px);position:relative}
@@ -390,8 +398,7 @@ footer a{color:rgba(243,236,217,.5)}
   .stats{gap:18px}
   .awards{gap:8px}
   .badges{grid-template-columns:repeat(5,1fr);gap:6px}
-  .seg-flag{font-size:11px}
-  .seg-flag.dim{font-size:9.5px}
+  .wheel .declab{font-size:10px}
   .btabs{gap:6px}
   .brow .bn{font-size:13.5px}
   .verdict{font-size:28px}
@@ -510,7 +517,7 @@ footer a{color:rgba(243,236,217,.5)}
       <div class="pointer" id="pointer"></div>
       <div class="hub">🏆</div>
     </div>
-    <div class="landed" id="landed">Spin to draw your first squad</div>
+    <div class="landed" id="landed"><span class="prompt">Spin to draw your first squad</span></div>
     <button class="btn" id="btn-spin">Spin the wheel</button>
     <div class="pitch" id="pitch"></div>
     <div class="chemline"><span>Chemistry: <b id="chem-n">0/33</b> ⚡</span><span>Team boost: <b id="chem-b">+0.0</b></span></div>
@@ -1125,12 +1132,22 @@ function wheelPool(){
   }
   return base;
 }
-/* one tint pair per decade — old gold-greens drifting to cool modern greens */
+/* one tint pair per decade — a clear progression from warm 1950s greens
+   through teal to cool 2020s blues, so the disc reads as 8 era zones */
 const DEC_TINT={
-  195:["#123a26","#16432d"],196:["#10402b","#144a33"],197:["#0d432e","#114e37"],
-  198:["#0c4534","#10503c"],199:["#0b463b",
-"#0f5143"],200:["#0a4541","#0e504b"],
-  201:["#094252","#0d4d5e"],202:["#0a3d5c","#0e4869"]};
+  195:["#1b3a24","#214529"],196:["#173c28","#1d472f"],197:["#123f2d","#184b37"],
+  198:["#0f4336","#13503f"],199:["#0c463f","#10514a"],200:["#0b4350","#0e4d5d"],
+  201:["#0c3f59","#104a67"],202:["#103a5e","#13446b"]};
+/* group the (year-sorted) pool into contiguous decade arcs */
+function decadeArcs(){
+  const a=[]; if(!S.pool.length)return a;
+  let from=0, dec=Math.floor(SQUADS[S.pool[0]].y/10);
+  for(let i=1;i<=S.pool.length;i++){
+    const d=i<S.pool.length?Math.floor(SQUADS[S.pool[i]].y/10):null;
+    if(d!==dec){a.push({dec,from,to:i});from=i;dec=d;}
+  }
+  return a;
+}
 function buildWheel(){
   S.pool=wheelPool();
   const w=$("wheel");
@@ -1138,26 +1155,27 @@ function buildWheel(){
   let stops=[];
   for(let i=0;i<n;i++){
     const dec=Math.floor(SQUADS[S.pool[i]].y/10);
-    const pair=DEC_TINT[dec]||["var(--pitch)","var(--pitch-2)"];
+    const pair=DEC_TINT[dec]||["#123f2d","#184b37"];
     stops.push(`${pair[i%2]} ${i*seg}deg ${(i+1)*seg}deg`);
   }
   w.style.background=`conic-gradient(from ${-seg/2}deg, ${stops.join(",")})`;
-  const ticks=$("wheelticks");
-  if(ticks)ticks.style.background=`repeating-conic-gradient(rgba(227,179,76,.4) 0deg ${Math.min(.5,seg*.12)}deg, transparent ${Math.min(.5,seg*.12)}deg ${seg}deg)`;
+  const ticks=$("wheelticks");if(ticks)ticks.style.background="none";
   w.innerHTML="";
-  const wrapW=w.parentElement.getBoundingClientRect().width||320;
-  S.flagEls=[];
-  S.pool.forEach((si,i)=>{
-    const e=document.createElement("div");
-    let radius,dim=false;
-    if(n>80){const ring=i%3;radius=[0.60,0.755,0.90][ring];dim=ring<2;}
-    else if(n>40){radius=i%2?0.665:0.86;dim=!!(i%2);}
-    else radius=0.78;
-    e.className="seg-flag"+(dim?" dim":"");
-    e.innerHTML=`<span>${SQUADS[si].f}</span>`;
-    e.style.transform=`rotate(${i*seg}deg) translate(-50%,-50%) translateY(${-wrapW/2*radius}px)`;
-    w.appendChild(e);
-    S.flagEls.push(e);
+  // a thin gold spoke at each decade boundary + a quiet era label mid-arc,
+  // both children of the disc so they rotate with it (no stacked flags)
+  const wrapW=w.getBoundingClientRect().width||320, R=wrapW*0.31;
+  decadeArcs().forEach(a=>{
+    const bound=a.from*seg-seg/2;
+    const sp=document.createElement("div");sp.className="spoke";
+    sp.style.transform=`rotate(${180+bound}deg)`;
+    w.appendChild(sp);
+    if((a.to-a.from)*seg>=22){
+      const mid=((a.from+a.to)/2)*seg-seg/2;
+      const lb=document.createElement("div");lb.className="declab";
+      lb.textContent=`${a.dec*10}s`;
+      lb.style.transform=`translate(-50%,-50%) rotate(${mid}deg) translateY(${-R}px) rotate(${-mid}deg)`;
+      w.appendChild(lb);
+    }
   });
   w.style.transform=`rotate(${S.wheelRot}deg)`;
 }
@@ -1206,7 +1224,8 @@ function spin(){
     buildWheel();
     paintDraftMeta();
   }
-  S.spinning=true;$("btn-spin").disabled=true;$("landed").textContent="…";
+  S.spinning=true;$("btn-spin").disabled=true;
+  $("landed").classList.remove("pop");$("landed").innerHTML=`<span class="prompt">Spinning…</span>`;
   let pos;
   do{pos=rnd(S.pool.length);}while(S.pool[pos]===S.lastSquad&&S.pool.length>1);
   const si=S.pool[pos];
@@ -1216,8 +1235,9 @@ function spin(){
     const sq=SQUADS[si];
     SFX.land();
     $("wheelflash").classList.remove("on");void $("wheelflash").offsetWidth;$("wheelflash").classList.add("on");
-    if(S.flagEls){S.flagEls.forEach(f=>f.classList.remove("pop"));if(S.flagEls[pos])S.flagEls[pos].classList.add("pop");}
-    $("landed").innerHTML=`${sq.f} <span>${sq.t} ${sq.y}</span>`;
+    const l=$("landed");
+    l.innerHTML=`<span class="reveal"><span class="fl">${sq.f}</span> <b>${sq.t} ${sq.y}</b></span>`;
+    l.classList.remove("pop");void l.offsetWidth;l.classList.add("pop");
     openSquad(si);
   });
 }
@@ -1340,7 +1360,7 @@ function draft(si,pi,key,slotId){
     $("btn-spin").textContent="Name your captain →";
     $("btn-spin").onclick=openCaptain;
     $("btn-spin").disabled=false;
-    $("landed").innerHTML=`<span>Your XI is complete.</span>`;
+    $("landed").classList.remove("pop");$("landed").innerHTML=`<span class="reveal"><b>Your XI is complete ✓</b></span>`;
   }else{
     if(S.draft==="era"||S.draft==="dynasty")buildWheel();
     $("btn-spin").disabled=false;
@@ -2251,7 +2271,7 @@ async function startRun(daily){
     buildWheel();renderPitch();
     $("picks-n").textContent=S.slots.length;
     paintDraftMeta();
-    $("landed").textContent="Spin to draw your first squad";
+    $("landed").classList.remove("pop");$("landed").innerHTML=`<span class="prompt">Spin to draw your first squad</span>`;
     $("btn-spin").textContent="Spin the wheel";
     $("btn-spin").onclick=spin;$("btn-spin").disabled=false;
     show("draft");
