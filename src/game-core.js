@@ -295,75 +295,62 @@ const DEC_TINT={
   195:["#1b3a24","#214529"],196:["#173c28","#1d472f"],197:["#123f2d","#184b37"],
   198:["#0f4336","#13503f"],199:["#0c463f","#10514a"],200:["#0b4350","#0e4d5d"],
   201:["#0c3f59","#104a67"],202:["#103a5e","#13446b"]};
-/* group the (year-sorted) pool into contiguous decade arcs */
-function decadeArcs(){
-  const a=[]; if(!S.pool.length)return a;
-  let from=0, dec=Math.floor(SQUADS[S.pool[0]].y/10);
-  for(let i=1;i<=S.pool.length;i++){
-    const d=i<S.pool.length?Math.floor(SQUADS[S.pool[i]].y/10):null;
-    if(d!==dec){a.push({dec,from,to:i});from=i;dec=d;}
-  }
-  return a;
+function cardHTML(si){
+  const sq=SQUADS[si], dec=Math.floor(sq.y/10), pair=DEC_TINT[dec]||["#123f2d","#184b37"];
+  return `<div class="reel-card" style="background:linear-gradient(180deg,${pair[0]},${pair[1]})">`
+    +`<div class="cf">${sq.f}</div><div class="cn">${sq.t}</div><div class="cy">${sq.y}</div></div>`;
 }
-function buildWheel(){
-  S.pool=wheelPool();
-  const w=$("wheel");
-  const n=S.pool.length, seg=360/n;
-  let stops=[];
-  for(let i=0;i<n;i++){
-    const dec=Math.floor(SQUADS[S.pool[i]].y/10);
-    const pair=DEC_TINT[dec]||["#123f2d","#184b37"];
-    stops.push(`${pair[i%2]} ${i*seg}deg ${(i+1)*seg}deg`);
+// true cell width (card + margins) measured from the DOM — card size varies by breakpoint
+function cellW(track){
+  if(track.children.length>1){
+    const d=track.children[1].getBoundingClientRect().left-track.children[0].getBoundingClientRect().left;
+    if(d>10)return d;
   }
-  w.style.background=`conic-gradient(from ${-seg/2}deg, ${stops.join(",")})`;
-  const ticks=$("wheelticks");if(ticks)ticks.style.background="none";
-  w.innerHTML="";
-  // a thin gold spoke at each decade boundary + a quiet era label mid-arc,
-  // both children of the disc so they rotate with it (no stacked flags)
-  const wrapW=w.getBoundingClientRect().width||320, R=wrapW*0.31;
-  decadeArcs().forEach(a=>{
-    const bound=a.from*seg-seg/2;
-    const sp=document.createElement("div");sp.className="spoke";
-    sp.style.transform=`rotate(${180+bound}deg)`;
-    w.appendChild(sp);
-    if((a.to-a.from)*seg>=22){
-      const mid=((a.from+a.to)/2)*seg-seg/2;
-      const lb=document.createElement("div");lb.className="declab";
-      lb.textContent=`${a.dec*10}s`;
-      lb.style.transform=`translate(-50%,-50%) rotate(${mid}deg) translateY(${-R}px) rotate(${-mid}deg)`;
-      w.appendChild(lb);
-    }
-  });
-  w.style.transform=`rotate(${S.wheelRot}deg)`;
+  return 96;
+}
+// idle strip so the reel isn't empty before the first draw
+function buildReel(){
+  S.pool=wheelPool();
+  const track=$("reel-track");if(!track)return;
+  const vw=$("reel").clientWidth||320;
+  let html="",seen=-1;
+  const k=Math.ceil(vw/80)+4;
+  for(let i=0;i<k;i++){let si;do{si=pickFrom(S.pool);}while(si===seen&&S.pool.length>1);seen=si;html+=cardHTML(si);}
+  track.innerHTML=html;
+  track.style.transition="none";
+  const cell=cellW(track);
+  track.style.transform=`translateX(${vw/2-Math.floor(k/2)*cell-cell/2}px)`;
 }
 let spinRAF=null;
-function spinTo(poolPos,done){
-  const n=S.pool.length, seg=360/n;
-  const target=(360-poolPos*seg)%360;
-  const from=S.wheelRot;
-  const delta=(4+rnd(3))*360+((target-(from%360)+720)%360);
-  const to=from+delta;
-  const dur=reducedMotion?0:4300+rnd(700);
-  const w=$("wheel"),ptr=$("pointer");
-  if(dur===0){S.wheelRot=to;w.style.transform=`rotate(${to}deg)`;done();return;}
-  const t0=performance.now();
-  let lastSeg=Math.floor(((from%360)+360)%360/seg);
+function spinReel(pos,done){
+  const winner=S.pool[pos], track=$("reel-track"), reel=$("reel");
+  const vw=reel.clientWidth||320;
+  const N=46, L=40; // winner sits at index 40 with a few trailing cards
+  const arr=[]; let prev=-1;
+  for(let i=0;i<N;i++){
+    if(i===L){arr.push(winner);prev=winner;continue;}
+    let si;do{si=pickFrom(S.pool);}while((si===prev||si===winner)&&S.pool.length>2);
+    prev=si;arr.push(si);
+  }
+  track.innerHTML=arr.map(cardHTML).join("");
+  const cell=cellW(track);
+  const startTx=vw/2-cell/2;
+  const jitter=(rnd(2)?1:-1)*rnd(cell*0.32);
+  const finalTx=vw/2-(L*cell+cell/2)+jitter;
+  track.style.transition="none";track.style.transform=`translateX(${startTx}px)`;void track.offsetWidth;
+  const dur=reducedMotion?0:3600+rnd(500);
+  const settle=()=>{track.style.transform=`translateX(${finalTx}px)`;
+    const wc=track.children[L];if(wc){wc.classList.remove("win");void wc.offsetWidth;wc.classList.add("win");}done();};
+  if(dur===0){settle();return;}
+  const t0=performance.now();let lastC=-1;
   function frame(now){
     const t=Math.min(1,(now-t0)/dur);
-    const ease=1-Math.pow(1-t,4.1);
-    const rot=from+delta*ease;
-    S.wheelRot=rot;
-    w.style.transform=`rotate(${rot}deg)`;
-    const segNow=Math.floor(((rot%360)+360)%360/seg);
-    if(segNow!==lastSeg){
-      lastSeg=segNow;
-      SFX.tick();
-      const kick=clamp(16*(1-t*0.75),5,16);
-      ptr.style.transform=`rotate(${-kick}deg)`;
-      setTimeout(()=>{ptr.style.transform="rotate(0deg)";},70);
-    }
+    const tx=startTx+(finalTx-startTx)*(1-Math.pow(1-t,4));
+    track.style.transform=`translateX(${tx}px)`;
+    const c=Math.round((vw/2-tx-cell/2)/cell);
+    if(c!==lastC){lastC=c;SFX.tick();}
     if(t<1)spinRAF=requestAnimationFrame(frame);
-    else{spinRAF=null;S.wheelRot=to;w.style.transform=`rotate(${to}deg)`;done();}
+    else{spinRAF=null;settle();}
   }
   spinRAF=requestAnimationFrame(frame);
 }
@@ -378,20 +365,20 @@ function spin(){
       if(fits)break;
       S.era++;
     }
-    buildWheel();
+    buildReel();
     paintDraftMeta();
   }
   S.spinning=true;$("btn-spin").disabled=true;
-  $("landed").classList.remove("pop");$("landed").innerHTML=`<span class="prompt">Spinning…</span>`;
+  $("landed").classList.remove("pop");$("landed").innerHTML=`<span class="prompt">Drawing…</span>`;
   let pos;
   do{pos=rnd(S.pool.length);}while(S.pool[pos]===S.lastSquad&&S.pool.length>1);
   const si=S.pool[pos];
   S.lastSquad=si;
-  spinTo(pos,()=>{
+  spinReel(pos,()=>{
     S.spinning=false;
     const sq=SQUADS[si];
     SFX.land();
-    $("wheelflash").classList.remove("on");void $("wheelflash").offsetWidth;$("wheelflash").classList.add("on");
+    const fl=$("reel-flash");if(fl){fl.classList.remove("on");void fl.offsetWidth;fl.classList.add("on");}
     const l=$("landed");
     l.innerHTML=`<span class="reveal"><span class="fl">${sq.f}</span> <b>${sq.t} ${sq.y}</b></span>`;
     l.classList.remove("pop");void l.offsetWidth;l.classList.add("pop");
@@ -519,7 +506,7 @@ function draft(si,pi,key,slotId){
     $("btn-spin").disabled=false;
     $("landed").classList.remove("pop");$("landed").innerHTML=`<span class="reveal"><b>Your XI is complete ✓</b></span>`;
   }else{
-    if(S.draft==="era"||S.draft==="dynasty")buildWheel();
+    if(S.draft==="era"||S.draft==="dynasty")buildReel();
     $("btn-spin").disabled=false;
   }
 }

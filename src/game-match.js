@@ -790,11 +790,11 @@ async function startRun(daily){
     if(!token){try{token=await apiPost("/api/token",{});}catch(e){}}  // anon/offline: free token, earns nothing
     resetState(daily);
     if(token)S.token=token;
-    buildWheel();renderPitch();
+    buildReel();renderPitch();
     $("picks-n").textContent=S.slots.length;
     paintDraftMeta();
-    $("landed").classList.remove("pop");$("landed").innerHTML=`<span class="prompt">Spin to draw your first squad</span>`;
-    $("btn-spin").textContent="Spin the wheel";
+    $("landed").classList.remove("pop");$("landed").innerHTML=`<span class="prompt">Draw your first squad</span>`;
+    $("btn-spin").textContent="Draw a squad";
     $("btn-spin").onclick=spin;$("btn-spin").disabled=false;
     show("draft");
   }finally{RUN_BUSY=false;}
@@ -853,5 +853,5 @@ syncWallet();
 setInterval(()=>{if($("home").classList.contains("on"))paintHomeCTAs();},30000);
 let rsT=null;
 addEventListener("resize",()=>{clearTimeout(rsT);rsT=setTimeout(()=>{
-  if(S&&S.slots&&$("draft").classList.contains("on")&&!S.spinning)buildWheel();
+  if(S&&S.slots&&$("draft").classList.contains("on")&&!S.spinning)buildReel();
 },250);});
