@@ -100,6 +100,18 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 #dynastychips .chip{min-width:96px;font-size:12px}
 .multline{font-size:12.5px;color:var(--chalk-dim);text-align:center;margin:10px 0 4px}
 .multline b{color:var(--gold)}
+/* run-setup wizard */
+.wiz-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+.wiz-head h3{font-size:17px;font-weight:900}
+.wiz-dots{display:flex;gap:6px;flex:0 0 auto}
+.wiz-dots i{width:7px;height:7px;border-radius:50%;background:var(--line);display:block;transition:background .2s}
+.wiz-dots i.on{background:var(--gold)}
+.wizstep{display:none}
+.wizstep.on{display:block;animation:fadeIn .22s ease}
+.wiz-h{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:13px}
+.wiznav{display:flex;gap:10px;margin-top:18px}
+.wiznav .btn{flex:1}
+.wiznav .btn.ghost{flex:0 0 102px}
 .playas{font-size:12px;color:var(--chalk-dim);text-align:center;margin:8px 0 2px;min-height:16px}
 .playas b{color:var(--chalk)}
 .playas .edit{color:var(--gold);cursor:pointer;text-decoration:underline}
@@ -438,37 +450,11 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="daily">
       <div class="dl">⚡ Daily Challenge<span class="streak" id="daily-streak"></span></div>
       <div class="dd" id="daily-date"></div>
-      <div class="ds">One seeded run, the <b>same wheel for everyone</b> on Earth today. Classic rules, 4-3-3, ×1.1 score bonus. <b>Counts as today's run</b> — saved automatically. New challenge at midnight UTC.</div>
-      <button class="btn" id="btn-daily">Play today's challenge</button>
+      <div class="ds">One <b>free</b> seeded run a day — pick your shape and rules, then chase the <b>×1.1</b> daily bonus. Saved automatically. New challenge at midnight UTC.</div>
+      <button class="btn" id="btn-daily">Play today's challenge · FREE</button>
     </div>
 
-    <div class="panel">
-      <h2>Formation</h2>
-      <div class="chips" id="formchips"></div>
-    </div>
-    <div class="panel">
-      <h2>Draft mode</h2>
-      <div class="chips modes" id="draftchips"></div>
-      <div class="chips modes" id="dynastychips" style="margin-top:8px;display:none"></div>
-    </div>
-    <div class="panel">
-      <h2>Difficulty</h2>
-      <div class="chips modes" id="diffchips">
-        <button class="chip sel" data-m="classic">Classic<small>standard opponents</small></button>
-        <button class="chip" data-m="hard">Hard<small>ratings hidden</small></button>
-        <button class="chip" data-m="legend">Legend<small>brutal draw + hidden</small></button>
-      </div>
-    </div>
-    <div class="panel">
-      <h2>Player pool</h2>
-      <div class="chips modes" id="poolchips">
-        <button class="chip sel" data-p="all">All-time<small>1950–2022 · ×1.0</small></button>
-        <button class="chip" data-p="p90">Post-1990<small>the modern game · ×0.9</small></button>
-        <button class="chip" data-p="p06">Post-2006<small>recent legends · ×0.8</small></button>
-      </div>
-    </div>
-    <div class="multline">Score multiplier: <b id="multline">×1.0</b></div>
-    <button class="btn" id="btn-start">Start a custom run →</button>
+    <button class="btn ghost" id="btn-start" style="margin-top:4px">Or play a custom run →</button>
     <div class="walletline" id="walletline">
       <span>Balance <b id="home-bal">…</b></span>
       <button class="lnk" id="open-invite">🎁 Invite &amp; earn</button>
@@ -545,6 +531,46 @@ footer a{color:rgba(243,236,217,.5)}
       <h3>Name your captain</h3>
       <p class="hint">Your captain lifts the whole side and steps up in the big moments — some legends carry more <b>hidden leadership</b> than others. Choose with your gut.</p>
       <div id="cap-list"></div>
+    </div>
+  </div>
+
+  <!-- RUN SETUP WIZARD -->
+  <div class="modal-bg" id="wiz-bg">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="wiz-head">
+        <h3 id="wiz-title">Set up your run</h3>
+        <div class="wiz-dots" id="wiz-dots"></div>
+      </div>
+      <div class="wizstep" data-step="form">
+        <h2 class="wiz-h">Choose your formation</h2>
+        <div class="chips" id="formchips"></div>
+      </div>
+      <div class="wizstep" data-step="draft">
+        <h2 class="wiz-h">Choose a draft mode</h2>
+        <div class="chips modes" id="draftchips"></div>
+        <div class="chips modes" id="dynastychips" style="margin-top:8px;display:none"></div>
+      </div>
+      <div class="wizstep" data-step="diff">
+        <h2 class="wiz-h">Pick your difficulty</h2>
+        <div class="chips modes" id="diffchips">
+          <button class="chip sel" data-m="classic">Classic<small>standard opponents</small></button>
+          <button class="chip" data-m="hard">Hard<small>ratings hidden</small></button>
+          <button class="chip" data-m="legend">Legend<small>brutal draw + hidden</small></button>
+        </div>
+      </div>
+      <div class="wizstep" data-step="pool">
+        <h2 class="wiz-h">Pick the player pool</h2>
+        <div class="chips modes" id="poolchips">
+          <button class="chip sel" data-p="all">All-time<small>1950–2022 · ×1.0</small></button>
+          <button class="chip" data-p="p90">Post-1990<small>the modern game · ×0.9</small></button>
+          <button class="chip" data-p="p06">Post-2006<small>recent legends · ×0.8</small></button>
+        </div>
+      </div>
+      <div class="multline">Score multiplier: <b id="multline">×1.0</b></div>
+      <div class="wiznav">
+        <button class="btn ghost" id="wiz-back">Cancel</button>
+        <button class="btn" id="wiz-next">Next →</button>
+      </div>
     </div>
   </div>
 

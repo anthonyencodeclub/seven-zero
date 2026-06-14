@@ -70,8 +70,9 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
 
 function resetState(daily){
-  const draft=daily?"classic":pref.draft, form=daily?"4-3-3":pref.form, diff=daily?"classic":pref.diff;
-  const poolMode=daily?"all":(draft==="dynasty"?"all":pref.pool);
+  // daily is now fully configurable (still seeded + free + ×1.1 + one/day)
+  const draft=pref.draft, form=pref.form, diff=pref.diff;
+  const poolMode=draft==="dynasty"?"all":pref.pool;
   const F=FORMATIONS[form];
   const slots=[];F.rows.forEach(r=>r.forEach(id=>slots.push({id,cat:F.cats[id],player:null})));
   S={form,draft,diff,poolMode,daily:!!daily,dyn:draft==="dynasty"?pref.dyn:null,
@@ -81,6 +82,12 @@ function resetState(daily){
      pool:[],wheelIdx:[],
      cup:{stage:0,record:{w:0,d:0,l:0,gf:0,ga:0},group:null,knock:[],out:false,outAt:null,
           champion:false,perfect:false,regWins:0,gridResults:[],matches:[]}};
+  // Era Tour: start on the first era that actually overlaps the chosen pool
+  // (e.g. Post-1990 has no 1950s squads), so the opening reel is never empty
+  if(draft==="era"){
+    const minY=(POOLS[poolMode]||POOLS.all).y;
+    for(let k=0;k<ERAS.length;k++){const[a,b]=ERAS[k];if(SQUADS.some(s=>s.y>=Math.max(a,minY)&&s.y<=b)){S.era=k;break;}}
+  }
   // S.token is set by startRun from /api/play (typed paid/daily token);
   // anonymous/offline play falls back to a free token there.
 }
@@ -296,7 +303,8 @@ const DEC_TINT={
   198:["#0f4336","#13503f"],199:["#0c463f","#10514a"],200:["#0b4350","#0e4d5d"],
   201:["#0c3f59","#104a67"],202:["#103a5e","#13446b"]};
 function cardHTML(si){
-  const sq=SQUADS[si], dec=Math.floor(sq.y/10), pair=DEC_TINT[dec]||["#123f2d","#184b37"];
+  const sq=SQUADS[si];if(!sq)return"";
+  const dec=Math.floor(sq.y/10), pair=DEC_TINT[dec]||["#123f2d","#184b37"];
   return `<div class="reel-card" style="background:linear-gradient(180deg,${pair[0]},${pair[1]})">`
     +`<div class="cf">${sq.f}</div><div class="cn">${sq.t}</div><div class="cy">${sq.y}</div></div>`;
 }
@@ -312,6 +320,7 @@ function cellW(track){
 function buildReel(){
   S.pool=wheelPool();
   const track=$("reel-track");if(!track)return;
+  if(!S.pool.length){track.innerHTML="";return;}   // never crash on an empty pool
   const vw=$("reel").clientWidth||320;
   let html="",seen=-1;
   const k=Math.ceil(vw/80)+4;

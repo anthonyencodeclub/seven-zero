@@ -704,8 +704,11 @@ function paintPoolChips(){
 }
 function multline(){
   const effPool=pref.draft==="dynasty"?"all":pref.pool;
-  const m=(DIFF_MULT[pref.diff]||1)*(DRAFT_MULT[pref.draft]||1)*(POOL_MULT[effPool]??1);
-  $("multline").textContent="×"+m.toFixed(2).replace(/0$/,"")+(pref.draft==="dynasty"&&pref.dyn?" · "+pref.dyn:"");
+  let m=(DIFF_MULT[pref.diff]||1)*(DRAFT_MULT[pref.draft]||1)*(POOL_MULT[effPool]??1);
+  if(typeof WIZ!=="undefined"&&WIZ.daily)m*=1.1;
+  $("multline").textContent="×"+m.toFixed(2).replace(/0$/,"")
+    +(typeof WIZ!=="undefined"&&WIZ.daily?" (incl. daily bonus)":"")
+    +(pref.draft==="dynasty"&&pref.dyn?" · "+pref.dyn:"");
 }
 function buildFormChips(){
   const c=$("formchips");c.innerHTML="";
@@ -770,6 +773,37 @@ function paintDaily(){
   $("daily-streak").textContent=active&&st.streak?"🔥 "+st.streak+"-day streak":"";
   paintHomeCTAs();
 }
+/* step-by-step run setup wizard (formation → mode → difficulty → pool) */
+const WIZ={steps:["form","draft","diff","pool"],i:0,daily:false};
+function openWizard(daily){
+  WIZ.daily=!!daily;WIZ.i=0;
+  $("wiz-title").textContent=daily?"Daily Challenge":"Custom run";
+  paintPoolChips();
+  renderWizStep();
+  $("wiz-bg").classList.add("on");
+}
+function renderWizStep(){
+  const step=WIZ.steps[WIZ.i];
+  document.querySelectorAll("#wiz-bg .wizstep").forEach(s=>s.classList.toggle("on",s.dataset.step===step));
+  $("wiz-dots").innerHTML=WIZ.steps.map((_,k)=>`<i class="${k<=WIZ.i?"on":""}"></i>`).join("");
+  $("wiz-back").textContent=WIZ.i===0?"Cancel":"← Back";
+  $("wiz-next").textContent=WIZ.i===WIZ.steps.length-1
+    ?(WIZ.daily?"Play daily →":"Draw squad →")
+    :"Next →";
+  multline();
+}
+function wizNext(){
+  if(WIZ.i<WIZ.steps.length-1){WIZ.i++;renderWizStep();SFX.pick();}
+  else{$("wiz-bg").classList.remove("on");startRun(WIZ.daily);}
+}
+function wizBack(){
+  if(WIZ.i===0){$("wiz-bg").classList.remove("on");}
+  else{WIZ.i--;renderWizStep();}
+}
+// entry points: gate custom runs on credits before configuring
+function playDaily(){const st=store.get();if(st.lastDaily===utcDay()){goHome();return;}openWizard(true);}
+function playCustom(){if(WALLET.ready&&WALLET.cr<WALLET.cost){openInvite("low");return;}openWizard(false);}
+
 let RUN_BUSY=false;
 async function startRun(daily){
   const st=store.get();
@@ -802,8 +836,8 @@ async function startRun(daily){
 function goHome(){
   renderCabinet();paintDaily();paintProfile();homeBoardPreview();show("home");
 }
-$("btn-start").onclick=()=>startRun(false);
-$("btn-daily").onclick=()=>startRun(true);
+$("btn-start").onclick=playCustom;
+$("btn-daily").onclick=playDaily;
 $("btn-respin").onclick=()=>{
   if(!$("btn-respin").dataset.free){
     if(S.respins<=0)return;
@@ -819,7 +853,10 @@ $("btn-submit-score").onclick=saveProfile;
 $("btn-cancel-save").onclick=()=>{PENDING_START=null;PENDING_SUBMIT=false;$("save-bg").classList.remove("on");};
 $("btn-board-home").onclick=()=>{show("board");loadBoard("all",true);};
 $("btn-board-back").onclick=goHome;
-$("btn-board-play").onclick=()=>startRun(false);
+$("btn-board-play").onclick=playCustom;
+$("wiz-next").onclick=wizNext;
+$("wiz-back").onclick=wizBack;
+$("wiz-bg").onclick=e=>{if(e.target===$("wiz-bg"))$("wiz-bg").classList.remove("on");};
 $("tab-all").onclick=()=>loadBoard("all",true);
 $("tab-daily").onclick=()=>loadBoard("daily",true);
 $("tab-streaks").onclick=()=>loadBoard("streaks",true);

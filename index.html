@@ -100,6 +100,18 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 #dynastychips .chip{min-width:96px;font-size:12px}
 .multline{font-size:12.5px;color:var(--chalk-dim);text-align:center;margin:10px 0 4px}
 .multline b{color:var(--gold)}
+/* run-setup wizard */
+.wiz-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+.wiz-head h3{font-size:17px;font-weight:900}
+.wiz-dots{display:flex;gap:6px;flex:0 0 auto}
+.wiz-dots i{width:7px;height:7px;border-radius:50%;background:var(--line);display:block;transition:background .2s}
+.wiz-dots i.on{background:var(--gold)}
+.wizstep{display:none}
+.wizstep.on{display:block;animation:fadeIn .22s ease}
+.wiz-h{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:13px}
+.wiznav{display:flex;gap:10px;margin-top:18px}
+.wiznav .btn{flex:1}
+.wiznav .btn.ghost{flex:0 0 102px}
 .playas{font-size:12px;color:var(--chalk-dim);text-align:center;margin:8px 0 2px;min-height:16px}
 .playas b{color:var(--chalk)}
 .playas .edit{color:var(--gold);cursor:pointer;text-decoration:underline}
@@ -438,37 +450,11 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="daily">
       <div class="dl">⚡ Daily Challenge<span class="streak" id="daily-streak"></span></div>
       <div class="dd" id="daily-date"></div>
-      <div class="ds">One seeded run, the <b>same wheel for everyone</b> on Earth today. Classic rules, 4-3-3, ×1.1 score bonus. <b>Counts as today's run</b> — saved automatically. New challenge at midnight UTC.</div>
-      <button class="btn" id="btn-daily">Play today's challenge</button>
+      <div class="ds">One <b>free</b> seeded run a day — pick your shape and rules, then chase the <b>×1.1</b> daily bonus. Saved automatically. New challenge at midnight UTC.</div>
+      <button class="btn" id="btn-daily">Play today's challenge · FREE</button>
     </div>
 
-    <div class="panel">
-      <h2>Formation</h2>
-      <div class="chips" id="formchips"></div>
-    </div>
-    <div class="panel">
-      <h2>Draft mode</h2>
-      <div class="chips modes" id="draftchips"></div>
-      <div class="chips modes" id="dynastychips" style="margin-top:8px;display:none"></div>
-    </div>
-    <div class="panel">
-      <h2>Difficulty</h2>
-      <div class="chips modes" id="diffchips">
-        <button class="chip sel" data-m="classic">Classic<small>standard opponents</small></button>
-        <button class="chip" data-m="hard">Hard<small>ratings hidden</small></button>
-        <button class="chip" data-m="legend">Legend<small>brutal draw + hidden</small></button>
-      </div>
-    </div>
-    <div class="panel">
-      <h2>Player pool</h2>
-      <div class="chips modes" id="poolchips">
-        <button class="chip sel" data-p="all">All-time<small>1950–2022 · ×1.0</small></button>
-        <button class="chip" data-p="p90">Post-1990<small>the modern game · ×0.9</small></button>
-        <button class="chip" data-p="p06">Post-2006<small>recent legends · ×0.8</small></button>
-      </div>
-    </div>
-    <div class="multline">Score multiplier: <b id="multline">×1.0</b></div>
-    <button class="btn" id="btn-start">Start a custom run →</button>
+    <button class="btn ghost" id="btn-start" style="margin-top:4px">Or play a custom run →</button>
     <div class="walletline" id="walletline">
       <span>Balance <b id="home-bal">…</b></span>
       <button class="lnk" id="open-invite">🎁 Invite &amp; earn</button>
@@ -545,6 +531,46 @@ footer a{color:rgba(243,236,217,.5)}
       <h3>Name your captain</h3>
       <p class="hint">Your captain lifts the whole side and steps up in the big moments — some legends carry more <b>hidden leadership</b> than others. Choose with your gut.</p>
       <div id="cap-list"></div>
+    </div>
+  </div>
+
+  <!-- RUN SETUP WIZARD -->
+  <div class="modal-bg" id="wiz-bg">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="wiz-head">
+        <h3 id="wiz-title">Set up your run</h3>
+        <div class="wiz-dots" id="wiz-dots"></div>
+      </div>
+      <div class="wizstep" data-step="form">
+        <h2 class="wiz-h">Choose your formation</h2>
+        <div class="chips" id="formchips"></div>
+      </div>
+      <div class="wizstep" data-step="draft">
+        <h2 class="wiz-h">Choose a draft mode</h2>
+        <div class="chips modes" id="draftchips"></div>
+        <div class="chips modes" id="dynastychips" style="margin-top:8px;display:none"></div>
+      </div>
+      <div class="wizstep" data-step="diff">
+        <h2 class="wiz-h">Pick your difficulty</h2>
+        <div class="chips modes" id="diffchips">
+          <button class="chip sel" data-m="classic">Classic<small>standard opponents</small></button>
+          <button class="chip" data-m="hard">Hard<small>ratings hidden</small></button>
+          <button class="chip" data-m="legend">Legend<small>brutal draw + hidden</small></button>
+        </div>
+      </div>
+      <div class="wizstep" data-step="pool">
+        <h2 class="wiz-h">Pick the player pool</h2>
+        <div class="chips modes" id="poolchips">
+          <button class="chip sel" data-p="all">All-time<small>1950–2022 · ×1.0</small></button>
+          <button class="chip" data-p="p90">Post-1990<small>the modern game · ×0.9</small></button>
+          <button class="chip" data-p="p06">Post-2006<small>recent legends · ×0.8</small></button>
+        </div>
+      </div>
+      <div class="multline">Score multiplier: <b id="multline">×1.0</b></div>
+      <div class="wiznav">
+        <button class="btn ghost" id="wiz-back">Cancel</button>
+        <button class="btn" id="wiz-next">Next →</button>
+      </div>
     </div>
   </div>
 
@@ -916,8 +942,9 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
 
 function resetState(daily){
-  const draft=daily?"classic":pref.draft, form=daily?"4-3-3":pref.form, diff=daily?"classic":pref.diff;
-  const poolMode=daily?"all":(draft==="dynasty"?"all":pref.pool);
+  // daily is now fully configurable (still seeded + free + ×1.1 + one/day)
+  const draft=pref.draft, form=pref.form, diff=pref.diff;
+  const poolMode=draft==="dynasty"?"all":pref.pool;
   const F=FORMATIONS[form];
   const slots=[];F.rows.forEach(r=>r.forEach(id=>slots.push({id,cat:F.cats[id],player:null})));
   S={form,draft,diff,poolMode,daily:!!daily,dyn:draft==="dynasty"?pref.dyn:null,
@@ -927,6 +954,12 @@ function resetState(daily){
      pool:[],wheelIdx:[],
      cup:{stage:0,record:{w:0,d:0,l:0,gf:0,ga:0},group:null,knock:[],out:false,outAt:null,
           champion:false,perfect:false,regWins:0,gridResults:[],matches:[]}};
+  // Era Tour: start on the first era that actually overlaps the chosen pool
+  // (e.g. Post-1990 has no 1950s squads), so the opening reel is never empty
+  if(draft==="era"){
+    const minY=(POOLS[poolMode]||POOLS.all).y;
+    for(let k=0;k<ERAS.length;k++){const[a,b]=ERAS[k];if(SQUADS.some(s=>s.y>=Math.max(a,minY)&&s.y<=b)){S.era=k;break;}}
+  }
   // S.token is set by startRun from /api/play (typed paid/daily token);
   // anonymous/offline play falls back to a free token there.
 }
@@ -1142,7 +1175,8 @@ const DEC_TINT={
   198:["#0f4336","#13503f"],199:["#0c463f","#10514a"],200:["#0b4350","#0e4d5d"],
   201:["#0c3f59","#104a67"],202:["#103a5e","#13446b"]};
 function cardHTML(si){
-  const sq=SQUADS[si], dec=Math.floor(sq.y/10), pair=DEC_TINT[dec]||["#123f2d","#184b37"];
+  const sq=SQUADS[si];if(!sq)return"";
+  const dec=Math.floor(sq.y/10), pair=DEC_TINT[dec]||["#123f2d","#184b37"];
   return `<div class="reel-card" style="background:linear-gradient(180deg,${pair[0]},${pair[1]})">`
     +`<div class="cf">${sq.f}</div><div class="cn">${sq.t}</div><div class="cy">${sq.y}</div></div>`;
 }
@@ -1158,6 +1192,7 @@ function cellW(track){
 function buildReel(){
   S.pool=wheelPool();
   const track=$("reel-track");if(!track)return;
+  if(!S.pool.length){track.innerHTML="";return;}   // never crash on an empty pool
   const vw=$("reel").clientWidth||320;
   let html="",seen=-1;
   const k=Math.ceil(vw/80)+4;
@@ -2172,8 +2207,11 @@ function paintPoolChips(){
 }
 function multline(){
   const effPool=pref.draft==="dynasty"?"all":pref.pool;
-  const m=(DIFF_MULT[pref.diff]||1)*(DRAFT_MULT[pref.draft]||1)*(POOL_MULT[effPool]??1);
-  $("multline").textContent="×"+m.toFixed(2).replace(/0$/,"")+(pref.draft==="dynasty"&&pref.dyn?" · "+pref.dyn:"");
+  let m=(DIFF_MULT[pref.diff]||1)*(DRAFT_MULT[pref.draft]||1)*(POOL_MULT[effPool]??1);
+  if(typeof WIZ!=="undefined"&&WIZ.daily)m*=1.1;
+  $("multline").textContent="×"+m.toFixed(2).replace(/0$/,"")
+    +(typeof WIZ!=="undefined"&&WIZ.daily?" (incl. daily bonus)":"")
+    +(pref.draft==="dynasty"&&pref.dyn?" · "+pref.dyn:"");
 }
 function buildFormChips(){
   const c=$("formchips");c.innerHTML="";
@@ -2238,6 +2276,37 @@ function paintDaily(){
   $("daily-streak").textContent=active&&st.streak?"🔥 "+st.streak+"-day streak":"";
   paintHomeCTAs();
 }
+/* step-by-step run setup wizard (formation → mode → difficulty → pool) */
+const WIZ={steps:["form","draft","diff","pool"],i:0,daily:false};
+function openWizard(daily){
+  WIZ.daily=!!daily;WIZ.i=0;
+  $("wiz-title").textContent=daily?"Daily Challenge":"Custom run";
+  paintPoolChips();
+  renderWizStep();
+  $("wiz-bg").classList.add("on");
+}
+function renderWizStep(){
+  const step=WIZ.steps[WIZ.i];
+  document.querySelectorAll("#wiz-bg .wizstep").forEach(s=>s.classList.toggle("on",s.dataset.step===step));
+  $("wiz-dots").innerHTML=WIZ.steps.map((_,k)=>`<i class="${k<=WIZ.i?"on":""}"></i>`).join("");
+  $("wiz-back").textContent=WIZ.i===0?"Cancel":"← Back";
+  $("wiz-next").textContent=WIZ.i===WIZ.steps.length-1
+    ?(WIZ.daily?"Play daily →":"Draw squad →")
+    :"Next →";
+  multline();
+}
+function wizNext(){
+  if(WIZ.i<WIZ.steps.length-1){WIZ.i++;renderWizStep();SFX.pick();}
+  else{$("wiz-bg").classList.remove("on");startRun(WIZ.daily);}
+}
+function wizBack(){
+  if(WIZ.i===0){$("wiz-bg").classList.remove("on");}
+  else{WIZ.i--;renderWizStep();}
+}
+// entry points: gate custom runs on credits before configuring
+function playDaily(){const st=store.get();if(st.lastDaily===utcDay()){goHome();return;}openWizard(true);}
+function playCustom(){if(WALLET.ready&&WALLET.cr<WALLET.cost){openInvite("low");return;}openWizard(false);}
+
 let RUN_BUSY=false;
 async function startRun(daily){
   const st=store.get();
@@ -2270,8 +2339,8 @@ async function startRun(daily){
 function goHome(){
   renderCabinet();paintDaily();paintProfile();homeBoardPreview();show("home");
 }
-$("btn-start").onclick=()=>startRun(false);
-$("btn-daily").onclick=()=>startRun(true);
+$("btn-start").onclick=playCustom;
+$("btn-daily").onclick=playDaily;
 $("btn-respin").onclick=()=>{
   if(!$("btn-respin").dataset.free){
     if(S.respins<=0)return;
@@ -2287,7 +2356,10 @@ $("btn-submit-score").onclick=saveProfile;
 $("btn-cancel-save").onclick=()=>{PENDING_START=null;PENDING_SUBMIT=false;$("save-bg").classList.remove("on");};
 $("btn-board-home").onclick=()=>{show("board");loadBoard("all",true);};
 $("btn-board-back").onclick=goHome;
-$("btn-board-play").onclick=()=>startRun(false);
+$("btn-board-play").onclick=playCustom;
+$("wiz-next").onclick=wizNext;
+$("wiz-back").onclick=wizBack;
+$("wiz-bg").onclick=e=>{if(e.target===$("wiz-bg"))$("wiz-bg").classList.remove("on");};
 $("tab-all").onclick=()=>loadBoard("all",true);
 $("tab-daily").onclick=()=>loadBoard("daily",true);
 $("tab-streaks").onclick=()=>loadBoard("streaks",true);
