@@ -509,7 +509,7 @@ footer a{color:rgba(243,236,217,.5)}
     <div class="landed" id="landed"><span class="prompt">Spin to draw your first squad</span></div>
     <button class="btn" id="btn-spin">Draw a squad</button>
     <div class="pitch" id="pitch"></div>
-    <div class="chemline"><span>Chemistry: <b id="chem-n">0/33</b> ⚡</span><span>Team boost: <b id="chem-b">+0.0</b></span></div>
+    <div class="chemline"><span>Chemistry: <b id="chem-n">0</b> ⚡</span><span>Team boost: <b id="chem-b">+0.0</b></span></div>
     <button class="btn ghost" id="btn-restart-draft" style="margin-top:14px">Abandon run · entry fee spent</button>
   </section>
 
@@ -949,11 +949,11 @@ function resetState(daily){
   const slots=[];F.rows.forEach(r=>r.forEach(id=>slots.push({id,cat:F.cats[id],player:null})));
   S={form,draft,diff,poolMode,daily:!!daily,dyn:draft==="dynasty"?pref.dyn:null,
      slots,lastSquad:-1,spinning:false,wheelRot:0,picked:new Set(),
-     respins:1,captain:null,goals:{},era:0,budget:CAP_BUDGET,token:null,submitted:false,
+     respins:1,captain:null,goals:{},assists:{},era:0,budget:CAP_BUDGET,token:null,submitted:false,
      rng:Math.random,   // daily = your one free run, played however you like (not a shared seed)
      pool:[],wheelIdx:[],
      cup:{stage:0,record:{w:0,d:0,l:0,gf:0,ga:0},group:null,knock:[],out:false,outAt:null,
-          champion:false,perfect:false,regWins:0,gridResults:[],matches:[]}};
+          champion:false,perfect:false,regWins:0,cleanSheets:0,gridResults:[],matches:[]}};
   // Era Tour: start on the first era that actually overlaps the chosen pool
   // (e.g. Post-1990 has no 1950s squads), so the opening reel is never empty
   if(draft==="era"){
@@ -1410,35 +1410,53 @@ function oopPenalty(slot,pl){ // slot {id,cat} · pl {cat,sp}
 }
 function effRating(s){return s.player?Math.max(40,s.player.rating-oopPenalty(s,s.player)):0;}
 
-/* chemistry v3 — links are shared history:
-   played together at the same World Cup 1.0 · same national shirt 0.75
-   same decade + continent 0.6 · same decade 0.4 · same continent 0.25 */
+/* =========================================================
+   CHEMISTRY v4 — generous: rewards correct position, same club,
+   same World Cup squad, same nation, same decade, same continent.
+   Tuned so a normally-assembled XI sits around ~16.
+========================================================= */
 const CONT={Brazil:"SA",Argentina:"SA",Uruguay:"SA",Chile:"SA",Peru:"SA",Colombia:"SA",
   Mexico:"NA","United States":"NA","Costa Rica":"NA",
   Cameroon:"AF",Nigeria:"AF",Senegal:"AF",Morocco:"AF",Ghana:"AF",Algeria:"AF",
   Japan:"AS","South Korea":"AS","Saudi Arabia":"AS",Australia:"AS"};
 const contOf=t=>CONT[t]||"EU";
 const decOf=y=>Math.floor(y/10);
-function linkPts(a,b){
-  if(a.sq===b.sq)return 1.0;
-  if(DYN_ALIAS(a.team)===DYN_ALIAS(b.team))return .75;
-  const dec=decOf(a.year)===decOf(b.year),cont=contOf(a.team)===contOf(b.team);
-  return dec&&cont?.6:dec?.4:cont?.25:0;
+/* curated club allegiances for marquee players — lets cross-nation club
+   legends link up (Messi+Suárez = Barça, Ronaldo+Modrić = Real…).
+   Coverage is the famous cases, not all 1,608 players. */
+const CLUB=(()=>{const m={},add=(c,...ns)=>ns.forEach(n=>m[n]=c);
+  add("Real Madrid","Cristiano Ronaldo","Zinedine Zidane","Sergio Ramos","Iker Casillas","Raúl","Luka Modrić","Roberto Carlos","Toni Kroos","Raphaël Varane","Fernando Hierro","Emilio Butragueño","Hugo Sánchez","Pepe");
+  add("Barcelona","Lionel Messi","Xavi","Andrés Iniesta","Carles Puyol","Gerard Piqué","Sergio Busquets","Luis Suárez","Ronaldinho","Rivaldo","Romário","Hristo Stoichkov","Pep Guardiola","David Villa","Pedro","Neymar");
+  add("Bayern Munich","Franz Beckenbauer","Gerd Müller","Sepp Maier","Paul Breitner","Lothar Matthäus","Philipp Lahm","Bastian Schweinsteiger","Thomas Müller","Manuel Neuer","Arjen Robben","Franck Ribéry","Robert Lewandowski");
+  add("Manchester United","Bobby Charlton","David Beckham","Wayne Rooney","Gary Neville","Paul Scholes","Rio Ferdinand","Jaap Stam","Bryan Robson");
+  add("Liverpool","Steven Gerrard","Kenny Dalglish","Sadio Mané","Alisson");
+  add("AC Milan","Paolo Maldini","Franco Baresi","Gennaro Gattuso","Alessandro Nesta","Kaká");
+  add("Juventus","Gianluigi Buffon","Alessandro Del Piero","Michel Platini","Marco Tardelli","Antonio Cabrini","Dino Zoff","Gaetano Scirea","Paolo Rossi","Claudio Gentile");
+  add("Ajax","Johan Cruyff","Johan Neeskens","Ruud Krol","Johnny Rep","Frank de Boer","Edwin van der Sar");
+  return m;})();
+function sameClub(a,b){const x=CLUB[a.name];return !!x&&x===CLUB[b.name];}
+const CHEM={posExact:1.6,posLine:0.7,club:2,squad:1.4,nation:1,decade:0.6,cont:0.3,volPer:0.2,volCap:1.4,mult:0.66,scale:0.09,boostCap:4};
+function bond(a,b){
+  if(sameClub(a,b))return CHEM.club;
+  if(a.sq===b.sq)return CHEM.squad;
+  if(DYN_ALIAS(a.team)===DYN_ALIAS(b.team))return CHEM.nation;
+  if(decOf(a.year)===decOf(b.year))return CHEM.decade;
+  if(contOf(a.team)===contOf(b.team))return CHEM.cont;
+  return 0;
 }
-function slotLinks(s){
-  let l=0;S.slots.forEach(x=>{if(x.player&&x!==s)l+=linkPts(s.player,x.player);});
-  return l;
-}
-/* per-player 0–3⚡: natural position +1 · linked squad +1 (links ≥2) · deeply linked +1 (links ≥4.5) */
+/* per-player chem: position fit + strongest historical bond + a volume bonus
+   for being linked to many teammates (themed sides) */
 function playerChem(s){
   if(!s.player)return 0;
-  const l=slotLinks(s);
-  return (oopPenalty(s,s.player)===0?1:0)+(l>=2?1:0)+(l>=4.5?1:0);
+  const pen=oopPenalty(s,s.player);
+  let c=pen===0?CHEM.posExact:(s.cat===s.player.cat?CHEM.posLine:0);
+  let best=0,n=0;
+  S.slots.forEach(x=>{if(x.player&&x!==s){const b=bond(s.player,x.player);if(b>0){if(b>best)best=b;if(b>=CHEM.decade)n++;}}});
+  return (c+best+Math.min(CHEM.volCap,n*CHEM.volPer))*CHEM.mult;
 }
 function chemistry(){
   const total=S.slots.reduce((a,s)=>a+playerChem(s),0);
-  const max=S.slots.length*3;
-  return{total,max,boost:Math.min(3,total*0.09)};
+  return{total:Math.round(total),boost:Math.min(CHEM.boostCap,total*CHEM.scale)};
 }
 function renderPitch(justId){
   const F=FORMATIONS[S.form];
@@ -1452,14 +1470,14 @@ function renderPitch(justId){
       const t=s.player?(hidden()?"plain":tier(eff)):"";
       d.className="slot"+(s.player?" filled t-"+t:"")+(justId===id?" justin":"");
       d.innerHTML=s.player
-        ?`${S.captain===s.id?'<div class="cap">C</div>':""}<div class="jwrap">${jersey(s.player.team,s.player.num,20)}</div><div class="ptag">${s.id}</div><div class="nm">${s.player.name}</div><div class="meta">${s.player.flag} ${s.player.year}${hidden()?"":" · "+eff}${pen?"▾":""} · ⚡${playerChem(s)}</div>`
+        ?`${S.captain===s.id?'<div class="cap">C</div>':""}<div class="jwrap">${jersey(s.player.team,s.player.num,20)}</div><div class="ptag">${s.id}</div><div class="nm">${s.player.name}</div><div class="meta">${s.player.flag} ${s.player.year}${hidden()?"":" · "+eff}${pen?"▾":""} · ⚡${Math.round(playerChem(s))}</div>`
         :`<div class="ptag">${s.id}</div><div class="nm" style="color:var(--chalk-dim)">—</div>`;
       row.appendChild(d);
     });
     p.appendChild(row);
   });
   const c=chemistry();
-  $("chem-n").textContent=c.total+"/"+c.max;
+  $("chem-n").textContent=c.total;
   $("chem-b").textContent="+"+c.boost.toFixed(1);
 }
 function openCaptain(){
@@ -1469,7 +1487,7 @@ function openCaptain(){
     b.className="pl";
     const eff=effRating(s);
     const t=hidden()?"plain":tier(eff);
-    b.innerHTML=`${jersey(s.player.team,s.player.num,26)}<span class="pos">${s.id}</span><span class="pname">${s.player.name} <span style="color:var(--chalk-dim)">⚡${playerChem(s)}</span></span><span class="rt t-${t}">${hidden()?"??":eff}</span>`;
+    b.innerHTML=`${jersey(s.player.team,s.player.num,26)}<span class="pos">${s.id}</span><span class="pname">${s.player.name} <span style="color:var(--chalk-dim)">⚡${Math.round(playerChem(s))}</span></span><span class="rt t-${t}">${hidden()?"??":eff}</span>`;
     b.onclick=()=>{S.captain=s.id;$("cap-bg").classList.remove("on");SFX.fanfare();renderPitch();startCup();};
     list.appendChild(b);
   });
@@ -1496,6 +1514,22 @@ function scorerName(){
     if(S.captain===s.id)w*=1.15+capLead()*0.04;
     if(w>0)pool.push([s.player.name,w]);
   });
+  let tot=pool.reduce((a,b)=>a+b[1],0),r=R()*tot;
+  for(const[n,w]of pool){r-=w;if(r<=0)return n;}
+  return pool[0][0];
+}
+/* ~70% of goals get an assist, weighted to creators (MID/wide FWD), never the scorer */
+function assistName(scorer){
+  if(R()<0.3)return null;
+  const pool=[];
+  S.slots.forEach(s=>{
+    if(s.player.name===scorer)return;
+    const e=effRating(s);
+    let w=s.cat==="MID"?e*1.6:s.cat==="FWD"?e*1.1:s.cat==="DEF"?e*0.3:0;
+    if(S.captain===s.id)w*=1.2;
+    if(w>0)pool.push([s.player.name,w]);
+  });
+  if(!pool.length)return null;
   let tot=pool.reduce((a,b)=>a+b[1],0),r=R()*tot;
   for(const[n,w]of pool){r-=w;if(r<=0)return n;}
   return pool[0][0];
@@ -1581,7 +1615,7 @@ function runLive(opp,knockout,done){
     const boost=min>90?1.05:1;
     const rally=(theirMin.length>ourGoals.length&&min>=75)?1+capLead()*0.02:1;
     if(R()<xf/90*mf*boost*rally){
-      const n=scorerName();ourGoals.push([n,min]);
+      const n=scorerName();ourGoals.push([n,min,assistName(n)]);
       addLog(`<span class="goalus">⚽ GOAL! ${n} ${min}'</span> — ${pickFrom(C_OURGOAL)}`);
       const ahead=ourGoals.length===theirMin.length+1;
       if(min>=85&&ahead&&R()<.55)addLog(fcom(pickFrom(FAMOUS_LATE)));
@@ -1745,7 +1779,8 @@ function book(res,isGroup){
   }
   S.cup.gridResults.push(g);
   S.cup.matches.push({gf:res.gf,ga:res.ga,et:isGroup?false:!!res.et,pw:(!isGroup&&res.pens)?!!res.pens.win:null});
-  res.scorers.forEach(([n])=>{S.goals[n]=(S.goals[n]||0)+1;});
+  res.scorers.forEach(([n,,a])=>{S.goals[n]=(S.goals[n]||0)+1;if(a)S.assists[a]=(S.assists[a]||0)+1;});
+  if(res.ga===0)S.cup.cleanSheets=(S.cup.cleanSheets||0)+1;
 }
 function playNext(){
   const st=S.cup.stage;
@@ -1863,15 +1898,27 @@ function renderBadges(st){
    RESULT + AWARDS + CABINET
 ========================================================= */
 function awards(){
-  const entries=Object.entries(S.goals).sort((a,b)=>b[1]-a[1]);
-  const boot=entries[0]||null;
-  let pott=null,best=-1;
+  const cs=S.cup.cleanSheets||0;
+  // Golden Boot: most goals, tie-break on assists then quality
+  let boot=null,bootBest=-1;
   S.slots.forEach(s=>{
-    const g=S.goals[s.player.name]||0;
-    const sc=g*3+effRating(s)*0.05+(S.captain===s.id?0.5:0);
-    if(sc>best){best=sc;pott=s.player;}
+    const g=S.goals[s.player.name]||0;if(g<=0)return;
+    const k=g*1000+(S.assists[s.player.name]||0)*10+effRating(s)*0.1;
+    if(k>bootBest){bootBest=k;boot={name:s.player.name,g,a:S.assists[s.player.name]||0};}
   });
-  return{boot,pott};
+  // Player of the Tournament: holistic — goals + assists + clean sheets
+  // (defenders/keepers), quality and captaincy, so it isn't just the top scorer
+  let pott=null,best=-1,pstat=null;
+  S.slots.forEach(s=>{
+    const g=S.goals[s.player.name]||0, a=S.assists[s.player.name]||0;
+    const def=s.cat==="DEF"||s.cat==="GK";
+    const sc=g*4 + a*2.2
+      + (def?cs*(s.cat==="GK"?2.4:1.8):0)
+      + effRating(s)*0.06
+      + (S.captain===s.id?1+capLead()*0.2:0);
+    if(sc>best){best=sc;pott=s.player;pstat={g,a,cs:def?cs:0,gk:s.cat==="GK"};}
+  });
+  return{boot,pott,pstat,cs};
 }
 function countUp(el,to,suffix){
   const t0=performance.now(),dur=reducedMotion?0:850;
@@ -1912,12 +1959,18 @@ function showResult(){
   $("r-perfect").innerHTML=sc.perfect?`<div class="perfect">✦ Perfect 7-0 ✦</div>`
     :(S.cup.champion?`<div class="record" style="margin-top:10px">Champions — but not the perfect seven. Run it back?</div>`:"");
   const a=awards();
-  $("r-boot").textContent=a.boot?a.boot[0]:"No goals";
-  $("r-boot2").textContent=a.boot?a.boot[1]+(a.boot[1]===1?" goal":" goals"):"";
+  $("r-boot").textContent=a.boot?a.boot.name:"No goals";
+  $("r-boot2").textContent=a.boot?a.boot.g+(a.boot.g===1?" goal":" goals")+(a.boot.a?" · "+a.boot.a+(a.boot.a===1?" assist":" assists"):""):"";
   $("r-pott").textContent=a.pott?a.pott.name:"—";
-  $("r-pott2").textContent=a.pott?a.pott.flag+" "+a.pott.year:"";
+  if(a.pott&&a.pstat){
+    const p=a.pstat,bits=[];
+    if(p.g)bits.push(p.g+"G");
+    if(p.a)bits.push(p.a+"A");
+    if(p.cs)bits.push(p.cs+(p.gk?" clean sheets":" CS"));
+    $("r-pott2").innerHTML=`${a.pott.flag} ${a.pott.year}${bits.length?" · "+bits.join(" "):""}`;
+  }else $("r-pott2").textContent="—";
   const ch=chemistry();
-  $("r-xi").innerHTML=`<h4>Your XI · ${S.form} · Chem ⚡${ch.total}/${ch.max} (+${ch.boost.toFixed(1)})</h4>`+S.slots.map(s=>{
+  $("r-xi").innerHTML=`<h4>Your XI · ${S.form} · Chem ⚡${ch.total} (+${ch.boost.toFixed(1)})</h4>`+S.slots.map(s=>{
     const pen=oopPenalty(s,s.player),eff=effRating(s);
     return `<div class="li"><span style="display:flex;align-items:center;gap:7px">${jersey(s.player.team,s.player.num,18)}<span><b>${s.player.name}${S.captain===s.id?" ©":""}</b> · ${s.id}${(S.goals[s.player.name]||0)?" · ⚽"+S.goals[s.player.name]:""}</span></span><span>${s.player.flag} ${s.player.year} · ${pen?s.player.rating+"→"+eff:s.player.rating}</span></div>`;
   }).join("");

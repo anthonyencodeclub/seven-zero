@@ -12,7 +12,7 @@ A free, fan-made World Cup draft game with a **live world leaderboard** and a **
 
 - 🎡 **The draw reel** — a case-opening-style strip of nation cards (flag · country · year, decade-tinted) from 136 real squads, Uruguay 1950 to Argentina 2022; it scrolls fast and eases to a stop with your squad framed under the pointer. One re-spin per run — choose wisely.
 - 🎯 **Place anyone anywhere** — you choose the exact slot for every pick. Out of position costs rating: −4 one line out, −9 two lines, −15 for anything involving the goalkeeper (yes, you can play Pelé in goal at 83).
-- ⚡ **Chemistry is shared history** — players link if they actually played together at the same World Cup (strongest), wore the same national shirt in another era, or come from the same decade or continent. Natural position adds ⚡ too; total chemistry boosts the whole XI.
+- ⚡ **Chemistry** — generous links reward putting players in their **correct position**, sharing a **club** (curated for marquee names: Messi+Suárez = Barça, Ronaldo+Modrić = Real…), the **same World Cup squad**, **nation**, **decade** or **continent**. A normal XI sits around ~16; themed sides (a Barça spine, an all-90s team) climb higher and boost the whole side.
 - ⚽ **Live match engine** — minute-by-minute simulation with commentary (including the occasional very famous line — "they think it's all over…"), half-time and extra-time **tactic calls**, group tables, shootouts.
 - 📜 **Lore** — every squad lands with a line of its history: the Maracanazo, the Disgrace of Gijón, Córdoba '78, the Battle of Santiago, Italia '90…
 - 🧩 **Draft modes** — Classic, **Era Tour** (a new decade each spin), **Dynasty** (one nation, all eras — 25 nations qualify), **Wage Cap** (946 budget). Plus a **player-pool filter**: All-time ×1.0, Post-1990 ×0.9, Post-2006 ×0.8.
@@ -25,7 +25,7 @@ A free, fan-made World Cup draft game with a **live world leaderboard** and a **
 - 📬 **Daily reminder emails** — opted-in players get a morning nudge when the new challenge drops (Vercel Cron → `/api/remind`, sends via Resend when `RESEND_API_KEY` is set), with one-click HMAC-signed unsubscribe. After your run is spent, the game points you at the genre siblings, [38-0.app](https://38-0.app) and [82-0.com](https://82-0.com).
 - 🪙 **Credits economy** — the **free Daily** is always one-a-day and ranked; **credits unlock extra custom runs** (100 each). You earn credits by how well you play (a poor run nets ~−70, a champion ~break-even, a Perfect 7-0 a tidy profit), plus a daily login top-up and streak milestones, so a free player is never walled out.
 - 🎁 **Invite & earn** — share your link: **+20** when a friend joins, **+250** when they play their first run (they get **+150** to start). Two-tier, capped, gated on a real played run to deter farming.
-- 🏅 **Points, badges, trophy cabinet** — server-verified scoring with multipliers, 10 unlockable badges, career stats saved locally.
+- 🏅 **Awards & honours** — a Golden Boot (top scorer, assist tie-break) and a holistic **Player of the Tournament** (goals + assists + clean sheets for defenders/keepers + quality + captaincy, not just the top scorer). Plus server-verified points, 10 badges and a local trophy cabinet.
 - 📋 **Share** — emoji result grid via the native share sheet or clipboard.
 
 ## Scoring

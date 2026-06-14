@@ -78,7 +78,7 @@ function runLive(opp,knockout,done){
     const boost=min>90?1.05:1;
     const rally=(theirMin.length>ourGoals.length&&min>=75)?1+capLead()*0.02:1;
     if(R()<xf/90*mf*boost*rally){
-      const n=scorerName();ourGoals.push([n,min]);
+      const n=scorerName();ourGoals.push([n,min,assistName(n)]);
       addLog(`<span class="goalus">⚽ GOAL! ${n} ${min}'</span> — ${pickFrom(C_OURGOAL)}`);
       const ahead=ourGoals.length===theirMin.length+1;
       if(min>=85&&ahead&&R()<.55)addLog(fcom(pickFrom(FAMOUS_LATE)));
@@ -242,7 +242,8 @@ function book(res,isGroup){
   }
   S.cup.gridResults.push(g);
   S.cup.matches.push({gf:res.gf,ga:res.ga,et:isGroup?false:!!res.et,pw:(!isGroup&&res.pens)?!!res.pens.win:null});
-  res.scorers.forEach(([n])=>{S.goals[n]=(S.goals[n]||0)+1;});
+  res.scorers.forEach(([n,,a])=>{S.goals[n]=(S.goals[n]||0)+1;if(a)S.assists[a]=(S.assists[a]||0)+1;});
+  if(res.ga===0)S.cup.cleanSheets=(S.cup.cleanSheets||0)+1;
 }
 function playNext(){
   const st=S.cup.stage;
@@ -360,15 +361,27 @@ function renderBadges(st){
    RESULT + AWARDS + CABINET
 ========================================================= */
 function awards(){
-  const entries=Object.entries(S.goals).sort((a,b)=>b[1]-a[1]);
-  const boot=entries[0]||null;
-  let pott=null,best=-1;
+  const cs=S.cup.cleanSheets||0;
+  // Golden Boot: most goals, tie-break on assists then quality
+  let boot=null,bootBest=-1;
   S.slots.forEach(s=>{
-    const g=S.goals[s.player.name]||0;
-    const sc=g*3+effRating(s)*0.05+(S.captain===s.id?0.5:0);
-    if(sc>best){best=sc;pott=s.player;}
+    const g=S.goals[s.player.name]||0;if(g<=0)return;
+    const k=g*1000+(S.assists[s.player.name]||0)*10+effRating(s)*0.1;
+    if(k>bootBest){bootBest=k;boot={name:s.player.name,g,a:S.assists[s.player.name]||0};}
   });
-  return{boot,pott};
+  // Player of the Tournament: holistic — goals + assists + clean sheets
+  // (defenders/keepers), quality and captaincy, so it isn't just the top scorer
+  let pott=null,best=-1,pstat=null;
+  S.slots.forEach(s=>{
+    const g=S.goals[s.player.name]||0, a=S.assists[s.player.name]||0;
+    const def=s.cat==="DEF"||s.cat==="GK";
+    const sc=g*4 + a*2.2
+      + (def?cs*(s.cat==="GK"?2.4:1.8):0)
+      + effRating(s)*0.06
+      + (S.captain===s.id?1+capLead()*0.2:0);
+    if(sc>best){best=sc;pott=s.player;pstat={g,a,cs:def?cs:0,gk:s.cat==="GK"};}
+  });
+  return{boot,pott,pstat,cs};
 }
 function countUp(el,to,suffix){
   const t0=performance.now(),dur=reducedMotion?0:850;
@@ -409,12 +422,18 @@ function showResult(){
   $("r-perfect").innerHTML=sc.perfect?`<div class="perfect">✦ Perfect 7-0 ✦</div>`
     :(S.cup.champion?`<div class="record" style="margin-top:10px">Champions — but not the perfect seven. Run it back?</div>`:"");
   const a=awards();
-  $("r-boot").textContent=a.boot?a.boot[0]:"No goals";
-  $("r-boot2").textContent=a.boot?a.boot[1]+(a.boot[1]===1?" goal":" goals"):"";
+  $("r-boot").textContent=a.boot?a.boot.name:"No goals";
+  $("r-boot2").textContent=a.boot?a.boot.g+(a.boot.g===1?" goal":" goals")+(a.boot.a?" · "+a.boot.a+(a.boot.a===1?" assist":" assists"):""):"";
   $("r-pott").textContent=a.pott?a.pott.name:"—";
-  $("r-pott2").textContent=a.pott?a.pott.flag+" "+a.pott.year:"";
+  if(a.pott&&a.pstat){
+    const p=a.pstat,bits=[];
+    if(p.g)bits.push(p.g+"G");
+    if(p.a)bits.push(p.a+"A");
+    if(p.cs)bits.push(p.cs+(p.gk?" clean sheets":" CS"));
+    $("r-pott2").innerHTML=`${a.pott.flag} ${a.pott.year}${bits.length?" · "+bits.join(" "):""}`;
+  }else $("r-pott2").textContent="—";
   const ch=chemistry();
-  $("r-xi").innerHTML=`<h4>Your XI · ${S.form} · Chem ⚡${ch.total}/${ch.max} (+${ch.boost.toFixed(1)})</h4>`+S.slots.map(s=>{
+  $("r-xi").innerHTML=`<h4>Your XI · ${S.form} · Chem ⚡${ch.total} (+${ch.boost.toFixed(1)})</h4>`+S.slots.map(s=>{
     const pen=oopPenalty(s,s.player),eff=effRating(s);
     return `<div class="li"><span style="display:flex;align-items:center;gap:7px">${jersey(s.player.team,s.player.num,18)}<span><b>${s.player.name}${S.captain===s.id?" ©":""}</b> · ${s.id}${(S.goals[s.player.name]||0)?" · ⚽"+S.goals[s.player.name]:""}</span></span><span>${s.player.flag} ${s.player.year} · ${pen?s.player.rating+"→"+eff:s.player.rating}</span></div>`;
   }).join("");

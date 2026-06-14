@@ -77,11 +77,11 @@ function resetState(daily){
   const slots=[];F.rows.forEach(r=>r.forEach(id=>slots.push({id,cat:F.cats[id],player:null})));
   S={form,draft,diff,poolMode,daily:!!daily,dyn:draft==="dynasty"?pref.dyn:null,
      slots,lastSquad:-1,spinning:false,wheelRot:0,picked:new Set(),
-     respins:1,captain:null,goals:{},era:0,budget:CAP_BUDGET,token:null,submitted:false,
+     respins:1,captain:null,goals:{},assists:{},era:0,budget:CAP_BUDGET,token:null,submitted:false,
      rng:Math.random,   // daily = your one free run, played however you like (not a shared seed)
      pool:[],wheelIdx:[],
      cup:{stage:0,record:{w:0,d:0,l:0,gf:0,ga:0},group:null,knock:[],out:false,outAt:null,
-          champion:false,perfect:false,regWins:0,gridResults:[],matches:[]}};
+          champion:false,perfect:false,regWins:0,cleanSheets:0,gridResults:[],matches:[]}};
   // Era Tour: start on the first era that actually overlaps the chosen pool
   // (e.g. Post-1990 has no 1950s squads), so the opening reel is never empty
   if(draft==="era"){
@@ -538,35 +538,53 @@ function oopPenalty(slot,pl){ // slot {id,cat} · pl {cat,sp}
 }
 function effRating(s){return s.player?Math.max(40,s.player.rating-oopPenalty(s,s.player)):0;}
 
-/* chemistry v3 — links are shared history:
-   played together at the same World Cup 1.0 · same national shirt 0.75
-   same decade + continent 0.6 · same decade 0.4 · same continent 0.25 */
+/* =========================================================
+   CHEMISTRY v4 — generous: rewards correct position, same club,
+   same World Cup squad, same nation, same decade, same continent.
+   Tuned so a normally-assembled XI sits around ~16.
+========================================================= */
 const CONT={Brazil:"SA",Argentina:"SA",Uruguay:"SA",Chile:"SA",Peru:"SA",Colombia:"SA",
   Mexico:"NA","United States":"NA","Costa Rica":"NA",
   Cameroon:"AF",Nigeria:"AF",Senegal:"AF",Morocco:"AF",Ghana:"AF",Algeria:"AF",
   Japan:"AS","South Korea":"AS","Saudi Arabia":"AS",Australia:"AS"};
 const contOf=t=>CONT[t]||"EU";
 const decOf=y=>Math.floor(y/10);
-function linkPts(a,b){
-  if(a.sq===b.sq)return 1.0;
-  if(DYN_ALIAS(a.team)===DYN_ALIAS(b.team))return .75;
-  const dec=decOf(a.year)===decOf(b.year),cont=contOf(a.team)===contOf(b.team);
-  return dec&&cont?.6:dec?.4:cont?.25:0;
+/* curated club allegiances for marquee players — lets cross-nation club
+   legends link up (Messi+Suárez = Barça, Ronaldo+Modrić = Real…).
+   Coverage is the famous cases, not all 1,608 players. */
+const CLUB=(()=>{const m={},add=(c,...ns)=>ns.forEach(n=>m[n]=c);
+  add("Real Madrid","Cristiano Ronaldo","Zinedine Zidane","Sergio Ramos","Iker Casillas","Raúl","Luka Modrić","Roberto Carlos","Toni Kroos","Raphaël Varane","Fernando Hierro","Emilio Butragueño","Hugo Sánchez","Pepe");
+  add("Barcelona","Lionel Messi","Xavi","Andrés Iniesta","Carles Puyol","Gerard Piqué","Sergio Busquets","Luis Suárez","Ronaldinho","Rivaldo","Romário","Hristo Stoichkov","Pep Guardiola","David Villa","Pedro","Neymar");
+  add("Bayern Munich","Franz Beckenbauer","Gerd Müller","Sepp Maier","Paul Breitner","Lothar Matthäus","Philipp Lahm","Bastian Schweinsteiger","Thomas Müller","Manuel Neuer","Arjen Robben","Franck Ribéry","Robert Lewandowski");
+  add("Manchester United","Bobby Charlton","David Beckham","Wayne Rooney","Gary Neville","Paul Scholes","Rio Ferdinand","Jaap Stam","Bryan Robson");
+  add("Liverpool","Steven Gerrard","Kenny Dalglish","Sadio Mané","Alisson");
+  add("AC Milan","Paolo Maldini","Franco Baresi","Gennaro Gattuso","Alessandro Nesta","Kaká");
+  add("Juventus","Gianluigi Buffon","Alessandro Del Piero","Michel Platini","Marco Tardelli","Antonio Cabrini","Dino Zoff","Gaetano Scirea","Paolo Rossi","Claudio Gentile");
+  add("Ajax","Johan Cruyff","Johan Neeskens","Ruud Krol","Johnny Rep","Frank de Boer","Edwin van der Sar");
+  return m;})();
+function sameClub(a,b){const x=CLUB[a.name];return !!x&&x===CLUB[b.name];}
+const CHEM={posExact:1.6,posLine:0.7,club:2,squad:1.4,nation:1,decade:0.6,cont:0.3,volPer:0.2,volCap:1.4,mult:0.66,scale:0.09,boostCap:4};
+function bond(a,b){
+  if(sameClub(a,b))return CHEM.club;
+  if(a.sq===b.sq)return CHEM.squad;
+  if(DYN_ALIAS(a.team)===DYN_ALIAS(b.team))return CHEM.nation;
+  if(decOf(a.year)===decOf(b.year))return CHEM.decade;
+  if(contOf(a.team)===contOf(b.team))return CHEM.cont;
+  return 0;
 }
-function slotLinks(s){
-  let l=0;S.slots.forEach(x=>{if(x.player&&x!==s)l+=linkPts(s.player,x.player);});
-  return l;
-}
-/* per-player 0–3⚡: natural position +1 · linked squad +1 (links ≥2) · deeply linked +1 (links ≥4.5) */
+/* per-player chem: position fit + strongest historical bond + a volume bonus
+   for being linked to many teammates (themed sides) */
 function playerChem(s){
   if(!s.player)return 0;
-  const l=slotLinks(s);
-  return (oopPenalty(s,s.player)===0?1:0)+(l>=2?1:0)+(l>=4.5?1:0);
+  const pen=oopPenalty(s,s.player);
+  let c=pen===0?CHEM.posExact:(s.cat===s.player.cat?CHEM.posLine:0);
+  let best=0,n=0;
+  S.slots.forEach(x=>{if(x.player&&x!==s){const b=bond(s.player,x.player);if(b>0){if(b>best)best=b;if(b>=CHEM.decade)n++;}}});
+  return (c+best+Math.min(CHEM.volCap,n*CHEM.volPer))*CHEM.mult;
 }
 function chemistry(){
   const total=S.slots.reduce((a,s)=>a+playerChem(s),0);
-  const max=S.slots.length*3;
-  return{total,max,boost:Math.min(3,total*0.09)};
+  return{total:Math.round(total),boost:Math.min(CHEM.boostCap,total*CHEM.scale)};
 }
 function renderPitch(justId){
   const F=FORMATIONS[S.form];
@@ -580,14 +598,14 @@ function renderPitch(justId){
       const t=s.player?(hidden()?"plain":tier(eff)):"";
       d.className="slot"+(s.player?" filled t-"+t:"")+(justId===id?" justin":"");
       d.innerHTML=s.player
-        ?`${S.captain===s.id?'<div class="cap">C</div>':""}<div class="jwrap">${jersey(s.player.team,s.player.num,20)}</div><div class="ptag">${s.id}</div><div class="nm">${s.player.name}</div><div class="meta">${s.player.flag} ${s.player.year}${hidden()?"":" · "+eff}${pen?"▾":""} · ⚡${playerChem(s)}</div>`
+        ?`${S.captain===s.id?'<div class="cap">C</div>':""}<div class="jwrap">${jersey(s.player.team,s.player.num,20)}</div><div class="ptag">${s.id}</div><div class="nm">${s.player.name}</div><div class="meta">${s.player.flag} ${s.player.year}${hidden()?"":" · "+eff}${pen?"▾":""} · ⚡${Math.round(playerChem(s))}</div>`
         :`<div class="ptag">${s.id}</div><div class="nm" style="color:var(--chalk-dim)">—</div>`;
       row.appendChild(d);
     });
     p.appendChild(row);
   });
   const c=chemistry();
-  $("chem-n").textContent=c.total+"/"+c.max;
+  $("chem-n").textContent=c.total;
   $("chem-b").textContent="+"+c.boost.toFixed(1);
 }
 function openCaptain(){
@@ -597,7 +615,7 @@ function openCaptain(){
     b.className="pl";
     const eff=effRating(s);
     const t=hidden()?"plain":tier(eff);
-    b.innerHTML=`${jersey(s.player.team,s.player.num,26)}<span class="pos">${s.id}</span><span class="pname">${s.player.name} <span style="color:var(--chalk-dim)">⚡${playerChem(s)}</span></span><span class="rt t-${t}">${hidden()?"??":eff}</span>`;
+    b.innerHTML=`${jersey(s.player.team,s.player.num,26)}<span class="pos">${s.id}</span><span class="pname">${s.player.name} <span style="color:var(--chalk-dim)">⚡${Math.round(playerChem(s))}</span></span><span class="rt t-${t}">${hidden()?"??":eff}</span>`;
     b.onclick=()=>{S.captain=s.id;$("cap-bg").classList.remove("on");SFX.fanfare();renderPitch();startCup();};
     list.appendChild(b);
   });
@@ -624,6 +642,22 @@ function scorerName(){
     if(S.captain===s.id)w*=1.15+capLead()*0.04;
     if(w>0)pool.push([s.player.name,w]);
   });
+  let tot=pool.reduce((a,b)=>a+b[1],0),r=R()*tot;
+  for(const[n,w]of pool){r-=w;if(r<=0)return n;}
+  return pool[0][0];
+}
+/* ~70% of goals get an assist, weighted to creators (MID/wide FWD), never the scorer */
+function assistName(scorer){
+  if(R()<0.3)return null;
+  const pool=[];
+  S.slots.forEach(s=>{
+    if(s.player.name===scorer)return;
+    const e=effRating(s);
+    let w=s.cat==="MID"?e*1.6:s.cat==="FWD"?e*1.1:s.cat==="DEF"?e*0.3:0;
+    if(S.captain===s.id)w*=1.2;
+    if(w>0)pool.push([s.player.name,w]);
+  });
+  if(!pool.length)return null;
   let tot=pool.reduce((a,b)=>a+b[1],0),r=R()*tot;
   for(const[n,w]of pool){r-=w;if(r<=0)return n;}
   return pool[0][0];
