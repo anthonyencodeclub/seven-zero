@@ -406,6 +406,9 @@ function paintDraftMeta(){
   if(S.draft==="cap")extra=`Budget left: <b>${S.budget}</b>`;
   $("dm-extra").innerHTML=extra;
   $("dm-respins").textContent=S.respins;
+  // daily is free; only custom runs charge an entry fee
+  const ab=$("btn-restart-draft");
+  if(ab)ab.textContent=S.daily?"Abandon run":"Abandon run · entry fee spent";
 }
 function openSquad(i){
   const sq=SQUADS[i];
