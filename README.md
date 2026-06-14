@@ -10,7 +10,7 @@ A free, fan-made World Cup draft game with a **live world leaderboard** and a **
 
 ## What's in the game
 
-- 🎡 **The wheel** — 136 real squads from Uruguay 1950 to Argentina 2022, in three rings of flags, physics-style spin with pointer ticks, sounds and a landing flash. One re-spin per run — choose wisely.
+- 🎡 **The draw reel** — a case-opening-style strip of nation cards (flag · country · year, decade-tinted) from 136 real squads, Uruguay 1950 to Argentina 2022; it scrolls fast and eases to a stop with your squad framed under the pointer. One re-spin per run — choose wisely.
 - 🎯 **Place anyone anywhere** — you choose the exact slot for every pick. Out of position costs rating: −4 one line out, −9 two lines, −15 for anything involving the goalkeeper (yes, you can play Pelé in goal at 83).
 - ⚡ **Chemistry is shared history** — players link if they actually played together at the same World Cup (strongest), wore the same national shirt in another era, or come from the same decade or continent. Natural position adds ⚡ too; total chemistry boosts the whole XI.
 - ⚽ **Live match engine** — minute-by-minute simulation with commentary (including the occasional very famous line — "they think it's all over…"), half-time and extra-time **tactic calls**, group tables, shootouts.
