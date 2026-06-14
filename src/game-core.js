@@ -78,7 +78,7 @@ function resetState(daily){
   S={form,draft,diff,poolMode,daily:!!daily,dyn:draft==="dynasty"?pref.dyn:null,
      slots,lastSquad:-1,spinning:false,wheelRot:0,picked:new Set(),
      respins:1,captain:null,goals:{},era:0,budget:CAP_BUDGET,token:null,submitted:false,
-     rng:daily?mulberry32(hashStr("7-0:"+utcDay())):Math.random,
+     rng:Math.random,   // daily = your one free run, played however you like (not a shared seed)
      pool:[],wheelIdx:[],
      cup:{stage:0,record:{w:0,d:0,l:0,gf:0,ga:0},group:null,knock:[],out:false,outAt:null,
           champion:false,perfect:false,regWins:0,gridResults:[],matches:[]}};
