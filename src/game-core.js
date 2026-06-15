@@ -523,23 +523,28 @@ function draft(si,pi,key,slotId){
     $("btn-spin").disabled=false;
   }
 }
-/* positional fit, role-specific:
-   exact role 0 · same line wrong role −2/−3 · adjacent line −4 · two lines −9 · GK −15 */
-const LINE={GK:0,DEF:1,MID:2,FWD:3};
+/* positional fit, FIFA-style: related roles are interchangeable (no penalty) —
+   LM↔LW, RM↔RW, CM↔AM↔DM, full-back↔wing-back↔wide-mid. Wrong-side or near
+   roles cost a little; only a real misfit (a striker at the back, anyone in
+   goal) costs big. */
 const ROLE_OF_SLOT={GK:"GK",LB:"LB",RB:"RB",LCB:"CB",RCB:"CB",CB:"CB",LWB:"LB",RWB:"RB",
   LDM:"DM",RDM:"DM",CDM:"DM",LCM:"CM",CM:"CM",RCM:"CM",LM:"LM",RM:"RM",
   LAM:"AM",CAM:"AM",RAM:"AM",LW:"LW",RW:"RW",ST:"ST",ST1:"ST",ST2:"ST"};
-const SIDED={LB:1,RB:1,LM:1,RM:1,LW:1,RW:1};
-function oopPenalty(slot,pl){ // slot {id,cat} · pl {cat,sp}
-  const role=ROLE_OF_SLOT[slot.id]||slot.cat;
-  const sp=pl.sp||pl.cat;
+const LINE_OF_ROLE={GK:0,CB:1,RB:1,LB:1,DM:2,CM:2,AM:2,RM:2,LM:2,RW:3,LW:3,ST:3};
+const POS_ZERO=new Set(["LM|LW","RM|RW","LB|LM","RB|RM","CM|DM","AM|CM"]);          // interchangeable
+const POS_CHEAP=new Set(["LB|LW","RB|RW","CB|DM","CB|RB","CB|LB","AM|ST","RW|ST",   // related, −2
+  "LW|ST","AM|RW","AM|LW","CM|RM","CM|LM","AM|DM","LB|RB","LM|RM","LW|RW"]);
+const pk=(a,b)=>a<b?a+"|"+b:b+"|"+a;
+function rolePenalty(role,sp){
   if(role===sp)return 0;
-  if(slot.cat===pl.cat){ // right line, wrong role
-    return (SIDED[role]&&SIDED[sp])||(!SIDED[role]&&!SIDED[sp])?2:3;
-  }
-  if(slot.cat==="GK"||pl.cat==="GK")return 15;
-  return Math.abs(LINE[slot.cat]-LINE[pl.cat])===1?4:9;
+  if(role==="GK"||sp==="GK")return 12;
+  const k=pk(role,sp);
+  if(POS_ZERO.has(k))return 0;
+  if(POS_CHEAP.has(k))return 2;
+  const d=Math.abs(LINE_OF_ROLE[role]-LINE_OF_ROLE[sp]);
+  return d===0?3:d===1?4:8;
 }
+function oopPenalty(slot,pl){ return rolePenalty(ROLE_OF_SLOT[slot.id]||slot.cat, pl.sp||pl.cat); }
 function effRating(s){return s.player?Math.max(40,s.player.rating-oopPenalty(s,s.player)):0;}
 
 /* =========================================================

@@ -11,7 +11,7 @@ A free, fan-made World Cup draft game with a **live world leaderboard** and a **
 ## What's in the game
 
 - 🎡 **The draw reel** — a case-opening-style strip of nation cards (flag · country · year, decade-tinted) from 148 real squads, Uruguay 1950 to the 2026 contenders; it scrolls fast and eases to a stop with your squad framed under the pointer. One re-spin per run — choose wisely.
-- 🎯 **Place anyone anywhere** — you choose the exact slot for every pick. Out of position costs rating: −4 one line out, −9 two lines, −15 for anything involving the goalkeeper (yes, you can play Pelé in goal at 83).
+- 🎯 **Place anyone anywhere** — you choose the slot for every pick, FIFA-style: related roles are interchangeable for free (LM↔LW, CM↔AM↔DM, full-back↔wing-back↔wide-mid). Wrong-side or near roles cost a little; only a real misfit (a striker at the back, anyone in goal) costs big.
 - ⚡ **Chemistry** — generous links reward putting players in their **correct position**, sharing a **club** (curated for marquee names: Messi+Suárez = Barça, Ronaldo+Modrić = Real…), the **same World Cup squad**, **nation**, **decade** or **continent**. A normal XI sits around ~16; themed sides (a Barça spine, an all-90s team) climb higher and boost the whole side.
 - ⚽ **Live match engine** — minute-by-minute simulation with commentary (including the occasional very famous line — "they think it's all over…"), half-time and extra-time **tactic calls**, group tables, shootouts.
 - 📜 **Lore** — every squad lands with a line of its history: the Maracanazo, the Disgrace of Gijón, Córdoba '78, the Battle of Santiago, Italia '90…
