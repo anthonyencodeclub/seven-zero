@@ -88,7 +88,7 @@ function resetState(daily){
     const minY=(POOLS[poolMode]||POOLS.all).y;
     for(let k=0;k<ERAS.length;k++){const[a,b]=ERAS[k];if(SQUADS.some(s=>s.y>=Math.max(a,minY)&&s.y<=b)){S.era=k;break;}}
   }
-  // S.token is set by startRun from /api/play (typed paid/daily token);
+  // S.token (playtime anti-cheat token) is set by startRun from /api/token;
   // anonymous/offline play falls back to a free token there.
 }
 const R=()=>S.rng();
@@ -123,63 +123,16 @@ const apiPost=(p,body)=>fetch(p,{method:"POST",headers:{"content-type":"applicat
   .then(async r=>{let j={};try{j=await r.json();}catch(e){}return j;});
 
 /* =========================================================
-   CREDITS WALLET — server-authoritative (see api/_shared.js ECON).
-   Daily is free (1/day); custom runs cost credits. uid is derived from a
-   device secret kept only in localStorage, so balances can't be edited here.
+   No credits / no wallet — pure free play. Invite = social share.
 ========================================================= */
 const SITE_URL="https://seven-zero-navy.vercel.app";
-const WALLET={auth:"",uid:"",cr:null,cost:100,refEarn:0,refAcc:0,ready:false};
-function ensureAuth(){
-  let a=localStorage.getItem("seven_zero_auth");
-  if(!a||!/^[a-f0-9]{16,64}$/.test(a)){
-    const b=new Uint8Array(16);
-    (crypto.getRandomValues?crypto.getRandomValues(b):b.forEach((_,i)=>{b[i]=Math.floor(Math.random()*256);}));
-    a=[...b].map(x=>x.toString(16).padStart(2,"0")).join("");
-    localStorage.setItem("seven_zero_auth",a);
-  }
-  WALLET.auth=a;return a;
-}
 function toast(msg){
   const t=$("toast");if(!t)return;
   t.textContent=msg;t.classList.add("on");
   clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("on"),2600);
 }
-function bumpWallet(){const p=$("wallet-pill");if(p){p.classList.remove("bump");void p.offsetWidth;p.classList.add("bump");}}
-function paintWallet(){
-  const bal=WALLET.ready?WALLET.cr:"—";
-  if($("wallet-bal"))$("wallet-bal").textContent=bal;
-  if($("home-bal"))$("home-bal").textContent=WALLET.ready?WALLET.cr+" 🪙":"…";
-  if($("inv-bal"))$("inv-bal").textContent=bal;
-  if($("inv-earn"))$("inv-earn").textContent=WALLET.refEarn;
-  if($("inv-acc"))$("inv-acc").textContent=WALLET.refAcc;
-  if(typeof paintHomeCTAs==="function")paintHomeCTAs();
-}
-async function syncWallet(){
-  ensureAuth();
-  const url=new URL(location.href);
-  let ref=url.searchParams.get("ref")||localStorage.getItem("seven_zero_ref")||"";
-  if(ref&&/^[a-f0-9]{16}$/.test(ref))localStorage.setItem("seven_zero_ref",ref);else ref="";
-  const st=store.get();
-  try{
-    const j=await apiPost("/api/player",{auth:WALLET.auth,ref,name:st.playerName||"",country:st.playerCountry||""});
-    if(j&&j.ok){
-      WALLET.uid=j.uid;WALLET.cr=j.cr;WALLET.cost=(j.econ&&j.econ.customCost)||100;
-      WALLET.refEarn=j.refEarn||0;WALLET.refAcc=j.refAcc||0;WALLET.ready=true;
-      if(j.created&&ref)localStorage.removeItem("seven_zero_ref");
-      if(j.topup)toast("Daily top-up · +"+j.topup+" 🪙");
-      // keep the local daily lock in step with the server
-      if(j.lastDaily){const s2=store.get();if(s2.lastDaily!==j.lastDaily){s2.lastDaily=j.lastDaily;if(j.streak)s2.streak=j.streak;store.set(s2);}}
-      paintWallet();
-    }
-  }catch(e){}
-  if(url.searchParams.has("ref")){url.searchParams.delete("ref");history.replaceState({},"",url.pathname+(url.search||"")+url.hash);}
-}
-function openInvite(mode){
-  ensureAuth();
-  const link=SITE_URL+"/?ref="+(WALLET.uid||"");
-  if($("inv-link"))$("inv-link").value=WALLET.uid?link:"Connecting… reopen in a moment";
-  if($("inv-low"))$("inv-low").style.display=mode==="low"?"block":"none";
-  paintWallet();
+function openInvite(){
+  if($("inv-link"))$("inv-link").value=SITE_URL;
   $("invite-bg").classList.add("on");
 }
 
@@ -415,9 +368,8 @@ function paintDraftMeta(){
   if(S.draft==="cap")extra=`Budget left: <b>${S.budget}</b>`;
   $("dm-extra").innerHTML=extra;
   $("dm-respins").textContent=S.respins;
-  // daily is free; only custom runs charge an entry fee
   const ab=$("btn-restart-draft");
-  if(ab)ab.textContent=S.daily?"Abandon run":"Abandon run · entry fee spent";
+  if(ab)ab.textContent="Abandon run · no retry today";
 }
 function openSquad(i){
   const sq=SQUADS[i];

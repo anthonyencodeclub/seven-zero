@@ -510,8 +510,7 @@ function saveProfile(){
   store.set(st);
   $("save-bg").classList.remove("on");
   paintProfile();
-  syncWallet();   // push nickname/country to the player record
-  if(PENDING_START!=null){const d=PENDING_START;PENDING_START=null;startRun(d);}
+  if(PENDING_START){PENDING_START=false;startRun();}
   else if(PENDING_SUBMIT){PENDING_SUBMIT=false;autoSubmit();}
 }
 async function autoSubmit(){
@@ -540,18 +539,6 @@ async function autoSubmit(){
     if(!r.ok)throw j.err||r.status;
     if(sendEmail){const s2=store.get();s2.emailSent=1;store.set(s2);}
     if(j.rank&&j.rank<=10){const s2=store.get();if(!s2.badges.top10){s2.badges.top10=1;store.set(s2);}}
-    if(j.wallet&&typeof j.wallet.cr==="number"){
-      WALLET.cr=j.wallet.cr;WALLET.ready=true;paintWallet();bumpWallet();
-      const earned=j.wallet.earned||0,bd=j.wallet.breakdown||{};
-      if(earned>0){
-        const bits=[];
-        if(bd.run)bits.push("run +"+bd.run);
-        if(bd.daily)bits.push("daily +"+bd.daily);
-        if(bd.milestone)bits.push("streak +"+bd.milestone);
-        if(bd.welcome)bits.push("welcome +"+bd.welcome);
-        $("r-credits").innerHTML=`🪙 <b>+${earned} credits</b> <span>(${bits.join(" · ")})</span> · balance ${j.wallet.cr}`;
-      }
-    }
     S.submitted=true;
     el.textContent=j.rank
       ?`🌍 Saved — world #${j.rank} of ${j.count} run${j.count===1?"":"s"}`+(j.rankDaily?` · today #${j.rankDaily}`:"")
@@ -608,17 +595,13 @@ function streakRow(e,i,st){
 function paintBoardPlay(){
   const bp=$("btn-board-play"),og=$("board-other");
   if(!bp)return;
-  const cost=WALLET.cost||100;
   const dailyPlayed=store.get().lastDaily===utcDay();
-  bp.style.display="block";
-  bp.textContent=!dailyPlayed?"Play today's challenge · FREE"
-    :!WALLET.ready?"Play a custom run →"
-    :WALLET.cr>=cost?`Play custom run · ${cost} 🪙`
-    :`Need ${cost} 🪙 — tap to earn`;
+  bp.style.display=dailyPlayed?"none":"block";
+  bp.textContent="Play today's run · FREE";
   og.style.display=dailyPlayed?"flex":"none";
   if(dailyPlayed)og.innerHTML=OTHER_GAMES;
 }
-function playFromBoard(){ store.get().lastDaily===utcDay()?playCustom():playDaily(); }
+function playFromBoard(){ playDaily(); }
 async function loadBoard(tab,bust){
   paintBoardPlay();
   BOARD.tab=tab||BOARD.tab;
@@ -777,17 +760,7 @@ function paintHomeCTAs(){
   const dailyPlayed=st.lastDaily===utcDay();
   const db=$("btn-daily");
   if(db){db.disabled=dailyPlayed;
-    db.textContent=dailyPlayed?"✓ Played today — back at midnight UTC":"Play today's challenge · FREE";}
-  // custom run only appears once the free daily run is used up
-  const bs=$("btn-start");
-  const cost=WALLET.cost||100;
-  if(bs){
-    bs.style.display=dailyPlayed?"block":"none";
-    bs.disabled=false;
-    bs.textContent=!WALLET.ready?"Play a custom run →"
-      :WALLET.cr>=cost?`Play custom run · ${cost} 🪙`
-      :`Need ${cost} 🪙 — tap to earn`;
-  }
+    db.textContent=dailyPlayed?"✓ Played today — back at midnight UTC":"Play today's run · FREE";}
   const og=$("home-other");
   if(og){og.style.display=dailyPlayed?"flex":"none";if(dailyPlayed)og.innerHTML=OTHER_GAMES;}
 }
@@ -802,8 +775,8 @@ function paintDaily(){
 /* step-by-step run setup wizard (formation → mode → difficulty → pool) */
 const WIZ={steps:["form","draft","diff","pool"],i:0,daily:false};
 function openWizard(daily){
-  WIZ.daily=!!daily;WIZ.i=0;
-  $("wiz-title").textContent=daily?"Daily Challenge":"Custom run";
+  WIZ.daily=true;WIZ.i=0;   // one free run a day — always the daily
+  $("wiz-title").textContent="Today's run";
   paintPoolChips();
   renderWizStep();
   $("wiz-bg").classList.add("on");
@@ -813,42 +786,31 @@ function renderWizStep(){
   document.querySelectorAll("#wiz-bg .wizstep").forEach(s=>s.classList.toggle("on",s.dataset.step===step));
   $("wiz-dots").innerHTML=WIZ.steps.map((_,k)=>`<i class="${k<=WIZ.i?"on":""}"></i>`).join("");
   $("wiz-back").textContent=WIZ.i===0?"Cancel":"← Back";
-  $("wiz-next").textContent=WIZ.i===WIZ.steps.length-1
-    ?(WIZ.daily?"Play daily →":"Draw squad →")
-    :"Next →";
+  $("wiz-next").textContent=WIZ.i===WIZ.steps.length-1?"Play →":"Next →";
   multline();
 }
 function wizNext(){
   if(WIZ.i<WIZ.steps.length-1){WIZ.i++;renderWizStep();SFX.pick();}
-  else{$("wiz-bg").classList.remove("on");startRun(WIZ.daily);}
+  else{$("wiz-bg").classList.remove("on");startRun();}
 }
 function wizBack(){
   if(WIZ.i===0){$("wiz-bg").classList.remove("on");}
   else{WIZ.i--;renderWizStep();}
 }
-// entry points: gate custom runs on credits before configuring
+// one free run a day — the Daily is the only run
 function playDaily(){const st=store.get();if(st.lastDaily===utcDay()){goHome();return;}openWizard(true);}
-function playCustom(){if(WALLET.ready&&WALLET.cr<WALLET.cost){openInvite("low");return;}openWizard(false);}
 
 let RUN_BUSY=false;
-async function startRun(daily){
+async function startRun(){
   const st=store.get();
-  if(!st.playerName){PENDING_START=!!daily;openProfile({onboard:true});return;}
-  if(daily&&st.lastDaily===utcDay()){goHome();return;}
+  if(!st.playerName){PENDING_START=true;openProfile({onboard:true});return;}
+  if(st.lastDaily===utcDay()){goHome();return;}
   if(RUN_BUSY)return;
-  // credit gate for custom runs — tapping a too-pricey button opens the earn hub
-  if(!daily&&WALLET.ready&&WALLET.cr<WALLET.cost){openInvite("low");return;}
   RUN_BUSY=true;
-  let token=null;
   try{
-    if(WALLET.ready){
-      const pr=await apiPost("/api/play",{auth:WALLET.auth,daily:!!daily});
-      if(pr&&pr.err==="insufficient"){WALLET.cr=pr.cr;paintWallet();RUN_BUSY=false;openInvite("low");return;}
-      if(pr&&pr.err==="daily-used"){const s2=store.get();s2.lastDaily=utcDay();store.set(s2);RUN_BUSY=false;goHome();return;}
-      if(pr&&pr.token){token=pr.token;if(typeof pr.cr==="number"){const before=WALLET.cr;WALLET.cr=pr.cr;paintWallet();if(!daily&&before!==pr.cr)bumpWallet();}}
-    }
-    if(!token){try{token=await apiPost("/api/token",{});}catch(e){}}  // anon/offline: free token, earns nothing
-    resetState(daily);
+    let token=null;
+    try{token=await apiPost("/api/token",{});}catch(e){}   // playtime token (anti-cheat)
+    resetState(true);
     if(token)S.token=token;
     buildReel();renderPitch();
     $("picks-n").textContent=S.slots.length;
@@ -862,7 +824,6 @@ async function startRun(daily){
 function goHome(){
   renderCabinet();paintDaily();paintProfile();homeBoardPreview();show("home");
 }
-$("btn-start").onclick=playCustom;
 $("btn-daily").onclick=playDaily;
 $("btn-respin").onclick=()=>{
   if(!$("btn-respin").dataset.free){
@@ -887,21 +848,18 @@ $("tab-all").onclick=()=>loadBoard("all",true);
 $("tab-daily").onclick=()=>loadBoard("daily",true);
 $("tab-streaks").onclick=()=>loadBoard("streaks",true);
 
-/* wallet + invite wiring */
-$("wallet-pill").onclick=()=>openInvite();
+/* invite = social share */
 $("open-invite").onclick=()=>openInvite();
 $("inv-close").onclick=()=>$("invite-bg").classList.remove("on");
 $("invite-bg").onclick=e=>{if(e.target===$("invite-bg"))$("invite-bg").classList.remove("on");};
 $("inv-copy").onclick=async()=>{
-  const link=$("inv-link").value;
-  try{await navigator.clipboard.writeText(link);toast("Invite link copied 🎁");}
+  try{await navigator.clipboard.writeText(SITE_URL);toast("Link copied 🎁");}
   catch(e){$("inv-link").select();}
 };
 $("inv-share").onclick=async()=>{
-  const link=SITE_URL+"/?ref="+(WALLET.uid||"");
-  const text="Play 7-0 — build a World Cup XI and win all seven. Join with my link for +150 credits:";
-  if(navigator.share){try{await navigator.share({title:"7-0",text,url:link});return;}catch(e){}}
-  try{await navigator.clipboard.writeText(text+" "+link);toast("Invite copied — paste it anywhere 🎁");}catch(e){}
+  const text="Play 7-0 — draft a World Cup XI from 75 years of legends and try to win all seven.";
+  if(navigator.share){try{await navigator.share({title:"7-0",text,url:SITE_URL});return;}catch(e){}}
+  try{await navigator.clipboard.writeText(text+" "+SITE_URL);toast("Copied — paste it anywhere 🎁");}catch(e){}
 };
 
 $("stat-squads").textContent=SQUADS.length;
@@ -912,7 +870,6 @@ document.querySelectorAll("#poolchips .chip").forEach(b=>{
 });
 buildFormChips();buildDraftChips();wireDiffChips();paintPoolChips();multline();
 renderCabinet();paintDaily();paintProfile();homeBoardPreview();boardPolling();
-syncWallet();
 setInterval(()=>{if($("home").classList.contains("on"))paintHomeCTAs();},30000);
 let rsT=null;
 addEventListener("resize",()=>{clearTimeout(rsT);rsT=setTimeout(()=>{

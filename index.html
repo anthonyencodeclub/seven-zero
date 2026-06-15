@@ -432,7 +432,6 @@ footer a{color:rgba(243,236,217,.5)}
 <body>
 <canvas id="confetti"></canvas>
 <button id="mute" aria-label="Toggle sound">🔊</button>
-<button id="wallet-pill" aria-label="Credits"><span class="coin">🪙</span> <span id="wallet-bal">—</span></button>
 <div id="toast" class="toast"></div>
 <div id="app">
 
@@ -454,10 +453,9 @@ footer a{color:rgba(243,236,217,.5)}
       <button class="btn" id="btn-daily">Play today's challenge · FREE</button>
     </div>
 
-    <button class="btn ghost" id="btn-start" style="margin-top:4px">Or play a custom run →</button>
     <div class="walletline" id="walletline">
-      <span>Balance <b id="home-bal">…</b></span>
-      <button class="lnk" id="open-invite">🎁 Invite &amp; earn</button>
+      <span>One free run a day</span>
+      <button class="lnk" id="open-invite">🎁 Invite a friend</button>
     </div>
     <div class="playas" id="playas"></div>
     <div class="othergames" id="home-other" style="display:none"></div>
@@ -475,12 +473,12 @@ footer a{color:rgba(243,236,217,.5)}
 
     <div class="howto">
       <h2>How to play</h2>
-      <li><span class="dot"></span><span><b>Set up your run.</b> Step through formation, draft mode, difficulty and player pool — your <b>Daily Challenge</b> is one free run a day; spend earned 🪙 credits on extra custom runs.</span></li>
+      <li><span class="dot"></span><span><b>One free run a day.</b> Step through formation, draft mode, difficulty and player pool, then play your daily run — a fresh challenge resets every midnight UTC.</span></li>
       <li><span class="dot"></span><span><b>Draw a squad.</b> The reel lands on a real nation at a specific World Cup — Brazil 1970, Hungary 1954, Argentina 2022 — and you draft <b>one player</b> from it. One re-spin per run.</span></li>
       <li><span class="dot"></span><span><b>Place them anywhere.</b> You pick the position — and it's FIFA-style forgiving: related roles are free (a winger at wide-mid, a CM at attacking-mid, a full-back at wing-back). Only a real misfit — a striker at the back, anyone in goal — costs much.</span></li>
       <li><span class="dot"></span><span><b>Build chemistry ⚡.</b> Players bond for correct positions, the same club, the same World Cup squad or nation, and the same decade or continent. More chemistry, stronger team.</span></li>
       <li><span class="dot"></span><span><b>Name a captain</b>, then play it live: half-time and extra-time tactics, penalty shootouts, famous commentary — and a Golden Boot &amp; Player of the Tournament at the end.</span></li>
-      <li><span class="dot"></span><span><b>Win all seven</b> inside normal time for the perfect <b>7-0</b>. Every finished run saves to the world leaderboard automatically — invite friends for bonus credits.</span></li>
+      <li><span class="dot"></span><span><b>Win all seven</b> inside normal time for the perfect <b>7-0</b>. Every finished run saves to the world leaderboard automatically — build a daily streak and invite your friends.</span></li>
     </div>
     <footer>7-0 is an independent, fan-made game inspired by 38-0.app and 82-0.com. Not affiliated with FIFA or any federation. Player ratings are an unofficial, descriptive interpretation.<br>Leaderboard names are public. Emails are optional, encrypted and never displayed.</footer>
   </section>
@@ -577,15 +575,13 @@ footer a{color:rgba(243,236,217,.5)}
   <!-- INVITE / EARN MODAL -->
   <div class="modal-bg" id="invite-bg">
     <div class="modal" role="dialog" aria-modal="true">
-      <h3>🎁 Invite &amp; earn credits</h3>
-      <div class="invlow" id="inv-low" style="display:none">Out of credits for a custom run. Play the <b>free Daily</b>, come back tomorrow for your <b>+40 🪙 top-up</b>, or invite a friend below to earn more now.</div>
-      <p class="hint">Share your link. When a friend joins you get <b>+20 🪙</b> — and <b>+250 🪙</b> when they play their first run. They get <b>+150 🪙</b> to start too.</p>
+      <h3>🎁 Invite a friend</h3>
+      <p class="hint">Know someone who'd love this? Send them 7-0 — draft a World Cup XI from 75 years of legends and chase the perfect seven.</p>
       <div class="invrow">
-        <input id="inv-link" readonly aria-label="Your invite link">
+        <input id="inv-link" readonly aria-label="Share link">
         <button class="btn small" id="inv-copy">Copy</button>
       </div>
-      <button class="btn" id="inv-share">Share invite</button>
-      <div class="invstats">Balance <b id="inv-bal">—</b> 🪙 · earned from friends <b id="inv-earn">0</b> 🪙 · <b id="inv-acc">0</b> joined</div>
+      <button class="btn" id="inv-share">Share</button>
       <button class="btn ghost" id="inv-close" style="margin-top:8px">Close</button>
     </div>
   </div>
@@ -602,7 +598,7 @@ footer a{color:rgba(243,236,217,.5)}
       <div class="field"><label for="sv-email">Email (optional)</label>
         <input id="sv-email" type="email" maxlength="120" autocomplete="email" placeholder="you@example.com"></div>
       <label class="optin"><input type="checkbox" id="sv-optin">
-        <span>Email me the <b>daily challenge reminder</b> each morning, plus big updates. Stored encrypted, never displayed, never shared, one-click unsubscribe. Leave unticked to play without it.</span></label>
+        <span>Email me <b>reminders &amp; streak nudges</b> so I don't miss a day, plus the occasional update. Stored encrypted, never displayed, never shared, one-click unsubscribe. Leave unticked to play without it.</span></label>
       <input class="hpfield" id="sv-web" tabindex="-1" autocomplete="off" aria-hidden="true">
       <button class="btn" id="btn-submit-score">Save profile</button>
       <button class="btn ghost" id="btn-cancel-save" style="margin-top:8px">Not now</button>
@@ -660,7 +656,6 @@ footer a{color:rgba(243,236,217,.5)}
       <div class="award"><div class="al">⭐ Player of the cup</div><div class="av" id="r-pott">—</div><div class="as" id="r-pott2"></div></div>
     </div>
     <div class="finalxi" id="r-xi"></div>
-    <div class="creditline" id="r-credits"></div>
     <div class="savemsg" id="r-saved"></div>
     <div class="stack">
       <button class="btn" id="btn-save">🌍 Save to world leaderboard</button>
@@ -972,7 +967,7 @@ function resetState(daily){
     const minY=(POOLS[poolMode]||POOLS.all).y;
     for(let k=0;k<ERAS.length;k++){const[a,b]=ERAS[k];if(SQUADS.some(s=>s.y>=Math.max(a,minY)&&s.y<=b)){S.era=k;break;}}
   }
-  // S.token is set by startRun from /api/play (typed paid/daily token);
+  // S.token (playtime anti-cheat token) is set by startRun from /api/token;
   // anonymous/offline play falls back to a free token there.
 }
 const R=()=>S.rng();
@@ -1007,63 +1002,16 @@ const apiPost=(p,body)=>fetch(p,{method:"POST",headers:{"content-type":"applicat
   .then(async r=>{let j={};try{j=await r.json();}catch(e){}return j;});
 
 /* =========================================================
-   CREDITS WALLET — server-authoritative (see api/_shared.js ECON).
-   Daily is free (1/day); custom runs cost credits. uid is derived from a
-   device secret kept only in localStorage, so balances can't be edited here.
+   No credits / no wallet — pure free play. Invite = social share.
 ========================================================= */
 const SITE_URL="https://seven-zero-navy.vercel.app";
-const WALLET={auth:"",uid:"",cr:null,cost:100,refEarn:0,refAcc:0,ready:false};
-function ensureAuth(){
-  let a=localStorage.getItem("seven_zero_auth");
-  if(!a||!/^[a-f0-9]{16,64}$/.test(a)){
-    const b=new Uint8Array(16);
-    (crypto.getRandomValues?crypto.getRandomValues(b):b.forEach((_,i)=>{b[i]=Math.floor(Math.random()*256);}));
-    a=[...b].map(x=>x.toString(16).padStart(2,"0")).join("");
-    localStorage.setItem("seven_zero_auth",a);
-  }
-  WALLET.auth=a;return a;
-}
 function toast(msg){
   const t=$("toast");if(!t)return;
   t.textContent=msg;t.classList.add("on");
   clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("on"),2600);
 }
-function bumpWallet(){const p=$("wallet-pill");if(p){p.classList.remove("bump");void p.offsetWidth;p.classList.add("bump");}}
-function paintWallet(){
-  const bal=WALLET.ready?WALLET.cr:"—";
-  if($("wallet-bal"))$("wallet-bal").textContent=bal;
-  if($("home-bal"))$("home-bal").textContent=WALLET.ready?WALLET.cr+" 🪙":"…";
-  if($("inv-bal"))$("inv-bal").textContent=bal;
-  if($("inv-earn"))$("inv-earn").textContent=WALLET.refEarn;
-  if($("inv-acc"))$("inv-acc").textContent=WALLET.refAcc;
-  if(typeof paintHomeCTAs==="function")paintHomeCTAs();
-}
-async function syncWallet(){
-  ensureAuth();
-  const url=new URL(location.href);
-  let ref=url.searchParams.get("ref")||localStorage.getItem("seven_zero_ref")||"";
-  if(ref&&/^[a-f0-9]{16}$/.test(ref))localStorage.setItem("seven_zero_ref",ref);else ref="";
-  const st=store.get();
-  try{
-    const j=await apiPost("/api/player",{auth:WALLET.auth,ref,name:st.playerName||"",country:st.playerCountry||""});
-    if(j&&j.ok){
-      WALLET.uid=j.uid;WALLET.cr=j.cr;WALLET.cost=(j.econ&&j.econ.customCost)||100;
-      WALLET.refEarn=j.refEarn||0;WALLET.refAcc=j.refAcc||0;WALLET.ready=true;
-      if(j.created&&ref)localStorage.removeItem("seven_zero_ref");
-      if(j.topup)toast("Daily top-up · +"+j.topup+" 🪙");
-      // keep the local daily lock in step with the server
-      if(j.lastDaily){const s2=store.get();if(s2.lastDaily!==j.lastDaily){s2.lastDaily=j.lastDaily;if(j.streak)s2.streak=j.streak;store.set(s2);}}
-      paintWallet();
-    }
-  }catch(e){}
-  if(url.searchParams.has("ref")){url.searchParams.delete("ref");history.replaceState({},"",url.pathname+(url.search||"")+url.hash);}
-}
-function openInvite(mode){
-  ensureAuth();
-  const link=SITE_URL+"/?ref="+(WALLET.uid||"");
-  if($("inv-link"))$("inv-link").value=WALLET.uid?link:"Connecting… reopen in a moment";
-  if($("inv-low"))$("inv-low").style.display=mode==="low"?"block":"none";
-  paintWallet();
+function openInvite(){
+  if($("inv-link"))$("inv-link").value=SITE_URL;
   $("invite-bg").classList.add("on");
 }
 
@@ -1299,9 +1247,8 @@ function paintDraftMeta(){
   if(S.draft==="cap")extra=`Budget left: <b>${S.budget}</b>`;
   $("dm-extra").innerHTML=extra;
   $("dm-respins").textContent=S.respins;
-  // daily is free; only custom runs charge an entry fee
   const ab=$("btn-restart-draft");
-  if(ab)ab.textContent=S.daily?"Abandon run":"Abandon run · entry fee spent";
+  if(ab)ab.textContent="Abandon run · no retry today";
 }
 function openSquad(i){
   const sq=SQUADS[i];
@@ -2077,8 +2024,7 @@ function saveProfile(){
   store.set(st);
   $("save-bg").classList.remove("on");
   paintProfile();
-  syncWallet();   // push nickname/country to the player record
-  if(PENDING_START!=null){const d=PENDING_START;PENDING_START=null;startRun(d);}
+  if(PENDING_START){PENDING_START=false;startRun();}
   else if(PENDING_SUBMIT){PENDING_SUBMIT=false;autoSubmit();}
 }
 async function autoSubmit(){
@@ -2107,18 +2053,6 @@ async function autoSubmit(){
     if(!r.ok)throw j.err||r.status;
     if(sendEmail){const s2=store.get();s2.emailSent=1;store.set(s2);}
     if(j.rank&&j.rank<=10){const s2=store.get();if(!s2.badges.top10){s2.badges.top10=1;store.set(s2);}}
-    if(j.wallet&&typeof j.wallet.cr==="number"){
-      WALLET.cr=j.wallet.cr;WALLET.ready=true;paintWallet();bumpWallet();
-      const earned=j.wallet.earned||0,bd=j.wallet.breakdown||{};
-      if(earned>0){
-        const bits=[];
-        if(bd.run)bits.push("run +"+bd.run);
-        if(bd.daily)bits.push("daily +"+bd.daily);
-        if(bd.milestone)bits.push("streak +"+bd.milestone);
-        if(bd.welcome)bits.push("welcome +"+bd.welcome);
-        $("r-credits").innerHTML=`🪙 <b>+${earned} credits</b> <span>(${bits.join(" · ")})</span> · balance ${j.wallet.cr}`;
-      }
-    }
     S.submitted=true;
     el.textContent=j.rank
       ?`🌍 Saved — world #${j.rank} of ${j.count} run${j.count===1?"":"s"}`+(j.rankDaily?` · today #${j.rankDaily}`:"")
@@ -2175,17 +2109,13 @@ function streakRow(e,i,st){
 function paintBoardPlay(){
   const bp=$("btn-board-play"),og=$("board-other");
   if(!bp)return;
-  const cost=WALLET.cost||100;
   const dailyPlayed=store.get().lastDaily===utcDay();
-  bp.style.display="block";
-  bp.textContent=!dailyPlayed?"Play today's challenge · FREE"
-    :!WALLET.ready?"Play a custom run →"
-    :WALLET.cr>=cost?`Play custom run · ${cost} 🪙`
-    :`Need ${cost} 🪙 — tap to earn`;
+  bp.style.display=dailyPlayed?"none":"block";
+  bp.textContent="Play today's run · FREE";
   og.style.display=dailyPlayed?"flex":"none";
   if(dailyPlayed)og.innerHTML=OTHER_GAMES;
 }
-function playFromBoard(){ store.get().lastDaily===utcDay()?playCustom():playDaily(); }
+function playFromBoard(){ playDaily(); }
 async function loadBoard(tab,bust){
   paintBoardPlay();
   BOARD.tab=tab||BOARD.tab;
@@ -2344,17 +2274,7 @@ function paintHomeCTAs(){
   const dailyPlayed=st.lastDaily===utcDay();
   const db=$("btn-daily");
   if(db){db.disabled=dailyPlayed;
-    db.textContent=dailyPlayed?"✓ Played today — back at midnight UTC":"Play today's challenge · FREE";}
-  // custom run only appears once the free daily run is used up
-  const bs=$("btn-start");
-  const cost=WALLET.cost||100;
-  if(bs){
-    bs.style.display=dailyPlayed?"block":"none";
-    bs.disabled=false;
-    bs.textContent=!WALLET.ready?"Play a custom run →"
-      :WALLET.cr>=cost?`Play custom run · ${cost} 🪙`
-      :`Need ${cost} 🪙 — tap to earn`;
-  }
+    db.textContent=dailyPlayed?"✓ Played today — back at midnight UTC":"Play today's run · FREE";}
   const og=$("home-other");
   if(og){og.style.display=dailyPlayed?"flex":"none";if(dailyPlayed)og.innerHTML=OTHER_GAMES;}
 }
@@ -2369,8 +2289,8 @@ function paintDaily(){
 /* step-by-step run setup wizard (formation → mode → difficulty → pool) */
 const WIZ={steps:["form","draft","diff","pool"],i:0,daily:false};
 function openWizard(daily){
-  WIZ.daily=!!daily;WIZ.i=0;
-  $("wiz-title").textContent=daily?"Daily Challenge":"Custom run";
+  WIZ.daily=true;WIZ.i=0;   // one free run a day — always the daily
+  $("wiz-title").textContent="Today's run";
   paintPoolChips();
   renderWizStep();
   $("wiz-bg").classList.add("on");
@@ -2380,42 +2300,31 @@ function renderWizStep(){
   document.querySelectorAll("#wiz-bg .wizstep").forEach(s=>s.classList.toggle("on",s.dataset.step===step));
   $("wiz-dots").innerHTML=WIZ.steps.map((_,k)=>`<i class="${k<=WIZ.i?"on":""}"></i>`).join("");
   $("wiz-back").textContent=WIZ.i===0?"Cancel":"← Back";
-  $("wiz-next").textContent=WIZ.i===WIZ.steps.length-1
-    ?(WIZ.daily?"Play daily →":"Draw squad →")
-    :"Next →";
+  $("wiz-next").textContent=WIZ.i===WIZ.steps.length-1?"Play →":"Next →";
   multline();
 }
 function wizNext(){
   if(WIZ.i<WIZ.steps.length-1){WIZ.i++;renderWizStep();SFX.pick();}
-  else{$("wiz-bg").classList.remove("on");startRun(WIZ.daily);}
+  else{$("wiz-bg").classList.remove("on");startRun();}
 }
 function wizBack(){
   if(WIZ.i===0){$("wiz-bg").classList.remove("on");}
   else{WIZ.i--;renderWizStep();}
 }
-// entry points: gate custom runs on credits before configuring
+// one free run a day — the Daily is the only run
 function playDaily(){const st=store.get();if(st.lastDaily===utcDay()){goHome();return;}openWizard(true);}
-function playCustom(){if(WALLET.ready&&WALLET.cr<WALLET.cost){openInvite("low");return;}openWizard(false);}
 
 let RUN_BUSY=false;
-async function startRun(daily){
+async function startRun(){
   const st=store.get();
-  if(!st.playerName){PENDING_START=!!daily;openProfile({onboard:true});return;}
-  if(daily&&st.lastDaily===utcDay()){goHome();return;}
+  if(!st.playerName){PENDING_START=true;openProfile({onboard:true});return;}
+  if(st.lastDaily===utcDay()){goHome();return;}
   if(RUN_BUSY)return;
-  // credit gate for custom runs — tapping a too-pricey button opens the earn hub
-  if(!daily&&WALLET.ready&&WALLET.cr<WALLET.cost){openInvite("low");return;}
   RUN_BUSY=true;
-  let token=null;
   try{
-    if(WALLET.ready){
-      const pr=await apiPost("/api/play",{auth:WALLET.auth,daily:!!daily});
-      if(pr&&pr.err==="insufficient"){WALLET.cr=pr.cr;paintWallet();RUN_BUSY=false;openInvite("low");return;}
-      if(pr&&pr.err==="daily-used"){const s2=store.get();s2.lastDaily=utcDay();store.set(s2);RUN_BUSY=false;goHome();return;}
-      if(pr&&pr.token){token=pr.token;if(typeof pr.cr==="number"){const before=WALLET.cr;WALLET.cr=pr.cr;paintWallet();if(!daily&&before!==pr.cr)bumpWallet();}}
-    }
-    if(!token){try{token=await apiPost("/api/token",{});}catch(e){}}  // anon/offline: free token, earns nothing
-    resetState(daily);
+    let token=null;
+    try{token=await apiPost("/api/token",{});}catch(e){}   // playtime token (anti-cheat)
+    resetState(true);
     if(token)S.token=token;
     buildReel();renderPitch();
     $("picks-n").textContent=S.slots.length;
@@ -2429,7 +2338,6 @@ async function startRun(daily){
 function goHome(){
   renderCabinet();paintDaily();paintProfile();homeBoardPreview();show("home");
 }
-$("btn-start").onclick=playCustom;
 $("btn-daily").onclick=playDaily;
 $("btn-respin").onclick=()=>{
   if(!$("btn-respin").dataset.free){
@@ -2454,21 +2362,18 @@ $("tab-all").onclick=()=>loadBoard("all",true);
 $("tab-daily").onclick=()=>loadBoard("daily",true);
 $("tab-streaks").onclick=()=>loadBoard("streaks",true);
 
-/* wallet + invite wiring */
-$("wallet-pill").onclick=()=>openInvite();
+/* invite = social share */
 $("open-invite").onclick=()=>openInvite();
 $("inv-close").onclick=()=>$("invite-bg").classList.remove("on");
 $("invite-bg").onclick=e=>{if(e.target===$("invite-bg"))$("invite-bg").classList.remove("on");};
 $("inv-copy").onclick=async()=>{
-  const link=$("inv-link").value;
-  try{await navigator.clipboard.writeText(link);toast("Invite link copied 🎁");}
+  try{await navigator.clipboard.writeText(SITE_URL);toast("Link copied 🎁");}
   catch(e){$("inv-link").select();}
 };
 $("inv-share").onclick=async()=>{
-  const link=SITE_URL+"/?ref="+(WALLET.uid||"");
-  const text="Play 7-0 — build a World Cup XI and win all seven. Join with my link for +150 credits:";
-  if(navigator.share){try{await navigator.share({title:"7-0",text,url:link});return;}catch(e){}}
-  try{await navigator.clipboard.writeText(text+" "+link);toast("Invite copied — paste it anywhere 🎁");}catch(e){}
+  const text="Play 7-0 — draft a World Cup XI from 75 years of legends and try to win all seven.";
+  if(navigator.share){try{await navigator.share({title:"7-0",text,url:SITE_URL});return;}catch(e){}}
+  try{await navigator.clipboard.writeText(text+" "+SITE_URL);toast("Copied — paste it anywhere 🎁");}catch(e){}
 };
 
 $("stat-squads").textContent=SQUADS.length;
@@ -2479,7 +2384,6 @@ document.querySelectorAll("#poolchips .chip").forEach(b=>{
 });
 buildFormChips();buildDraftChips();wireDiffChips();paintPoolChips();multline();
 renderCabinet();paintDaily();paintProfile();homeBoardPreview();boardPolling();
-syncWallet();
 setInterval(()=>{if($("home").classList.contains("on"))paintHomeCTAs();},30000);
 let rsT=null;
 addEventListener("resize",()=>{clearTimeout(rsT);rsT=setTimeout(()=>{

@@ -2,19 +2,11 @@ import crypto from 'node:crypto';
 import { put } from '@vercel/blob';
 import {
   validateRun, scoreRun, verifyRun, cleanName, cleanCountry, cleanXI,
-  readAgg, writeAgg, mergeTop, bumpStreak, grantRun, utcDay
+  readAgg, writeAgg, mergeTop, bumpStreak, upsertSub, utcDay
 } from './_shared.js';
 
 const MIN_AGE_MS = 45_000;        // shortest believable full run
 const MAX_AGE_MS = 6 * 3600_000;  // token shelf life
-
-function encryptEmail(email) {
-  const key = Buffer.from(process.env.EMAIL_KEY, 'hex');
-  const iv = crypto.randomBytes(12);
-  const c = crypto.createCipheriv('aes-256-gcm', key, iv);
-  const ct = Buffer.concat([c.update(email, 'utf8'), c.final()]);
-  return { v: 1, iv: iv.toString('base64'), ct: ct.toString('base64'), tag: c.getAuthTag().toString('base64') };
-}
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
@@ -80,7 +72,7 @@ export default async function handler(req, res) {
   const rank = mergeTop(all, entry);
   await writeAgg('alltime', all);
 
-  let rankDaily = null, countDaily = 0;
+  let rankDaily = null, countDaily = 0, streak = 0;
   if (daily) {
     const key = 'daily-' + entry.dt;
     const day = await readAgg(key);
@@ -88,28 +80,18 @@ export default async function handler(req, res) {
     countDaily = day.count;
     await writeAgg(key, day);
     const streaks = await readAgg('streaks');
-    bumpStreak(streaks, entry, pts);
+    streak = bumpStreak(streaks, entry, pts);
     await writeAgg('streaks', streaks);
   }
 
-  // optional, consented contact details — encrypted at rest, never listed by any endpoint
+  // consented contact → upsert a drip subscriber record (encrypted at rest,
+  // never returned by any endpoint), tracking activity for the email campaign
   if (b.optin === true && typeof b.email === 'string') {
     const email = b.email.trim().slice(0, 120);
     if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-      const enc = encryptEmail(email);
-      await put(`emails/${entry.ts}-${entry.id}.json`, JSON.stringify({ ...enc, n: name, ts: entry.ts }), {
-        access: 'public', addRandomSuffix: true, contentType: 'application/json'
-      });
+      try { await upsertSub({ email, name, country, streak, champion }); } catch {}
     }
   }
 
-  // credits: minted only for runs that went through /api/play (paid or free daily),
-  // deduped per token so a run can't be resubmitted for more
-  let wallet = null;
-  if ((v.kind === 'paid' || v.kind === 'daily') && /^[a-f0-9]{16}$/.test(v.uid)) {
-    try { wallet = await grantRun({ uid: v.uid, t: v.t, kind: v.kind, pts, champion, perfect, name, country }); }
-    catch { wallet = null; }
-  }
-
-  return res.status(200).json({ ok: 1, pts, champion, perfect, rank, count: all.count, rankDaily, countDaily, wallet });
+  return res.status(200).json({ ok: 1, pts, champion, perfect, rank, count: all.count, rankDaily, countDaily });
 }

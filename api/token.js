@@ -1,7 +1,7 @@
 import { signRun } from './_shared.js';
 
 // Legacy / anonymous free token (earns no credits). Authenticated runs get
-// their token from /api/play instead, which is the only minter of paid/daily.
+// (the score endpoint records runs; tokens just prove a plausible playtime).
 export default function handler(req, res) {
   const t = Date.now();
   res.setHeader('Cache-Control', 'no-store');
