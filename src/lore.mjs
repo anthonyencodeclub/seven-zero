@@ -135,5 +135,17 @@ export const LORE = {
 "Morocco|2018":"Eliminated by two 90th-minute goals in two games — the unluckiest team in Russia, with Ziyech pulling all the strings.",
 "Ghana|2006":"Debutants with Essien and Appiah in full stride — the world's #2-ranked Czechs beaten 2–0 and a knockout place secured first time out.",
 "Ghana|2014":"The team nobody wanted to play: 2–2 with eventual champions Germany, the plane full of cash, the Boateng–Muntari exits. Chaos and brilliance.",
-"Ghana|2022":"Kudus announced himself with two against Korea in a 3–2 thriller — then fate dealt Uruguay and Suárez again. Revenge stayed out of reach."
+"Ghana|2022":"Kudus announced himself with two against Korea in a 3–2 thriller — then fate dealt Uruguay and Suárez again. Revenge stayed out of reach.",
+"Argentina|2026":"Reigning world and Copa champions — Messi at 38 chasing one last dance, behind Scaloni's relentless, ruthless machine built to defend the crown.",
+"France|2026":"Mbappé's France: 2022 finalists and favourites again, a frightening front line riding Tchouaméni and Camavinga's engine room.",
+"Brazil|2026":"Vinícius and Rodrygo lead the bid to end the wait since 2002 — Seleção flair with teenage spearhead Endrick and Alisson's gloves behind.",
+"England|2026":"Bellingham, Kane, Saka and Foden — a golden generation and back-to-back Euro finalists chasing a first crown since '66. Now or never.",
+"Spain|2026":"European champions and the side to beat — 17-year-old Lamine Yamal's audacity over Rodri's unhurried metronome.",
+"Portugal|2026":"Cristiano Ronaldo's last World Cup at 41, wrapped in a deep golden generation — Nations League winners hunting the one prize left.",
+"Germany|2026":"Musiala and Wirtz light up a thrilling rebuild — Germany rediscovering themselves, Kimmich conducting from deep.",
+"Netherlands|2026":"Van Dijk marshals an Oranje blending Frenkie de Jong's class with Xavi Simons' spark and Gakpo's surges.",
+"Belgium|2026":"Kevin De Bruyne and Lukaku front a refreshed golden generation's final tilt at the trophy that always slipped away — Doku the new electricity.",
+"Croatia|2026":"Luka Modrić, 40 and still conducting — Croatia's perennial over-achievers chasing a fairytale finish to a golden era, Gvardiol the future.",
+"Uruguay|2026":"Bielsa's fearless Celeste — Valverde and Darwin Núñez fronting a fresh generation welded to old Uruguayan steel.",
+"Morocco|2026":"The 2022 semi-finalists who stole the world's heart — Hakimi and Bounou back to prove the Atlas Lions' roar was no one-off."
 };

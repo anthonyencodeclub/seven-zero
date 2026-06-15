@@ -565,6 +565,15 @@ const CLUB=(()=>{const m={},add=(c,...ns)=>ns.forEach(n=>m[n]=c);
   add("AC Milan","Paolo Maldini","Franco Baresi","Gennaro Gattuso","Alessandro Nesta","Kaká");
   add("Juventus","Gianluigi Buffon","Alessandro Del Piero","Michel Platini","Marco Tardelli","Antonio Cabrini","Dino Zoff","Gaetano Scirea","Paolo Rossi","Claudio Gentile");
   add("Ajax","Johan Cruyff","Johan Neeskens","Ruud Krol","Johnny Rep","Frank de Boer","Edwin van der Sar");
+  // 2026-era club cores (cross-nation chemistry for current stars)
+  add("Real Madrid","Kylian Mbappé","Jude Bellingham","Vinícius Júnior","Rodrygo","Éder Militão","Aurélien Tchouaméni","Eduardo Camavinga","Dani Carvajal","Federico Valverde","Endrick","Antonio Rüdiger","Thibaut Courtois");
+  add("Barcelona","Lamine Yamal","Pedri","Pau Cubarsí","Frenkie de Jong","Marc-André ter Stegen","Ronald Araújo","Jules Koundé","Raphinha","Dani Olmo","Robert Lewandowski");
+  add("Manchester City","Rodri","Phil Foden","Bernardo Silva","Rúben Dias","Joško Gvardiol","Jérémy Doku","John Stones");
+  add("Paris Saint-Germain","Achraf Hakimi","Nuno Mendes","Marquinhos","Vitinha","João Neves","Fabián Ruiz","Ousmane Dembélé");
+  add("Arsenal","Bukayo Saka","Declan Rice","William Saliba","Gabriel Magalhães","Kai Havertz","Leandro Trossard","Jurriën Timber");
+  add("Bayern Munich","Harry Kane","Joshua Kimmich","Jamal Musiala","Serge Gnabry","Dayot Upamecano");
+  add("Liverpool","Virgil van Dijk","Cody Gakpo","Ryan Gravenberch","Ibrahima Konaté");
+  add("Inter","Lautaro Martínez","Marcus Thuram","Denzel Dumfries");
   return m;})();
 function sameClub(a,b){const x=CLUB[a.name];return !!x&&x===CLUB[b.name];}
 const CHEM={posExact:1.6,posLine:0.7,club:2,squad:1.4,nation:1,decade:0.6,cont:0.3,volPer:0.2,volCap:1.4,mult:0.66,scale:0.09,boostCap:4};

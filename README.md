@@ -1,6 +1,6 @@
 # 7-0 — Build the Ultimate World Cup XI
 
-A free, fan-made World Cup draft game with a **live world leaderboard** and a **credits economy**. Spin the wheel, draft legends from **136 iconic World Cup squads (1950–2022, 1,608 players)** — each with its own line of lore, pick your formation and captain, then live out the whole tournament minute by minute — tactics at half-time, extra time, penalty shootouts.
+A free, fan-made World Cup draft game with a **live world leaderboard** and a **credits economy**. Spin the wheel, draft legends from **148 iconic World Cup squads (1950–2026, 1,765 players)** — each with its own line of lore, pick your formation and captain, then live out the whole tournament minute by minute — tactics at half-time, extra time, penalty shootouts.
 
 **The perfect run is seven wins inside normal time: 7-0.**
 
@@ -10,7 +10,7 @@ A free, fan-made World Cup draft game with a **live world leaderboard** and a **
 
 ## What's in the game
 
-- 🎡 **The draw reel** — a case-opening-style strip of nation cards (flag · country · year, decade-tinted) from 136 real squads, Uruguay 1950 to Argentina 2022; it scrolls fast and eases to a stop with your squad framed under the pointer. One re-spin per run — choose wisely.
+- 🎡 **The draw reel** — a case-opening-style strip of nation cards (flag · country · year, decade-tinted) from 148 real squads, Uruguay 1950 to the 2026 contenders; it scrolls fast and eases to a stop with your squad framed under the pointer. One re-spin per run — choose wisely.
 - 🎯 **Place anyone anywhere** — you choose the exact slot for every pick. Out of position costs rating: −4 one line out, −9 two lines, −15 for anything involving the goalkeeper (yes, you can play Pelé in goal at 83).
 - ⚡ **Chemistry** — generous links reward putting players in their **correct position**, sharing a **club** (curated for marquee names: Messi+Suárez = Barça, Ronaldo+Modrić = Real…), the **same World Cup squad**, **nation**, **decade** or **continent**. A normal XI sits around ~16; themed sides (a Barça spine, an all-90s team) climb higher and boost the whole side.
 - ⚽ **Live match engine** — minute-by-minute simulation with commentary (including the occasional very famous line — "they think it's all over…"), half-time and extra-time **tactic calls**, group tables, shootouts.

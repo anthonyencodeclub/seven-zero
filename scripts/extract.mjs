@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { NEW_SQUADS, NEW_OPP } from '../src/squads-new.mjs';
 import { NEW_SQUADS_V3 } from '../src/squads-v3.mjs';
 import { NEW_SQUADS_V4 } from '../src/squads-v4.mjs';
+import { NEW_SQUADS_V5 } from '../src/squads-v5.mjs';
 import { LORE } from '../src/lore.mjs';
 
 const src = readFileSync(new URL('../v1/index.html', import.meta.url), 'utf8');
@@ -15,7 +16,7 @@ const grab = name => {
 const squads = grab('SQUADS');
 const opp = grab('OPP');
 
-const all = [...squads, ...NEW_SQUADS, ...NEW_SQUADS_V3, ...NEW_SQUADS_V4].sort((a, b) => a.y - b.y || a.t.localeCompare(b.t));
+const all = [...squads, ...NEW_SQUADS, ...NEW_SQUADS_V3, ...NEW_SQUADS_V4, ...NEW_SQUADS_V5].sort((a, b) => a.y - b.y || a.t.localeCompare(b.t));
 const dupes = new Set();
 for (const s of all) {
   const k = s.t + '|' + s.y;
@@ -72,7 +73,27 @@ const SP_OVERRIDE = {
   "Casemiro":"DM","N'Golo Kanté":"DM","Gennaro Gattuso":"DM","Dunga":"DM","Sergio Batista":"DM",
   "Didier Deschamps":"DM","Edgar Davids":"DM","Mauro Silva":"DM","Wataru Endo":"DM","Thomas Partey":"DM",
   "Sunday Oliseh":"DM","Marcelo Brozović":"DM","Tyler Adams":"DM","Lucas Torreira":"DM","Obdulio Varela":"DM",
-  "Lothar Matthäus":"CM","Luka Modrić":"CM","Andrés Iniesta":"CM","Xavi":"CM","Toni Kroos":"CM"
+  "Lothar Matthäus":"CM","Luka Modrić":"CM","Andrés Iniesta":"CM","Xavi":"CM","Toni Kroos":"CM",
+  // --- 2026 contenders ---
+  "Nahuel Molina":"RB","Nicolás Tagliafico":"LB","Lautaro Martínez":"ST","Julián Álvarez":"ST","Nico Paz":"AM",
+  "Jules Koundé":"RB","Theo Hernández":"LB","Aurélien Tchouaméni":"DM","Michael Olise":"RW","Marcus Thuram":"ST",
+  "Danilo":"RB","Wendell":"LB","Bruno Guimarães":"CM","Rodrygo":"RW","Raphinha":"RW","Endrick":"ST",
+  "Kieran Trippier":"LB","Declan Rice":"DM","Jude Bellingham":"AM","Phil Foden":"AM","Cole Palmer":"AM",
+  "Bukayo Saka":"RW","Marcus Rashford":"LW","Anthony Gordon":"LW",
+  "Dani Carvajal":"RB","Marc Cucurella":"LB","Rodri":"DM","Dani Olmo":"AM","Lamine Yamal":"RW","Nico Williams":"LW","Álvaro Morata":"ST",
+  "Nuno Mendes":"LB","Vitinha":"CM","Bruno Fernandes":"AM","Bernardo Silva":"AM","João Neves":"CM","Rafael Leão":"LW","Pedro Neto":"RW","João Félix":"AM",
+  "Joshua Kimmich":"RB","Maximilian Mittelstädt":"LB","Robert Andrich":"DM","Jamal Musiala":"AM","Florian Wirtz":"AM","Kai Havertz":"ST","Leroy Sané":"RW","Serge Gnabry":"LW",
+  "Denzel Dumfries":"RB","Nathan Aké":"LB","Jurriën Timber":"RB","Frenkie de Jong":"CM","Xavi Simons":"AM","Cody Gakpo":"LW","Donyell Malen":"RW","Memphis Depay":"ST",
+  "Timothy Castagne":"RB","Maxim De Cuyper":"LB","Amadou Onana":"DM","Kevin De Bruyne":"AM","Jérémy Doku":"RW","Leandro Trossard":"LW","Loïs Openda":"ST","Romelu Lukaku":"ST",
+  "Josip Stanišić":"RB","Borna Sosa":"LB","Mateo Kovačić":"CM","Luka Sučić":"AM","Andrej Kramarić":"AM","Ivan Perišić":"LW","Ante Budimir":"ST",
+  "Nahitan Nández":"RB","Mathías Olivera":"LB","Federico Valverde":"CM","Manuel Ugarte":"DM","Giorgian De Arrascaeta":"AM","Darwin Núñez":"ST","Facundo Pellistri":"RW","Maximiliano Araújo":"LW",
+  "Noussair Mazraoui":"LB","Sofyan Amrabat":"DM","Brahim Díaz":"AM","Amine Adli":"LW","Youssef En-Nesyri":"ST","Eliesse Ben Seghir":"AM",
+  // 2026 centre-backs (so the heuristic never mislabels them as a full-back)
+  "Cristian Romero":"CB","Nicolás Otamendi":"CB","Lisandro Martínez":"CB","William Saliba":"CB","Dayot Upamecano":"CB","Ibrahima Konaté":"CB",
+  "Marquinhos":"CB","Éder Militão":"CB","Gabriel Magalhães":"CB","John Stones":"CB","Marc Guéhi":"CB","Pau Cubarsí":"CB","Aymeric Laporte":"CB","Robin Le Normand":"CB",
+  "Rúben Dias":"CB","Gonçalo Inácio":"CB","Antonio Rüdiger":"CB","Jonathan Tah":"CB","Nico Schlotterbeck":"CB","Virgil van Dijk":"CB","Matthijs de Ligt":"CB",
+  "Wout Faes":"CB","Zeno Debast":"CB","Arthur Theate":"CB","Joško Gvardiol":"CB","Josip Šutalo":"CB","Ronald Araújo":"CB","José María Giménez":"CB","Sebastián Cáceres":"CB",
+  "Nayef Aguerd":"CB","Romain Saïss":"CB"
 };
 const SP_PAT = {
   DEF: n => n <= 3 ? Array(n).fill('CB') : ['RB','CB','CB','LB','CB','RB','LB','CB'].slice(0, n),
