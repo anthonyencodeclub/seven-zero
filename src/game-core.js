@@ -468,8 +468,11 @@ function renderPlacement(si,pi,key){
   back.className="backlink";back.textContent="← Back to squad";
   back.onclick=()=>renderSquadList(si);
   list.appendChild(back);
-  const cand={sq:si,team:SQUADS[si].t,year:SQUADS[si].y};
-  let candLinks=0;S.slots.forEach(x=>{if(x.player)candLinks+=linkPts(cand,x.player);});
+  // preview the candidate's chemistry per slot, using the same bond() as the live model
+  const cand={sq:si,team:SQUADS[si].t,year:SQUADS[si].y,name:pl[0],cat:pl[1],sp:pl[3]||pl[1]};
+  let bestBond=0,linkN=0;
+  S.slots.forEach(x=>{if(x.player){const bd=bond(cand,x.player);if(bd>0){if(bd>bestBond)bestBond=bd;if(bd>=CHEM.decade)linkN++;}}});
+  const volBonus=Math.min(CHEM.volCap,linkN*CHEM.volPer);
   const grid=document.createElement("div");grid.className="placegrid";
   FORMATIONS[S.form].rows.forEach(r=>{
     const row=document.createElement("div");row.className="prow";
@@ -483,7 +486,8 @@ function renderPlacement(si,pi,key){
         const pen=oopPenalty(s,{cat:pl[1],sp:pl[3]||pl[1]});
         const eff=Math.max(40,pl[2]-pen);
         b.classList.add(pen===0?"nat":pen<=4?"sli":"maj");
-        const chemBits=(pen===0?1:0)+(candLinks>=2?1:0)+(candLinks>=4.5?1:0);
+        const posFit=pen===0?CHEM.posExact:(s.cat===pl[1]?CHEM.posLine:0);
+        const chemBits=Math.round((posFit+bestBond+volBonus)*CHEM.mult);
         b.innerHTML=`<div class="pid">${id}</div>
           <div class="pe">${hidden()?(pen===0?"OK":pen<=4?"–":"– –"):eff}</div>
           <div class="pc">${pen?(hidden()?"out of position":"−"+pen+" OOP"):"natural"}${chemBits?" · ⚡"+chemBits:""}</div>`;

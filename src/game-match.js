@@ -609,13 +609,16 @@ function paintBoardPlay(){
   const bp=$("btn-board-play"),og=$("board-other");
   if(!bp)return;
   const cost=WALLET.cost||100;
+  const dailyPlayed=store.get().lastDaily===utcDay();
   bp.style.display="block";
-  bp.textContent=!WALLET.ready?"Play a run →":WALLET.cr>=cost?`Play custom run · ${cost} 🪙`:`Need ${cost} 🪙 — tap to earn`;
-  const st=store.get();
-  const dailyPlayed=st.lastDaily===utcDay();
+  bp.textContent=!dailyPlayed?"Play today's challenge · FREE"
+    :!WALLET.ready?"Play a custom run →"
+    :WALLET.cr>=cost?`Play custom run · ${cost} 🪙`
+    :`Need ${cost} 🪙 — tap to earn`;
   og.style.display=dailyPlayed?"flex":"none";
   if(dailyPlayed)og.innerHTML=OTHER_GAMES;
 }
+function playFromBoard(){ store.get().lastDaily===utcDay()?playCustom():playDaily(); }
 async function loadBoard(tab,bust){
   paintBoardPlay();
   BOARD.tab=tab||BOARD.tab;
@@ -775,12 +778,16 @@ function paintHomeCTAs(){
   const db=$("btn-daily");
   if(db){db.disabled=dailyPlayed;
     db.textContent=dailyPlayed?"✓ Played today — back at midnight UTC":"Play today's challenge · FREE";}
+  // custom run only appears once the free daily run is used up
   const bs=$("btn-start");
   const cost=WALLET.cost||100;
-  if(bs){bs.disabled=false;
-    bs.textContent=!WALLET.ready?"Start a custom run →"
+  if(bs){
+    bs.style.display=dailyPlayed?"block":"none";
+    bs.disabled=false;
+    bs.textContent=!WALLET.ready?"Play a custom run →"
       :WALLET.cr>=cost?`Play custom run · ${cost} 🪙`
-      :`Need ${cost} 🪙 — tap to earn`;}
+      :`Need ${cost} 🪙 — tap to earn`;
+  }
   const og=$("home-other");
   if(og){og.style.display=dailyPlayed?"flex":"none";if(dailyPlayed)og.innerHTML=OTHER_GAMES;}
 }
@@ -872,7 +879,7 @@ $("btn-submit-score").onclick=saveProfile;
 $("btn-cancel-save").onclick=()=>{PENDING_START=null;PENDING_SUBMIT=false;$("save-bg").classList.remove("on");};
 $("btn-board-home").onclick=()=>{show("board");loadBoard("all",true);};
 $("btn-board-back").onclick=goHome;
-$("btn-board-play").onclick=playCustom;
+$("btn-board-play").onclick=playFromBoard;
 $("wiz-next").onclick=wizNext;
 $("wiz-back").onclick=wizBack;
 $("wiz-bg").onclick=e=>{if(e.target===$("wiz-bg"))$("wiz-bg").classList.remove("on");};
