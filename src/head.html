@@ -10,7 +10,11 @@
 <meta property="og:description" content="Spin the wheel. Draft from 148 legendary World Cup squads (1950–2026), with the story behind every side. Win all seven and climb the world leaderboard.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://seven-zero-navy.vercel.app">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://seven-zero-navy.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://seven-zero-navy.vercel.app/og.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
 <style>
 :root{
@@ -131,6 +135,20 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .daily .ds{font-size:12.5px;color:var(--chalk-dim);line-height:1.45;margin-bottom:12px}
 .daily .ds b{color:var(--gold)}
 .daily .btn{position:relative;z-index:1}
+.chbanner{border:1.5px solid var(--gold);border-radius:14px;margin:0 0 14px;padding:15px;text-align:left;
+  background:linear-gradient(160deg,rgba(217,100,89,.14),rgba(227,179,76,.10));animation:fadeIn .3s ease}
+.chbanner .chl{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:800}
+.chbanner .chd{font-size:13.5px;color:var(--chalk-dim);line-height:1.5;margin:6px 0 12px}
+.chbanner .chd b{color:var(--chalk)}
+.chbanner .chx{background:none;border:0;color:var(--chalk-dim);font-size:12px;cursor:pointer;text-decoration:underline;margin-top:8px;display:block;width:100%;text-align:center}
+.chresult{border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.45;margin:10px 0 2px}
+.chresult b{font-weight:900}
+.chresult.chwin{border:1.5px solid var(--gold);background:rgba(227,179,76,.12);color:var(--gold)}
+.chresult.chlose{border:1.5px solid var(--line);background:rgba(217,100,89,.10);color:var(--chalk-dim)}
+.daily-featured{position:relative;z-index:1;font-size:12.5px;line-height:1.5;margin:0 0 12px;
+  border:1px dashed var(--gold-deep);border-radius:10px;padding:9px 11px;background:rgba(227,179,76,.07)}
+.daily-featured .fstar{color:var(--gold);font-weight:800}
+.daily-featured .fcfg{color:var(--chalk-dim);display:block;margin-top:2px}
 .streak{display:inline-block;font-size:12px;font-weight:800;color:var(--gold);margin-left:8px}
 
 .boardprev .row3{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:6px 0;border-bottom:1px solid rgba(243,236,217,.06);color:var(--chalk-dim)}
@@ -301,6 +319,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .bpill.now{border-color:var(--gold);color:var(--gold)}
 .bpill.won{border-color:var(--gold-deep);color:var(--gold-deep);background:rgba(227,179,76,.07)}
 .bpill.lost{border-color:var(--loss);color:var(--loss)}
+.opplore{font-size:12px;color:var(--gold);opacity:.85;font-style:italic;line-height:1.5;margin:-4px 0 10px;border-left:2px solid var(--gold-deep);padding-left:10px}
 .roundlabel{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:800;margin:22px 0 10px}
 .match{border:1px solid var(--line);border-radius:12px;background:var(--card);
   padding:13px 14px;margin-bottom:10px;animation:fadeIn .4s ease}
@@ -339,6 +358,17 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 
 /* ---------- leaderboard ---------- */
 #board{padding-top:calc(56px + env(safe-area-inset-top))}
+#album{padding-top:calc(56px + env(safe-area-inset-top))}
+.alb-era{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:800;margin:18px 0 10px;display:flex;justify-content:space-between;align-items:baseline}
+.alb-era span{color:var(--chalk-dim);letter-spacing:.04em;font-size:11px}
+.alb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.alb-card{border:1.5px solid var(--line);border-radius:10px;background:rgba(6,35,27,.55);padding:10px 3px 8px;text-align:center;cursor:pointer;color:var(--chalk-dim)}
+.alb-card .af{font-size:26px;line-height:1.15;filter:grayscale(1) brightness(.45)}
+.alb-card .an{font-size:9px;font-weight:800;margin-top:4px;text-transform:uppercase;letter-spacing:.02em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.alb-card .ay{font-size:10px;font-weight:700;margin-top:1px}
+.alb-card.got{border-color:var(--gold-deep);background:rgba(227,179,76,.08);color:var(--chalk)}
+.alb-card.got .af{filter:none}
+.alb-card.got .ay{color:var(--gold)}
 .btabs{display:flex;gap:8px;margin:14px 0}
 .btab{flex:1;border:1.5px solid var(--line);background:transparent;color:var(--chalk-dim);border-radius:10px;
   padding:11px;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
@@ -446,11 +476,14 @@ footer a{color:rgba(243,236,217,.5)}
       <div class="stat"><div class="n mono">1950–2022</div><div class="l">World Cups</div></div>
     </div>
 
+    <div class="chbanner" id="chbanner" style="display:none"></div>
     <div class="daily">
       <div class="dl">⚡ Daily Challenge<span class="streak" id="daily-streak"></span></div>
       <div class="dd" id="daily-date"></div>
-      <div class="ds">Your <b>one free run a day</b> — play it however you like. Earns a <b>×1.1</b> bonus and builds your streak. Saved automatically; resets at midnight UTC.</div>
-      <button class="btn" id="btn-daily">Play today's challenge · FREE</button>
+      <div class="ds">Your <b>one free run a day</b> — play it however you like. Builds your streak; resets at midnight UTC.</div>
+      <div class="daily-featured" id="daily-featured"></div>
+      <button class="btn" id="btn-daily">Play today's run · FREE</button>
+      <button class="btn ghost" id="btn-featured" style="margin-top:8px">⭐ Play the featured challenge · +15%</button>
     </div>
 
     <div class="walletline" id="walletline">
@@ -464,6 +497,8 @@ footer a{color:rgba(243,236,217,.5)}
       <h2>🌍 World leaderboard <span class="more" id="btn-board-home">Full table →</span></h2>
       <div id="home-board-rows"><div class="empty">Loading the world's best runs…</div></div>
     </div>
+
+    <button class="btn ghost" id="btn-album" style="margin-top:2px">📖 Squad album</button>
 
     <div class="panel cabinet" id="cabinet" style="display:none">
       <h2>Trophy cabinet</h2>
@@ -641,6 +676,19 @@ footer a{color:rgba(243,236,217,.5)}
     </div>
   </section>
 
+  <!-- ALBUM -->
+  <section class="screen" id="album">
+    <div class="topbar">
+      <div class="t display">7<em>-</em>0 <span style="font-size:13px;color:var(--chalk-dim);font-weight:700;letter-spacing:.08em">ALBUM</span></div>
+      <div class="picksleft" id="album-head"></div>
+    </div>
+    <p class="hint" style="color:var(--chalk-dim);font-size:13px;margin:2px 0 6px">Every squad you've drafted from, every legend you've fielded. Collect all 148.</p>
+    <div id="album-list"></div>
+    <div class="stack" style="margin-top:18px">
+      <button class="btn ghost" id="btn-album-back">← Back</button>
+    </div>
+  </section>
+
   <!-- RESULT -->
   <section class="screen" id="result">
     <div class="trophy" id="r-icon">🏆</div>
@@ -656,11 +704,13 @@ footer a{color:rgba(243,236,217,.5)}
       <div class="award"><div class="al">⭐ Player of the cup</div><div class="av" id="r-pott">—</div><div class="as" id="r-pott2"></div></div>
     </div>
     <div class="finalxi" id="r-xi"></div>
+    <div class="chresult" id="r-challenge" style="display:none"></div>
     <div class="savemsg" id="r-saved"></div>
     <div class="stack">
       <button class="btn" id="btn-save">🌍 Save to world leaderboard</button>
       <button class="btn ghost" id="btn-again">Back home →</button>
-      <button class="btn ghost" id="btn-share">Share result</button>
+      <button class="btn ghost" id="btn-share">Share result 📸</button>
+      <button class="btn ghost" id="btn-challenge-share">🎯 Challenge a friend</button>
     </div>
     <div class="copied" id="copied"></div>
     <footer id="r-foot"></footer>

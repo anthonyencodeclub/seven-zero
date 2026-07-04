@@ -37,6 +37,31 @@ const DRAFT_MODES={
 };
 const ERAS=[[1950,1959],[1960,1969],[1970,1979],[1980,1989],[1990,1999],[2000,2009],[2010,2019],[2020,2029]];
 const CAP_BUDGET=946, CAP_FLOOR=75;
+
+/* featured challenge of the day — deterministic rotation, ×1.15 bonus when your
+   daily run matches it (mirrored in api/_shared.js — keep in sync) */
+const FEATURED=[
+  {n:"Legend Day",draft:"classic",diff:"legend",pool:"all",form:"4-3-3"},
+  {n:"Modern Masters",draft:"classic",diff:"hard",pool:"p90",form:"4-2-3-1"},
+  {n:"Samba Dynasty",draft:"dynasty",dyn:"Brazil",diff:"classic",pool:"all",form:"4-2-3-1"},
+  {n:"Time Traveller",draft:"era",diff:"classic",pool:"all",form:"4-4-2"},
+  {n:"Moneyball",draft:"cap",diff:"classic",pool:"all",form:"4-4-2"},
+  {n:"New School",draft:"classic",diff:"classic",pool:"p06",form:"4-3-3"},
+  {n:"Catenaccio Night",draft:"classic",diff:"hard",pool:"all",form:"4-5-1"},
+  {n:"Three Lions… er, Dynasty",draft:"dynasty",dyn:"England",diff:"classic",pool:"all",form:"4-4-2"},
+  {n:"Era Tour: Hard Mode",draft:"era",diff:"hard",pool:"all",form:"4-3-3"},
+  {n:"Wing-back Wednesday-ish",draft:"classic",diff:"classic",pool:"all",form:"3-5-2"}
+];
+function featuredFor(day){
+  let h=0;for(let i=0;i<day.length;i++){h=(h*31+day.charCodeAt(i))>>>0;}
+  return FEATURED[h%FEATURED.length];
+}
+const FEAT_MULT=1.15;
+function matchesFeatured(flags,day){
+  const f=featuredFor(day||utcDay());
+  return !!flags.daily&&flags.draft===f.draft&&flags.diff===f.diff&&flags.pool===f.pool
+    &&flags.form===f.form&&(f.dyn?flags.dyn===f.dyn:true);
+}
 const DYN_ALIAS=t=>t==="West Germany"?"Germany":t;
 const DYNASTIES=(()=>{const m={};SQUADS.forEach((s,i)=>{const k=DYN_ALIAS(s.t);(m[k]=m[k]||[]).push(i);});
   return Object.entries(m).filter(([,v])=>v.length>=4).sort((a,b)=>b[1].length-a[1].length);})();
@@ -56,14 +81,17 @@ function scoreRun(matches,flags){
   const perfect=champion&&reg===7&&matches.every(x=>x.gf>x.ga&&!x.et);
   if(perfect)pts+=300;
   pts=Math.max(0,pts);
-  const mult=(DIFF_MULT[flags.diff]||1)*(DRAFT_MULT[flags.draft]||1)*(POOL_MULT[flags.pool]??1)*(flags.daily?1.1:1);
-  return{pts:Math.round(pts*mult),champion,perfect,base:pts,mult};
+  const feat=matchesFeatured(flags,flags.day);
+  const mult=(DIFF_MULT[flags.diff]||1)*(DRAFT_MULT[flags.draft]||1)*(POOL_MULT[flags.pool]??1)
+    *(flags.daily?1.1:1)*(feat?FEAT_MULT:1);
+  return{pts:Math.round(pts*mult),champion,perfect,base:pts,mult,feat};
 }
 
 /* =========================================================
    STATE + STORAGE
 ========================================================= */
 let S={};
+let RUN_SEED=null;   // set before resetState to replay a challenge's wheel
 let pref={form:"4-3-3",draft:"classic",diff:"classic",dyn:null,pool:"all"};
 const utcDay=()=>new Date().toISOString().slice(0,10);
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
@@ -75,10 +103,14 @@ function resetState(daily){
   const poolMode=draft==="dynasty"?"all":pref.pool;
   const F=FORMATIONS[form];
   const slots=[];F.rows.forEach(r=>r.forEach(id=>slots.push({id,cat:F.cats[id],player:null})));
+  // every run is seeded so it can be shared as a "beat my run" challenge —
+  // same seed + same rules = same wheel
+  const seed=RUN_SEED!=null?RUN_SEED:((Math.random()*4294967296)>>>0);
+  RUN_SEED=null;
   S={form,draft,diff,poolMode,daily:!!daily,dyn:draft==="dynasty"?pref.dyn:null,
      slots,lastSquad:-1,spinning:false,wheelRot:0,picked:new Set(),
      respins:1,captain:null,goals:{},assists:{},era:0,budget:CAP_BUDGET,token:null,submitted:false,
-     rng:Math.random,   // daily = your one free run, played however you like (not a shared seed)
+     seed,rng:mulberry32(seed),
      pool:[],wheelIdx:[],
      cup:{stage:0,record:{w:0,d:0,l:0,gf:0,ga:0},group:null,knock:[],out:false,outAt:null,
           champion:false,perfect:false,regWins:0,cleanSheets:0,gridResults:[],matches:[]}};
@@ -97,7 +129,7 @@ const pickFrom=a=>a[rnd(a.length)];
 
 const STORE_KEY="seven_zero_stats_v3";
 const STORE_DEF={runs:0,titles:0,perfects:0,bestW:0,bestPts:0,goals:0,topScorers:{},
-  badges:{},streak:0,lastDaily:"",lastRun:"",playerName:"",playerCountry:"",playerEmail:"",optin:false,emailSent:0};
+  badges:{},streak:0,lastDaily:"",lastRun:"",playerName:"",playerCountry:"",playerEmail:"",optin:false,emailSent:0,albumSquads:{},albumPlayers:{}};
 const store={
   get(){
     try{
@@ -458,6 +490,12 @@ function draft(si,pi,key,slotId){
   if(!slot)return;
   slot.player={name:pl[0],rating:pl[2],team:SQUADS[si].t,year:SQUADS[si].y,flag:SQUADS[si].f,cat:pl[1],sp:pl[3]||pl[1],num:pi+1,sq:si};
   S.picked.add(key);
+  // album: remember every squad drafted from and every legend fielded
+  {const st=store.get();
+   st.albumSquads=st.albumSquads||{};st.albumPlayers=st.albumPlayers||{};
+   st.albumSquads[SQUADS[si].t+"|"+SQUADS[si].y]=(st.albumSquads[SQUADS[si].t+"|"+SQUADS[si].y]||0)+1;
+   st.albumPlayers[pl[0]+"|"+SQUADS[si].y]=(st.albumPlayers[pl[0]+"|"+SQUADS[si].y]||0)+1;
+   store.set(st);}
   if(S.draft==="cap")S.budget-=pl[2];
   if(S.draft==="era")S.era++;
   SFX.pick();

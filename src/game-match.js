@@ -181,23 +181,29 @@ function runPens(opp,res,done){
 const ROUNDS=["Group game 1","Group game 2","Group game 3","Round of 16","Quarter-final","Semi-final","Final"];
 const PILLS=["GRP","R16","QF","SF","FINAL"];
 
+/* opponents are REAL squads — strength = best-XI average +4 cohesion
+   (a real squad plays as a unit; keeps difficulty in line with the old bands) */
+const OPPS=SQUADS.map(s=>{
+  const rs=s.p.map(p=>p[2]).sort((a,b)=>b-a).slice(0,11);
+  return {n:s.t+" "+s.y,f:s.f,r:Math.round(rs.reduce((a,b)=>a+b,0)/rs.length)+4,l:s.l};
+});
 function drawOpps(min,max,n,exclude){
-  const pool=OPP.filter(o=>o[2]>=min&&o[2]<=max&&!exclude.has(o[0]));
-  const out=[];
-  while(out.length<n&&pool.length){out.push(...pool.splice(rnd(pool.length),1));}
-  return out.map(o=>({n:o[0],f:o[1],r:o[2]}));
+  let lo=min,hi=max,pool=[];
+  for(let w=0;w<10&&pool.length<n;w++){    // widen the band until it can serve n squads
+    pool=OPPS.filter(o=>o.r>=lo&&o.r<=hi&&!exclude.has(o.n));
+    lo--;hi++;
+  }
+  const p=pool.slice(),out=[];
+  while(out.length<n&&p.length){out.push(...p.splice(rnd(p.length),1));}
+  return out;
 }
 function startCup(){
   const used=new Set();
   const L=S.diff==="legend";
-  S.cup.group={opps:drawOpps(L?82:78,L?92:88,3,used),results:[]};
+  S.cup.group={opps:drawOpps(L?82:78,L?90:86,3,used),results:[]};
   S.cup.group.opps.forEach(o=>used.add(o.n));
-  S.cup.knock=[
-    pickFrom(drawOpps(84,90,4,used)),
-    pickFrom(drawOpps(86,92,4,used)),
-    pickFrom(drawOpps(88,93,4,used)),
-    pickFrom(drawOpps(L?92:90,94,4,used))
-  ];
+  const kn=(a,b)=>{const c=pickFrom(drawOpps(a,b,4,used));used.add(c.n);return c;};
+  S.cup.knock=[kn(84,89),kn(86,91),kn(87,92),kn(L?90:88,93)];
   const feed=$("cup-feed");feed.innerHTML="";delete feed.dataset.knock;
   renderBracket();
   feedRound("Group stage");
@@ -252,6 +258,7 @@ function playNext(){
   if(!isGroup){
     if(st===3&&!$("cup-feed").dataset.knock){feedRound("Knockout rounds");$("cup-feed").dataset.knock=1;}
     feedRound(ROUNDS[st]+" — the draw: "+opp.f+" "+opp.n);
+    if(opp.l){const lo=document.createElement("div");lo.className="opplore";lo.textContent=opp.l;$("cup-feed").appendChild(lo);}
   }
   runLive(opp,!isGroup,res=>finalizeMatch(opp,res,isGroup));
 }
@@ -394,7 +401,7 @@ function countUp(el,to,suffix){
 }
 function showResult(){
   const r=S.cup.record;
-  const sc=scoreRun(S.cup.matches,{draft:S.draft,diff:S.diff,daily:S.daily,pool:S.poolMode});
+  const sc=scoreRun(S.cup.matches,{draft:S.draft,diff:S.diff,daily:S.daily,pool:S.poolMode,form:S.form,dyn:S.dyn||""});
   S.cup.perfect=sc.perfect;S.pts=sc;
   $("r-icon").textContent=S.cup.champion?"🏆":"📉";
   $("r-icon").className="trophy"+(S.cup.champion?" win":"");
@@ -458,6 +465,17 @@ function showResult(){
   $("r-badges").innerHTML=newB.map(k=>`<span class="rbadge">${BADGES[k][0]} ${BADGES[k][1]} unlocked</span>`).join("");
   $("r-foot").textContent="Career: "+st.titles+" title"+(st.titles===1?"":"s")+" · "+st.perfects+" perfect run"+(st.perfects===1?"":"s")+" · best "+st.bestPts+" pts · "+st.runs+" run"+(st.runs===1?"":"s");
   $("copied").textContent="";
+  const rc=$("r-challenge");
+  if(rc){
+    if(S.ch){
+      const win=S.pts.pts>S.ch.pts;
+      rc.style.display="block";
+      rc.className="chresult "+(win?"chwin":"chlose");
+      rc.innerHTML=win
+        ?`🎯 <b>Challenge won!</b> You beat ${S.ch.by}'s ${S.ch.pts} with <b>${S.pts.pts}</b> — send the rematch.`
+        :`🎯 ${S.ch.by}'s <b>${S.ch.pts}</b> stands — you scored ${S.pts.pts}. Pass it on anyway?`;
+    }else{rc.style.display="none";rc.innerHTML="";}
+  }
   S.submitted=false;
   $("btn-save").style.display="none";
   show("result");
@@ -655,10 +673,205 @@ function shareText(){
   return "7-0 — The World Cup Draft\n"+head+"\n"+S.cup.gridResults.join("")+"\n"
     +S.pts.pts+" pts · W"+r.w+" D"+r.d+" L"+r.l+" · "+modeBits.join(" · ")
     +"\nXI: "+S.slots.map(s=>s.player.name+(S.captain===s.id?" ©":"")).join(", ")
-    +"\n"+SITE;
+    +"\n🎯 Beat my run: "+challengeLink();
+}
+/* ---------- squad album (Panini-style collection) ---------- */
+function openAlbum(){
+  const st=store.get();
+  const sq=st.albumSquads||{},plc=st.albumPlayers||{};
+  const got=SQUADS.filter(s=>sq[s.t+"|"+s.y]).length;
+  const totalP=SQUADS.reduce((a,s)=>a+s.p.length,0);
+  $("album-head").innerHTML=`<b>${got}</b>/${SQUADS.length} squads · <b>${Object.keys(plc).length}</b>/${totalP} legends`;
+  const list=$("album-list");list.innerHTML="";
+  ERAS.forEach(([a,b])=>{
+    const squads=SQUADS.filter(s=>s.y>=a&&s.y<=b);
+    if(!squads.length)return;
+    const gotN=squads.filter(s=>sq[s.t+"|"+s.y]).length;
+    const h=document.createElement("div");h.className="alb-era";
+    h.innerHTML=`${a}s <span>${gotN} / ${squads.length} collected</span>`;
+    list.appendChild(h);
+    const grid=document.createElement("div");grid.className="alb-grid";
+    squads.forEach(s=>{
+      const has=!!sq[s.t+"|"+s.y];
+      const c=document.createElement("button");c.className="alb-card"+(has?" got":"");
+      c.innerHTML=`<div class="af">${s.f}</div><div class="an">${s.t}</div><div class="ay">${s.y}</div>`;
+      c.onclick=()=>albumDetail(s,has,plc);
+      grid.appendChild(c);
+    });
+    list.appendChild(grid);
+  });
+  show("album");
+}
+function albumDetail(s,has,plc){
+  $("m-title").innerHTML=`${s.f} ${s.t} <span class="yr">${s.y}</span>`;
+  $("m-lore").textContent=s.l||"";
+  $("m-needs").style.display="none";
+  $("m-hint").textContent=has?"Legends you've fielded glow gold.":"You haven't drafted from this squad yet — keep spinning.";
+  const list=$("m-list");list.innerHTML="";
+  s.p.forEach((pl,idx)=>{
+    const n=plc[pl[0]+"|"+s.y]||0;
+    const d=document.createElement("div");d.className="pl";
+    d.style.cursor="default";if(!n)d.style.opacity=".45";
+    d.innerHTML=`${jersey(s.t,idx+1,26)}<span class="pos${n?" open":""}">${pl[3]||pl[1]}</span>`
+      +`<span class="pname">${pl[0]}${n>1?` <span style=\"color:var(--gold)\">×${n}</span>`:""}</span>`
+      +`<span class="rt t-${n?tier(pl[2]):"plain"}">${pl[2]}</span>`;
+    list.appendChild(d);
+  });
+  const close=document.createElement("button");
+  close.className="btn ghost";close.style.marginTop="10px";close.textContent="Close";
+  close.onclick=()=>$("modal-bg").classList.remove("on");
+  list.appendChild(close);
+  $("btn-respin").style.display="none";
+  $("modal-bg").classList.add("on");
+}
+
+/* ---------- beat-my-run challenge links ---------- */
+const CH_KEY="seven_zero_challenge";
+let ACTIVE_CH=null;
+function parseChallengeURL(){
+  const u=new URL(location.href);
+  const c=u.searchParams.get("c");
+  if(c){
+    const m=c.match(/^([0-9a-f]{1,8})-(\d{1,5})-(classic|era|dynasty|cap)-(classic|hard|legend)-(all|p90|p06)-([0-9-]{5,9})$/);
+    if(m&&FORMATIONS[m[6]]){
+      const ch={seed:parseInt(m[1],16)>>>0,pts:+m[2],draft:m[3],diff:m[4],pool:m[5],form:m[6],
+        dyn:(u.searchParams.get("dyn")||"").slice(0,14),by:(u.searchParams.get("by")||"A rival").slice(0,20)};
+      try{localStorage.setItem(CH_KEY,JSON.stringify(ch));}catch(e){}
+    }
+    u.searchParams.delete("c");u.searchParams.delete("by");u.searchParams.delete("dyn");
+    history.replaceState({},"",u.pathname+(u.search||"")+u.hash);
+  }
+}
+function getChallenge(){try{return JSON.parse(localStorage.getItem(CH_KEY));}catch(e){return null;}}
+function clearChallenge(){try{localStorage.removeItem(CH_KEY);}catch(e){}}
+function paintChallenge(){
+  const el=$("chbanner");if(!el)return;
+  const ch=getChallenge();
+  if(!ch){el.style.display="none";el.innerHTML="";return;}
+  const cfg=[ch.form,DRAFT_MODES[ch.draft].n+(ch.dyn?" "+ch.dyn:""),
+    ch.diff!=="classic"?ch.diff.toUpperCase():null,ch.pool!=="all"?POOLS[ch.pool].n:null].filter(Boolean).join(" · ");
+  el.style.display="block";
+  el.innerHTML=`<div class="chl">🎯 ${ch.by} challenges you</div>
+    <div class="chd">Beat <b>${ch.pts} pts</b> on the <b>same wheel, same rules</b> — ${cfg}.</div>
+    <button class="btn" id="btn-challenge">Take the challenge →</button>
+    <button class="chx" id="btn-ch-dismiss">Not today</button>`;
+  $("btn-challenge").onclick=acceptChallenge;
+  $("btn-ch-dismiss").onclick=()=>{clearChallenge();paintChallenge();};
+}
+function acceptChallenge(){
+  const ch=getChallenge();if(!ch)return;
+  if(store.get().lastDaily===utcDay()){toast("You've played today — the challenge keeps until tomorrow 🎯");return;}
+  pref.draft=ch.draft;pref.diff=ch.diff;pref.pool=ch.pool;pref.form=ch.form;
+  if(ch.dyn)pref.dyn=ch.dyn;
+  RUN_SEED=ch.seed;ACTIVE_CH=ch;
+  startRun();
+}
+function challengeLink(){
+  const st=store.get();
+  let l=`${SITE}/?c=${(S.seed>>>0).toString(16)}-${S.pts.pts}-${S.draft}-${S.diff}-${S.poolMode}-${S.form}`
+    +`&by=${encodeURIComponent(st.playerName||"A rival")}`;
+  if(S.dyn)l+=`&dyn=${encodeURIComponent(S.dyn)}`;
+  return l;
+}
+function challengeShareText(){
+  return `I scored ${S.pts.pts} pts in 7-0${S.cup.champion?(S.cup.perfect?" — PERFECT 7-0 ✦":" — WORLD CHAMPIONS 🏆"):""}. `
+    +`Same wheel, same rules — beat me: ${challengeLink()}`;
+}
+async function shareChallenge(){
+  const txt=challengeShareText();
+  if(navigator.share){try{await navigator.share({text:txt,title:"7-0 challenge"});return;}catch(e){}}
+  try{await navigator.clipboard.writeText(txt);toast("Challenge copied — send it 🎯");}catch(e){$("copied").textContent=txt;}
+}
+
+/* ---------- result image card (canvas → PNG) ---------- */
+function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function drawShirt(ctx,x,y,s,team,num){
+  const k=KIT[team]||KIT._d;
+  ctx.save();
+  ctx.fillStyle=k[1];                       // sleeves
+  rr(ctx,x-s*0.16,y+s*0.10,s*0.24,s*0.34,s*0.06);ctx.fill();
+  rr(ctx,x+s*0.92,y+s*0.10,s*0.24,s*0.34,s*0.06);ctx.fill();
+  ctx.fillStyle=k[0];                       // body
+  rr(ctx,x,y,s,s*1.06,s*0.16);ctx.fill();
+  ctx.fillStyle=k[1];                       // collar
+  ctx.beginPath();ctx.moveTo(x+s*0.32,y);ctx.lineTo(x+s*0.5,y+s*0.16);ctx.lineTo(x+s*0.68,y);ctx.closePath();ctx.fill();
+  if(num){ctx.fillStyle=k[2];ctx.font=`900 ${Math.round(s*0.5)}px -apple-system,Segoe UI,Roboto,sans-serif`;
+    ctx.textAlign="center";ctx.fillText(num,x+s*0.5,y+s*0.78);}
+  ctx.restore();
+}
+async function renderShareCard(){
+  const W=1080,H=1350;
+  const cv=document.createElement("canvas");cv.width=W;cv.height=H;
+  const ctx=cv.getContext("2d");
+  const SANS='-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
+  const EMOJI='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  // backdrop
+  ctx.fillStyle="#06231b";ctx.fillRect(0,0,W,H);
+  const g=ctx.createRadialGradient(W/2,-100,50,W/2,-100,900);
+  g.addColorStop(0,"rgba(227,179,76,.16)");g.addColorStop(1,"rgba(227,179,76,0)");
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.textAlign="center";
+  // wordmark
+  ctx.fillStyle="#f3ecd9";ctx.font=`900 150px ${SANS}`;
+  ctx.fillText("7",W/2-92,170);ctx.fillText("0",W/2+96,170);
+  ctx.fillStyle="#e3b34c";ctx.fillRect(W/2-40,118,78,22);
+  ctx.font=`800 27px ${SANS}`;ctx.fillStyle="#e3b34c";
+  ctx.fillText("T H E   W O R L D   C U P   D R A F T",W/2,232);
+  // verdict + points
+  const champ=S.cup.champion;
+  ctx.font=`900 62px ${SANS}`;
+  ctx.fillStyle=champ?"#e3b34c":"#d96459";
+  ctx.fillText(champ?(S.cup.perfect?"✦ PERFECT 7-0 ✦":"WORLD CHAMPIONS 🏆"):("OUT — "+(S.cup.outAt||"").toUpperCase()),W/2,330);
+  ctx.fillStyle="#ffe9a8";ctx.font=`900 118px ${SANS}`;
+  ctx.fillText(S.pts.pts+" PTS",W/2,452);
+  // grid + mode
+  ctx.font=`64px ${EMOJI}`;ctx.fillText(S.cup.gridResults.join(" "),W/2,540);
+  const modeBits=[S.form,DRAFT_MODES[S.draft].n+(S.dyn?" "+S.dyn:"")];
+  if(S.diff!=="classic")modeBits.push(S.diff.toUpperCase());
+  if(S.poolMode!=="all")modeBits.push(POOLS[S.poolMode].n);
+  if(S.pts.feat)modeBits.push("⭐ FEATURED");
+  ctx.font=`700 30px ${SANS}`;ctx.fillStyle="#bdb49c";
+  ctx.fillText(modeBits.join("  ·  "),W/2,600);
+  // XI panel
+  ctx.fillStyle="rgba(10,44,33,.72)";rr(ctx,60,640,W-120,568,26);ctx.fill();
+  ctx.strokeStyle="rgba(243,236,217,.16)";ctx.lineWidth=2;rr(ctx,60,640,W-120,568,26);ctx.stroke();
+  ctx.font=`800 26px ${SANS}`;ctx.fillStyle="#e3b34c";
+  ctx.fillText("Y O U R   X I",W/2,690);
+  ctx.textAlign="left";
+  S.slots.forEach((s,i)=>{
+    const y=718+i*44;
+    drawShirt(ctx,96,y-26,32,s.player.team,s.player.num);
+    ctx.fillStyle="#f3ecd9";ctx.font=`800 30px ${SANS}`;
+    ctx.fillText(s.player.name+(S.captain===s.id?" ©":""),156,y);
+    ctx.fillStyle="#bdb49c";ctx.font=`700 26px ${SANS}`;ctx.textAlign="right";
+    const g2=S.goals[s.player.name]||0;
+    ctx.fillText((g2?("⚽".repeat(Math.min(g2,4)))+"  ":"")+s.player.year+" · "+s.player.rating,W-100,y);
+    ctx.textAlign="left";
+  });
+  // footer
+  ctx.textAlign="center";
+  ctx.fillStyle="#e3b34c";ctx.font=`800 34px ${SANS}`;
+  ctx.fillText("Can you beat me? One free run a day.",W/2,1268);
+  ctx.fillStyle="#bdb49c";ctx.font=`700 30px ${SANS}`;
+  ctx.fillText(SITE.replace("https://",""),W/2,1314);
+  return new Promise(res=>cv.toBlob(res,"image/png"));
 }
 async function doShare(){
   const txt=shareText();
+  try{
+    const blob=await renderShareCard();
+    if(blob){
+      const file=new File([blob],"seven-zero-result.png",{type:"image/png"});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],text:txt,title:"7-0"});return;
+      }
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);a.download="seven-zero-result.png";a.click();
+      try{await navigator.clipboard.writeText(txt);}catch(e){}
+      $("copied").textContent="Image saved + text copied — share it anywhere.";
+      return;
+    }
+  }catch(e){}
   if(navigator.share){try{await navigator.share({text:txt});return;}catch(e){}}
   try{await navigator.clipboard.writeText(txt);$("copied").textContent="Copied — paste it anywhere.";}
   catch(e){$("copied").textContent=txt;}
@@ -709,10 +922,11 @@ function paintPoolChips(){
 }
 function multline(){
   const effPool=pref.draft==="dynasty"?"all":pref.pool;
-  let m=(DIFF_MULT[pref.diff]||1)*(DRAFT_MULT[pref.draft]||1)*(POOL_MULT[effPool]??1);
-  if(typeof WIZ!=="undefined"&&WIZ.daily)m*=1.1;
+  let m=(DIFF_MULT[pref.diff]||1)*(DRAFT_MULT[pref.draft]||1)*(POOL_MULT[effPool]??1)*1.1;
+  const feat=matchesFeatured({daily:true,draft:pref.draft,diff:pref.diff,pool:effPool,form:pref.form,dyn:pref.dyn||""});
+  if(feat)m*=FEAT_MULT;
   $("multline").textContent="×"+m.toFixed(2).replace(/0$/,"")
-    +(typeof WIZ!=="undefined"&&WIZ.daily?" (incl. daily bonus)":"")
+    +(feat?" ⭐ featured!":"")
     +(pref.draft==="dynasty"&&pref.dyn?" · "+pref.dyn:"");
 }
 function buildFormChips(){
@@ -761,8 +975,24 @@ function paintHomeCTAs(){
   const db=$("btn-daily");
   if(db){db.disabled=dailyPlayed;
     db.textContent=dailyPlayed?"✓ Played today — back at midnight UTC":"Play today's run · FREE";}
+  const fb=$("btn-featured");
+  if(fb)fb.style.display=dailyPlayed?"none":"block";
   const og=$("home-other");
   if(og){og.style.display=dailyPlayed?"flex":"none";if(dailyPlayed)og.innerHTML=OTHER_GAMES;}
+}
+function featuredDesc(f){
+  const bits=[DRAFT_MODES[f.draft].n+(f.dyn?" · "+f.dyn:""),f.diff!=="classic"?f.diff.toUpperCase():null,
+    f.pool!=="all"?POOLS[f.pool].n:null,f.form].filter(Boolean);
+  return bits.join(" · ");
+}
+function applyFeatured(){
+  const f=featuredFor(utcDay());
+  pref.draft=f.draft;pref.diff=f.diff;pref.pool=f.pool;pref.form=f.form;
+  if(f.dyn)pref.dyn=f.dyn;
+  buildFormChips();buildDraftChips();paintPoolChips();
+  document.querySelectorAll("#diffchips .chip").forEach(x=>x.classList.toggle("sel",x.dataset.m===pref.diff));
+  multline();
+  playDaily();
 }
 function paintDaily(){
   const st=store.get();
@@ -770,6 +1000,8 @@ function paintDaily(){
   $("daily-date").textContent=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:"UTC"})+" (UTC)";
   const active=st.lastDaily===utcDay()||st.lastDaily===new Date(Date.now()-864e5).toISOString().slice(0,10);
   $("daily-streak").textContent=active&&st.streak?"🔥 "+st.streak+"-day streak":"";
+  const f=featuredFor(utcDay()),fe=$("daily-featured");
+  if(fe)fe.innerHTML=`<span class="fstar">⭐ Featured: <b>${f.n}</b></span> <span class="fcfg">${featuredDesc(f)} · +15% score</span>`;
   paintHomeCTAs();
 }
 /* step-by-step run setup wizard (formation → mode → difficulty → pool) */
@@ -812,6 +1044,7 @@ async function startRun(){
     try{token=await apiPost("/api/token",{});}catch(e){}   // playtime token (anti-cheat)
     resetState(true);
     if(token)S.token=token;
+    if(ACTIVE_CH){S.ch=ACTIVE_CH;ACTIVE_CH=null;clearChallenge();paintChallenge();}
     buildReel();renderPitch();
     $("picks-n").textContent=S.slots.length;
     paintDraftMeta();
@@ -822,9 +1055,13 @@ async function startRun(){
   }finally{RUN_BUSY=false;}
 }
 function goHome(){
-  renderCabinet();paintDaily();paintProfile();homeBoardPreview();show("home");
+  renderCabinet();paintDaily();paintProfile();paintChallenge();homeBoardPreview();show("home");
 }
 $("btn-daily").onclick=playDaily;
+$("btn-featured").onclick=applyFeatured;
+$("btn-challenge-share").onclick=shareChallenge;
+$("btn-album").onclick=openAlbum;
+$("btn-album-back").onclick=goHome;
 $("btn-respin").onclick=()=>{
   if(!$("btn-respin").dataset.free){
     if(S.respins<=0)return;
@@ -869,7 +1106,8 @@ document.querySelectorAll("#poolchips .chip").forEach(b=>{
   b.onclick=()=>{if(b.disabled)return;pref.pool=b.dataset.p;paintPoolChips();multline();SFX.pick();};
 });
 buildFormChips();buildDraftChips();wireDiffChips();paintPoolChips();multline();
-renderCabinet();paintDaily();paintProfile();homeBoardPreview();boardPolling();
+parseChallengeURL();
+renderCabinet();paintDaily();paintProfile();paintChallenge();homeBoardPreview();boardPolling();
 setInterval(()=>{if($("home").classList.contains("on"))paintHomeCTAs();},30000);
 let rsT=null;
 addEventListener("resize",()=>{clearTimeout(rsT);rsT=setTimeout(()=>{

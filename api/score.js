@@ -37,7 +37,9 @@ export default async function handler(req, res) {
   const diff = ['classic', 'hard', 'legend'].includes(b.diff) ? b.diff : 'classic';
   const pool = ['all', 'p90', 'p06'].includes(b.pool) ? b.pool : 'all';
   const daily = b.daily === true;
-  const { pts, champion, perfect } = scoreRun(b.matches, { draft, diff, daily, pool });
+  const form = ['4-3-3', '4-4-2', '4-2-3-1', '3-5-2', '4-1-2-1-2', '4-5-1'].includes(b.form) ? b.form : '';
+  const dynFlag = String(b.dyn || '').slice(0, 14);
+  const { pts, champion, perfect, feat } = scoreRun(b.matches, { draft, diff, daily, pool, form, dyn: dynFlag });
 
   let w = 0, d = 0, l = 0, gf = 0, ga = 0;
   b.matches.forEach((x, i) => {
@@ -53,7 +55,7 @@ export default async function handler(req, res) {
   const entry = {
     n: name, c: country, p: pts,
     g: grid, w, d, l, gf, ga,
-    m: draft + (dyn ? '(' + dyn + ')' : '') + '·' + diff + (pool !== 'all' ? '·' + (pool === 'p90' ? 'post-90' : 'post-06') : '') + (daily ? '·daily' : ''),
+    m: (feat ? '⭐' : '') + draft + (dyn ? '(' + dyn + ')' : '') + '·' + diff + (pool !== 'all' ? '·' + (pool === 'p90' ? 'post-90' : 'post-06') : '') + (daily ? '·daily' : ''),
     f: String(b.form || '').slice(0, 10),
     xi: cleanXI(b.xi),
     ch: champion ? 1 : 0, pf: perfect ? 1 : 0,

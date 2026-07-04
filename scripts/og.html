@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1200px;height:630px;overflow:hidden;background:#06231b;
+  font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#f3ecd9;position:relative}
+.glow{position:absolute;inset:0;background:radial-gradient(90% 70% at 50% -20%, rgba(227,179,76,.20), transparent 60%)}
+.pitchlines{position:absolute;inset:0;opacity:.06;
+  background:repeating-linear-gradient(180deg,#fff 0 2px,transparent 2px 90px)}
+.circle{position:absolute;left:50%;top:88%;width:560px;height:560px;transform:translate(-50%,-50%);
+  border:3px solid rgba(243,236,217,.10);border-radius:50%}
+.wrap{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.mark{font-size:190px;font-weight:900;letter-spacing:-8px;line-height:.9;color:#f3ecd9}
+.mark em{font-style:normal;color:#e3b34c}
+.eyebrow{font-size:26px;letter-spacing:.5em;color:#e3b34c;font-weight:800;margin-top:6px}
+.tag{font-size:30px;color:#bdb49c;font-weight:700;margin-top:16px}
+.tag b{color:#f3ecd9}
+.chips{display:flex;gap:14px;margin-top:26px}
+.chip{border:2px solid rgba(227,179,76,.55);color:#ffe9a8;border-radius:999px;padding:10px 22px;font-weight:800;font-size:22px;background:rgba(227,179,76,.10)}
+.flags{position:absolute;z-index:1;left:0;right:0;bottom:34px;text-align:center;font-size:40px;letter-spacing:14px;opacity:.9}
+</style></head><body>
+<div class="glow"></div><div class="pitchlines"></div><div class="circle"></div>
+<div class="wrap">
+  <div class="mark">7<em>-</em>0</div>
+  <div class="eyebrow">THE WORLD CUP DRAFT</div>
+  <div class="tag">Draft a XI from <b>75 years of legends</b> · win all seven · one free run a day</div>
+  <div class="chips"><span class="chip">148 squads</span><span class="chip">1950–2026</span><span class="chip">World leaderboard</span></div>
+</div>
+<div class="flags">🇧🇷 🇦🇷 🇮🇹 🇩🇪 🏴󠁧󠁢󠁥󠁮󠁧󠁿 🇫🇷 🇪🇸 🇳🇱 🇺🇾 🇭🇺 🇲🇦 🇯🇵</div>
+</body></html>

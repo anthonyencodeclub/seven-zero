@@ -19,10 +19,15 @@ A free, fan-made World Cup draft game with a **live world leaderboard** and **da
 - 👕 **Every player has a shirt** — nation-coloured jersey icons with squad numbers, and **specific positions** (RB/LB/CB/DM/CM/AM/RM/LM/RW/LW/ST): wrong role on the right line costs −2/−3, with the full out-of-position ladder beyond.
 - 🫡 **Hidden leadership** — every player carries a hidden leadership stat; great captains (Moore, Beckenbauer, Varela…) lift the side harder, rally late comebacks and steady penalty shootouts.
 - 💀 **Difficulties** — Classic, Hard (ratings hidden), Legend (brutal draw + hidden ratings). Modes multiply your score.
-- 🗓 **One free run a day** — your daily run, played however you like (your own formation/mode/difficulty/pool), with its own leaderboard and 🔥 streaks. A fresh challenge resets every midnight UTC.
+- 🗓 **One free run a day** — your daily run, played however you like, with its own leaderboard and 🔥 streaks. A fresh challenge resets every midnight UTC.
+- ⭐ **Featured challenge of the day** — a rotating named config (Legend Day, Samba Dynasty, Moneyball…) worth **+15%**, verified server-side. One tap to play it.
+- 🆚 **Beat-my-run challenge links** — every run is seeded; share a link and your friend faces the **same wheel, same rules** with your score as the bar, then gets a one-tap counter-challenge.
+- 🏟 **Historical opponents** — you face real squads, not generic nations: a group with Mexico 2014, a semi against Brazil 1970, each introduced with its lore.
+- 📖 **Squad album** — a Panini-style collection: every squad you've drafted from and legend you've fielded, page by decade, lore included. Collect all 148.
+- 📸 **Share card** — results share as a rendered image (verdict, points, result grid, your full XI with shirts) via the native share sheet.
 - 🧭 **Step-by-step setup** — a guided wizard (formation → draft mode → difficulty → player pool → sign-up → play) instead of a wall of options.
 - 🌍 **Live world leaderboard** — every finished run **saves automatically** under your manager profile (name + country collected up front, email optional and encrypted). All-time, daily and **🔥 Regulars** tabs (active daily streaks, days played, cumulative points), top 100 kept, tap any row to see that player's XI.
-- 📬 **Email drip campaign** — opt-in lifecycle emails to keep you coming back: welcome, daily nudge, streak-at-risk ("your 5-day streak ends tonight"), milestone celebrations, and 3-/7-day win-backs. A daily Vercel Cron (`/api/remind`) picks the one due email per subscriber from their activity, sends via Resend (`RESEND_API_KEY`), one-click HMAC-signed unsubscribe.
+- 📬 **Email drip campaign** — opt-in lifecycle emails, strictly **one per day max**: welcome, daily nudge, streak-at-risk, milestone celebrations, 3-/7-day win-backs — each personalised with your streak/runs/titles and today's featured challenge. Daily Vercel Cron (`/api/remind`), sends via Resend (`RESEND_API_KEY`), one-click HMAC-signed unsubscribe.
 - 🎁 **Invite a friend** — a simple share button + link to spread the game.
 - 🏅 **Awards & honours** — a Golden Boot (top scorer, assist tie-break) and a holistic **Player of the Tournament** (goals + assists + clean sheets for defenders/keepers + quality + captaincy, not just the top scorer). Plus server-verified points, 10 badges and a local trophy cabinet.
 - 📋 **Share** — emoji result grid via the native share sheet or clipboard.

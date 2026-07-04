@@ -6,6 +6,30 @@ export const DIFF_MULT = { classic: 1, hard: 1.3, legend: 1.7 };
 export const DRAFT_MULT = { classic: 1, era: 1.15, dynasty: 1.2, cap: 1.3 };
 export const POOL_MULT = { all: 1, p90: 0.9, p06: 0.8 };
 
+/* featured challenge of the day — mirrored in src/game-core.js FEATURED */
+export const FEATURED = [
+  { n: "Legend Day", draft: "classic", diff: "legend", pool: "all", form: "4-3-3" },
+  { n: "Modern Masters", draft: "classic", diff: "hard", pool: "p90", form: "4-2-3-1" },
+  { n: "Samba Dynasty", draft: "dynasty", dyn: "Brazil", diff: "classic", pool: "all", form: "4-2-3-1" },
+  { n: "Time Traveller", draft: "era", diff: "classic", pool: "all", form: "4-4-2" },
+  { n: "Moneyball", draft: "cap", diff: "classic", pool: "all", form: "4-4-2" },
+  { n: "New School", draft: "classic", diff: "classic", pool: "p06", form: "4-3-3" },
+  { n: "Catenaccio Night", draft: "classic", diff: "hard", pool: "all", form: "4-5-1" },
+  { n: "Three Lions… er, Dynasty", draft: "dynasty", dyn: "England", diff: "classic", pool: "all", form: "4-4-2" },
+  { n: "Era Tour: Hard Mode", draft: "era", diff: "hard", pool: "all", form: "4-3-3" },
+  { n: "Wing-back Wednesday-ish", draft: "classic", diff: "classic", pool: "all", form: "3-5-2" }
+];
+export function featuredFor(day) {
+  let h = 0; for (let i = 0; i < day.length; i++) h = (h * 31 + day.charCodeAt(i)) >>> 0;
+  return FEATURED[h % FEATURED.length];
+}
+export const FEAT_MULT = 1.15;
+export function matchesFeatured(flags, day) {
+  const f = featuredFor(day || utcDay());
+  return !!flags.daily && flags.draft === f.draft && flags.diff === f.diff && flags.pool === f.pool
+    && flags.form === f.form && (f.dyn ? flags.dyn === f.dyn : true);
+}
+
 export function validateRun(matches) {
   if (!Array.isArray(matches) || matches.length < 3 || matches.length > 7) return 'matches';
   for (let i = 0; i < matches.length; i++) {
@@ -49,8 +73,10 @@ export function scoreRun(matches, flags) {
   const perfect = champion && reg === 7 && matches.every(x => x.gf > x.ga && !x.et);
   if (perfect) pts += 300;
   pts = Math.max(0, pts);
-  const mult = (DIFF_MULT[flags.diff] || 1) * (DRAFT_MULT[flags.draft] || 1) * (POOL_MULT[flags.pool] ?? 1) * (flags.daily ? 1.1 : 1);
-  return { pts: Math.round(pts * mult), champion, perfect };
+  const feat = matchesFeatured(flags, flags.day);
+  const mult = (DIFF_MULT[flags.diff] || 1) * (DRAFT_MULT[flags.draft] || 1) * (POOL_MULT[flags.pool] ?? 1)
+    * (flags.daily ? 1.1 : 1) * (feat ? FEAT_MULT : 1);
+  return { pts: Math.round(pts * mult), champion, perfect, feat };
 }
 
 /* ---- run token (proves a plausible playtime; not credit-related) ---- */
