@@ -157,7 +157,7 @@ const apiPost=(p,body)=>fetch(p,{method:"POST",headers:{"content-type":"applicat
 /* =========================================================
    No credits / no wallet — pure free play. Invite = social share.
 ========================================================= */
-const SITE_URL="https://seven-zero-navy.vercel.app";
+const SITE_URL="https://sevenzero.app";
 function toast(msg){
   const t=$("toast");if(!t)return;
   t.textContent=msg;t.classList.add("on");

@@ -1,7 +1,7 @@
 import { list } from '@vercel/blob';
 import { decryptEmail, writeSub, signUnsub, utcDay, featuredFor } from './_shared.js';
 
-const SITE = 'https://seven-zero-navy.vercel.app';
+const SITE = 'https://sevenzero.app';
 
 /* ---------- lifecycle drip ----------
    A daily cron walks every opted-in subscriber and sends at most one email,

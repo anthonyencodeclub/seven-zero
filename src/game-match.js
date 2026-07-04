@@ -662,7 +662,7 @@ async function homeBoardPreview(){
 /* =========================================================
    SHARE + CONFETTI
 ========================================================= */
-const SITE="https://seven-zero-navy.vercel.app";
+const SITE="https://sevenzero.app";
 function shareText(){
   const r=S.cup.record;
   const head=S.cup.champion?(S.cup.perfect?"PERFECT 7-0 🏆":"WORLD CHAMPIONS 🏆"):"Knocked out at "+S.cup.outAt+" 📉";

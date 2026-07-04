@@ -6,7 +6,7 @@ A free, fan-made World Cup draft game with a **live world leaderboard** and **da
 
 ## Play
 
-🎮 **[Play it live](https://seven-zero-navy.vercel.app)**
+🎮 **[Play it live](https://sevenzero.app)**
 
 ## What's in the game
 
