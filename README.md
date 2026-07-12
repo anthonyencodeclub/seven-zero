@@ -22,7 +22,7 @@ A free, fan-made World Cup draft game with a **live world leaderboard** and **da
 - 🗓 **One free run a day** — your daily run, played however you like, with its own leaderboard and 🔥 streaks. A fresh challenge resets every midnight UTC.
 - ⭐ **Featured challenge of the day** — a rotating named config (Legend Day, Samba Dynasty, Moneyball…) worth **+15%**, verified server-side. One tap to play it.
 - 🆚 **Beat-my-run challenge links** — every run is seeded; share a link and your friend faces the **same wheel, same rules** with your score as the bar, then gets a one-tap counter-challenge.
-- 🏟 **Historical opponents** — you face real squads, not generic nations: a group with Mexico 2014, a semi against Brazil 1970, each introduced with its lore.
+- 🏟 **Historical opponents** — you face real squads, not generic nations: a group with Mexico 2014, a semi against Brazil 1970, each introduced with its lore. Every opponent nation appears at most once per tournament, and you never face a nation your own XI drafted from.
 - 📖 **Squad album** — a Panini-style collection: every squad you've drafted from and legend you've fielded, page by decade, lore included. Collect all 148.
 - 📸 **Share card** — results share as a rendered image (verdict, points, result grid, your full XI with shirts) via the native share sheet.
 - 🧭 **Step-by-step setup** — a guided wizard (formation → draft mode → difficulty → player pool → sign-up → play) instead of a wall of options.

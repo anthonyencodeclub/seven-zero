@@ -185,24 +185,29 @@ const PILLS=["GRP","R16","QF","SF","FINAL"];
    (a real squad plays as a unit; keeps difficulty in line with the old bands) */
 const OPPS=SQUADS.map(s=>{
   const rs=s.p.map(p=>p[2]).sort((a,b)=>b-a).slice(0,11);
-  return {n:s.t+" "+s.y,f:s.f,r:Math.round(rs.reduce((a,b)=>a+b,0)/rs.length)+4,l:s.l};
+  return {n:s.t+" "+s.y,t:s.t,f:s.f,r:Math.round(rs.reduce((a,b)=>a+b,0)/rs.length)+4,l:s.l};
 });
 function drawOpps(min,max,n,exclude){
   let lo=min,hi=max,pool=[];
-  for(let w=0;w<10&&pool.length<n;w++){    // widen the band until it can serve n squads
-    pool=OPPS.filter(o=>o.r>=lo&&o.r<=hi&&!exclude.has(o.n));
+  for(let w=0;w<14&&new Set(pool.map(o=>o.t)).size<n;w++){  // widen until n distinct NATIONS fit
+    pool=OPPS.filter(o=>o.r>=lo&&o.r<=hi&&!exclude.has(o.t));
     lo--;hi++;
   }
-  const p=pool.slice(),out=[];
-  while(out.length<n&&p.length){out.push(...p.splice(rnd(p.length),1));}
+  const p=pool.slice(),out=[],seen=new Set();
+  while(out.length<n&&p.length){
+    const c=p.splice(rnd(p.length),1)[0];
+    if(seen.has(c.t))continue;             // a nation appears at most once per tournament
+    seen.add(c.t);out.push(c);
+  }
   return out;
 }
 function startCup(){
-  const used=new Set();
+  // never face a nation twice — nor any nation your own XI drafted from
+  const used=new Set(S.slots.filter(sl=>sl.player).map(sl=>sl.player.team));
   const L=S.diff==="legend";
   S.cup.group={opps:drawOpps(L?82:78,L?90:86,3,used),results:[]};
-  S.cup.group.opps.forEach(o=>used.add(o.n));
-  const kn=(a,b)=>{const c=pickFrom(drawOpps(a,b,4,used));used.add(c.n);return c;};
+  S.cup.group.opps.forEach(o=>used.add(o.t));
+  const kn=(a,b)=>{const c=pickFrom(drawOpps(a,b,4,used));used.add(c.t);return c;};
   S.cup.knock=[kn(84,89),kn(86,91),kn(87,92),kn(L?90:88,93)];
   const feed=$("cup-feed");feed.innerHTML="";delete feed.dataset.knock;
   renderBracket();
